@@ -1,24 +1,41 @@
 package memory
 
-import tracker "fpl-live-tracker/pkg"
+import (
+	tracker "fpl-live-tracker/pkg"
+	"sync"
+)
 
 // type Manager struct {
 // 	FplID    int
 // 	FullName string
 // }
 
-type ManagerRepository struct {
+//
+type managerRepository struct {
 	managers map[int]tracker.Manager
+	sync.Mutex
 }
 
-func (mr *ManagerRepository) Add(tracker.Manager) error {
+// NewManagerRepository creates new repository for managers
+func NewManagerRepository() (tracker.ManagerRepository, error) {
+	mr := managerRepository{
+		managers: make(map[int]tracker.Manager),
+	}
+
+	return &mr, nil
+}
+
+//
+func (mr *managerRepository) Add(manager *tracker.Manager) error {
 	return nil
 }
 
-func (mr *ManagerRepository) AddMany(managers []tracker.Manager) error {
+//
+func (mr *managerRepository) AddMany(managers []tracker.Manager) error {
 	return nil
 }
 
-func (mr *ManagerRepository) GetByFplID(id int) (*tracker.Manager, error) {
+//
+func (mr *managerRepository) GetByFplID(id int) (*tracker.Manager, error) {
 	return nil, nil
 }

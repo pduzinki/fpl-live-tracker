@@ -45,7 +45,8 @@ type wrapper struct {
 	baseURL string
 }
 
-// NewWrapper returns an instance of an FPL API wrapper
+// NewWrapper returns an instance of an FPL API wrapper.
+// Pass wrapper.DefaultURL as an argument, if you're not testing anything.
 func NewWrapper(url string) Wrapper {
 	return &wrapper{
 		client: &http.Client{
@@ -55,6 +56,7 @@ func NewWrapper(url string) Wrapper {
 	}
 }
 
+// GetManager returns data from FPL API "/api/entry/{managerID}/" endpoint
 func (w *wrapper) GetManager(id int) (*tracker.Manager, error) {
 	url := fmt.Sprintf(w.baseURL+"/entry/%d/", id)
 	var m Manager

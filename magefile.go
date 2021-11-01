@@ -3,14 +3,18 @@
 package main
 
 import (
+	"os"
+
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 )
 
+// Clear deletes the app binary
 func Clear() error {
 	return sh.Run("rm", "app", "-f")
 }
 
+// Build compiles the app
 func Build() error {
 	mg.Deps(Clear)
 
@@ -22,11 +26,22 @@ func Build() error {
 		"GOOS":   "linux",
 		"GOARCH": "amd64",
 	}
-	return sh.RunWith(env, "go", "build", "-ldflags="+"-w -s", "-o", "app", "./cmd/server")
+	_, err := sh.Exec(env, os.Stdout, os.Stderr, "go", "build", "-ldflags="+"-w -s", "-o", "app", "./cmd/server")
+
+	return err
 }
 
+// Test runs all tests inside /pkg
+func Test() error {
+	_, err := sh.Exec(nil, os.Stdout, os.Stderr, "go", "test", "./pkg/...")
+	return err
+}
+
+// Docker creates Docker image for the app
 func Docker() error {
 	mg.Deps(Clear)
 
-	return sh.Run("docker", "build", "-t", "fpl-live-tracker", ".")
+	_, err := sh.Exec(nil, os.Stdout, os.Stderr, "docker", "build", "-t", "fpl-live-tracker", ".")
+	sh.Run("docker", "image", "prune", "-f")
+	return err
 }

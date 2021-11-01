@@ -3,6 +3,7 @@ package wrapper
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -10,14 +11,27 @@ import (
 	tracker "fpl-live-tracker/pkg"
 )
 
-const baseURL = "https://fantasy.premierleague.com/api"
+const DefaultURL = "https://fantasy.premierleague.com/api"
 
-var ErrHTTPStatusNotOK error = errors.New("Response status != http 200")
-var ErrHTTPTooManyRequests error = errors.New("Response status - http 429 - too many requests")
-var ErrHTTPStatusNotFound error = errors.New("Response status - http 404 - not found")
-var ErrHTTPStatusServiceUnavailable error = errors.New("Response status - http 503 - service unavailable")
-var ErrReadFailure error = errors.New("Failed to read the response")
-var ErrUnmarshalFailure error = errors.New("Failed to unmarshal data")
+var ErrReadFailure error = errors.New("failed to read the response")
+var ErrUnmarshalFailure error = errors.New("failed to unmarshal data")
+
+type errorHttpNotOk struct {
+	statusCode int
+}
+
+type ErrorHttpNotOk interface {
+	error
+	GetHttpStatusCode() int
+}
+
+func (err *errorHttpNotOk) Error() string {
+	return fmt.Sprintf("http status not ok: %d\n", err.statusCode)
+}
+
+func (err *errorHttpNotOk) GetHttpStatusCode() int {
+	return err.statusCode
+}
 
 // Wrapper is a helper interface around FPL API
 type Wrapper interface {
@@ -32,17 +46,31 @@ type wrapper struct {
 }
 
 // NewWrapper returns an instance of an FPL API wrapper
-func NewWrapper() Wrapper {
+func NewWrapper(url string) Wrapper {
 	return &wrapper{
 		client: &http.Client{
 			Timeout: time.Second * 10,
 		},
-		baseURL: baseURL,
+		baseURL: url,
 	}
 }
 
 func (w *wrapper) GetManager(id int) (*tracker.Manager, error) {
-	return nil, nil
+	url := fmt.Sprintf(w.baseURL+"/entry/%d/", id)
+	var m Manager
+
+	err := w.fetchData(url, &m)
+	if err != nil {
+		return nil, err
+	}
+
+	tm := tracker.Manager{
+		FplID:    m.ID,
+		FullName: fmt.Sprintf("%s %s", m.FirstName, m.LastName),
+		TeamName: m.Name,
+	}
+
+	return &tm, nil
 }
 
 func (w *wrapper) fetchData(url string, data interface{}) error {
@@ -58,14 +86,12 @@ func (w *wrapper) fetchData(url string, data interface{}) error {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode == http.StatusTooManyRequests {
-		return ErrHTTPTooManyRequests
-	} else if resp.StatusCode == http.StatusServiceUnavailable {
-		return ErrHTTPStatusServiceUnavailable
-	} else if resp.StatusCode == http.StatusNotFound {
-		return ErrHTTPStatusNotFound
-	} else if resp.StatusCode != http.StatusOK {
-		return ErrHTTPStatusNotOK
+	if resp.StatusCode != http.StatusOK {
+		err := errorHttpNotOk{
+			statusCode: resp.StatusCode,
+		}
+
+		return &err
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)

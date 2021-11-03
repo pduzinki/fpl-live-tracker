@@ -25,11 +25,11 @@ type ErrorHttpNotOk interface {
 	GetHttpStatusCode() int
 }
 
-func (err *errorHttpNotOk) Error() string {
+func (err errorHttpNotOk) Error() string {
 	return fmt.Sprintf("http status not ok: %d\n", err.statusCode)
 }
 
-func (err *errorHttpNotOk) GetHttpStatusCode() int {
+func (err errorHttpNotOk) GetHttpStatusCode() int {
 	return err.statusCode
 }
 
@@ -93,7 +93,7 @@ func (w *wrapper) fetchData(url string, data interface{}) error {
 			statusCode: resp.StatusCode,
 		}
 
-		return &err
+		return err
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)

@@ -1,6 +1,7 @@
 package wrapper
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -11,7 +12,6 @@ import (
 )
 
 func TestGetManager(t *testing.T) {
-
 	testcases := []struct {
 		name                string
 		id                  int
@@ -20,15 +20,11 @@ func TestGetManager(t *testing.T) {
 		handlerStatusCode   int
 		handlerBodyFilePath string
 	}{
-		{"OK", 123, &tracker.Manager{FplID: 123, FullName: "John Doe", TeamName: "FC John"}, nil, http.StatusOK, "./testdata/getmanager.json"},
-		// TODO add testcases:
-		// 200 everything ok
-		// 429 too many requests
-		// 404 not found
-		// 503 service unavailable
-		// !200 not ok, not anything from above
-		// failed to read the response
-		// failed to unmarshal data
+		{"ok", 123, &tracker.Manager{FplID: 123, FullName: "John Doe", TeamName: "FC John"}, nil, http.StatusOK, "./testdata/getmanager.json"},
+		{"too many requests", 123, nil, errorHttpNotOk{429}, http.StatusTooManyRequests, "./testdata/empty.json"},
+		{"not found", 123, nil, errorHttpNotOk{404}, http.StatusNotFound, "./testdata/empty.json"},
+		{"service unavailable", 123, nil, errorHttpNotOk{503}, http.StatusServiceUnavailable, "./testdata/empty.json"},
+		{"unmarshal error", 123, nil, ErrUnmarshalFailure, http.StatusOK, "./testdata/getmanager.broken_json"},
 	}
 
 	for _, test := range testcases {
@@ -48,11 +44,12 @@ func TestGetManager(t *testing.T) {
 		w := NewWrapper(server.URL)
 
 		got, gotErr := w.GetManager(test.id)
-		if gotErr != test.wantErr {
-			t.Errorf("error: testcase '%s', want error %v, got error %v", test.name, test.wantErr, gotErr)
+		// if gotErr != test.wantErr {
+		if !errors.Is(gotErr, test.wantErr) {
+			t.Errorf("error: testcase '%s', want error '%v', got error '%v'", test.name, test.wantErr, gotErr)
 		}
 		if !reflect.DeepEqual(got, test.want) {
-			t.Errorf("error: testcase '%s', want %v, got %v", test.name, test.want, got)
+			t.Errorf("error: testcase '%s', want '%v', got '%v'", test.name, test.want, got)
 		}
 	}
 }

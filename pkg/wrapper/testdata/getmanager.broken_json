@@ -1,0 +1,32 @@
+{
+    "current_event" : 10,
+    "favourite_team" : 11,
+    "id" : 123,
+    "joined_time" : "2021-06-22T11:12:25.195807Z",
+    "kit" : "{\"kit_shirt_type\":\"stripes\",\"kit_shirt_base\":\"#f8fe85\",\"kit_shirt_sleeves\":\"#ffbd67\",\"kit_shirt_secondary\":\"#ffbd67\",\"kit_shirt_logo\":\"rainbow-laces\",\"kit_shorts\":\"#5be7a9\",\"kit_socks_type\":\"hoops\",\"kit_socks_base\":\"#f8fe85\",\"kit_socks_secondary\":\"#ffbd67\"}",
+    "last_deadline_bank" : 27,
+    "last_deadline_total_transfers" : 10,
+    "last_deadline_value" : 1022,
+    "leagues" : {
+       "classic" : [],
+       "cup" : {
+          "cup_league" : 315,
+          "matches" : [],
+          "status" : {
+             "qualification_event" : 16,
+             "qualification_numbers" : 4194304,
+             "qualification_rank" : null,
+             "qualification_state" : "NOT_STARTED"
+          }
+       },
+       "h2h" : []
+    },
+    "name" : "FC John",
+    "name_change_blocked" : false,
+    "player_first_name" : "John",
+    "player_last_name" : "Doe",
+    "player_region_id" : 99,
+    "player_region_iso_code_long" : "ISL",
+    "player_region_iso_code_short" : "IS",
+
+ 

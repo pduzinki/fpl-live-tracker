@@ -10,7 +10,7 @@ type Manager struct {
 
 // ManagerRepository is an interface for interacting with Manager storage
 type ManagerRepository interface {
-	Add(manager *Manager) error
+	Add(manager Manager) error
 	AddMany(managers []Manager) error
-	GetByFplID(id int) (*Manager, error)
+	GetByFplID(id int) (Manager, error)
 }

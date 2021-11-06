@@ -47,7 +47,7 @@ func (mr *managerRepository) AddMany(managers []tracker.Manager) error {
 	for _, manager := range managers {
 		err := mr.Add(manager)
 		if err != nil {
-			return err
+			return err // TODO return a more appropriate error (perhaps add custom type error)
 		}
 	}
 	return nil

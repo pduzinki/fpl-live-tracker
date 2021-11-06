@@ -18,7 +18,7 @@ func TestAdd(t *testing.T) {
 		want    error
 	}{
 		{jane, nil},
-		{john, ErrRecordAlreadyExists},
+		{john, errorRecordAlreadyExists{john.FplID}},
 	}
 
 	mr := managerRepository{
@@ -37,7 +37,33 @@ func TestAdd(t *testing.T) {
 }
 
 func TestAddMany(t *testing.T) {
-	// TODO
+	testcases := []struct {
+		managers []tracker.Manager
+		want     error
+	}{
+		{
+			managers: []tracker.Manager{jane, joel},
+			want:     nil,
+		},
+		{
+			managers: []tracker.Manager{jim, jim},
+			want:     errorRecordAlreadyExists{jim.FplID},
+		},
+	}
+
+	mr := managerRepository{
+		managers: map[int]tracker.Manager{
+			john.FplID: john,
+			jim.FplID:  jim,
+		},
+	}
+
+	for _, test := range testcases {
+		got := mr.AddMany(test.managers)
+		if got != test.want {
+			t.Errorf("error: got err '%v', want err '%v'", got, test.want)
+		}
+	}
 }
 
 func TestGetByFplID(t *testing.T) {

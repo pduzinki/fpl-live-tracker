@@ -1,6 +1,6 @@
 ## About
 *fpl-live-tracker* is a tool that collects and processes live data from official Fantasy Premier League API, and calculates estimated live league rankings.  
-*Disclaimer: this is WIP, so doesn't really work yet.*
+**Disclaimer**: this is WIP, so it doesn't really work yet.
 
 ## Prerequisites
 * Go (1.17 or higher) https://golang.org/doc/install

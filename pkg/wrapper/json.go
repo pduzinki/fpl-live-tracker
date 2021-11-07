@@ -6,3 +6,11 @@ type Manager struct {
 	LastName  string `json:"player_last_name"`
 	Name      string `json:"name"`
 }
+
+type Team struct {
+	// TODO
+}
+
+type League struct {
+	// TODO
+}

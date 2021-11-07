@@ -36,7 +36,7 @@ func (err errorHttpNotOk) GetHttpStatusCode() int {
 // Wrapper is a helper interface around FPL API
 type Wrapper interface {
 	GetManager(id int) (*tracker.Manager, error)
-	// GetTeam(id int) (*tracker.Team, error)
+	GetTeam(id, gw int) (*tracker.Team, error)
 	// TODO add more methods
 }
 
@@ -73,6 +73,24 @@ func (w *wrapper) GetManager(id int) (*tracker.Manager, error) {
 	}
 
 	return &tm, nil
+}
+
+//
+func (w *wrapper) GetTeam(id, gw int) (*tracker.Team, error) {
+	url := fmt.Sprintf(w.baseURL+"/entry/%d/event/%d/picks/", id, gw)
+	var t Team
+
+	err := w.fetchData(url, &t)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO add proper translation wrapper.Team -> tracker.Team
+	tt := tracker.Team{
+		FplID: id,
+	}
+
+	return &tt, nil
 }
 
 func (w *wrapper) fetchData(url string, data interface{}) error {

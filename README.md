@@ -1,5 +1,5 @@
 ## About
-*fpl-live-tracker* is a tool that collects and processes live data from official Fantasy Premier League API, and calculates estimated live league rankings.\  
+*fpl-live-tracker* is a tool that collects and processes live data from official Fantasy Premier League API, and calculates estimated live league rankings.  
 *Disclaimer: this is WIP, so doesn't really work yet.*
 
 ## Prerequisites

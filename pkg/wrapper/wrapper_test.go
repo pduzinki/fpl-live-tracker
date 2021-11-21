@@ -2,6 +2,7 @@ package wrapper
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -51,5 +52,53 @@ func TestGetManager(t *testing.T) {
 		if !reflect.DeepEqual(got, test.want) {
 			t.Errorf("error: testcase '%s', want '%v', got '%v'", test.name, test.want, got)
 		}
+	}
+}
+
+func TestGetGameweeks(t *testing.T) {
+	testcases := []struct {
+		name                string
+		handlerStatusCode   int
+		handlerBodyFilePath string
+	}{
+		{"ok", http.StatusOK, "./testdata/bootstrap-static.json"},
+	}
+
+	for _, test := range testcases {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(test.handlerStatusCode)
+			w.Header().Set("Content-Type", "application/json")
+
+			f, err := os.ReadFile(test.handlerBodyFilePath)
+			if err != nil {
+				t.Error(err)
+			}
+
+			w.Write(f)
+		}))
+		defer server.Close()
+
+		w := NewWrapper(server.URL)
+
+		_, err := w.GetGameweeks()
+		fmt.Println(err)
+
+		// TODO finish up this test
+	}
+}
+
+func TestFetchData(t *testing.T) {
+	// TODO add this test
+
+	testcases := []struct {
+		foo int
+	}{
+		{0},
+		{1},
+		{2},
+	}
+
+	for _, test := range testcases {
+		_ = test
 	}
 }

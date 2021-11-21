@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	tracker "fpl-live-tracker/pkg"
 	"fpl-live-tracker/pkg/http/rest"
 	"fpl-live-tracker/pkg/storage/memory"
 	"log"
@@ -16,6 +17,12 @@ func main() {
 		panic(err)
 	}
 	_ = mr
+
+	tracker, err := tracker.NewTracker()
+	if err != nil {
+		log.Fatalf("failed to init tracker: %v\n", err)
+	}
+	go tracker.Track()
 
 	router := rest.Handler()
 

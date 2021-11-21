@@ -37,7 +37,7 @@ func (err errorHttpNotOk) GetHttpStatusCode() int {
 type Wrapper interface {
 	GetManager(id int) (*tracker.Manager, error)
 	GetTeam(id, gw int) (*tracker.Team, error)
-	// TODO add more methods
+	GetGameweeks() ([]tracker.Gameweek, error)
 }
 
 type wrapper struct {
@@ -91,6 +91,30 @@ func (w *wrapper) GetTeam(id, gw int) (*tracker.Team, error) {
 	}
 
 	return &tt, nil
+}
+
+func (w *wrapper) GetGameweeks() ([]tracker.Gameweek, error) {
+	url := fmt.Sprintf(w.baseURL + "/bootstrap-static/")
+	var bs Bootstrap
+
+	err := w.fetchData(url, &bs)
+	if err != nil {
+		return nil, err
+	}
+
+	gameweeks := make([]tracker.Gameweek, 0)
+	for _, gw := range bs.Gws {
+		gameweeks = append(gameweeks, tracker.Gameweek{
+			ID:           gw.ID,
+			Name:         gw.Name,
+			Finished:     gw.Finished,
+			IsCurrent:    gw.IsCurrent,
+			IsNext:       gw.IsNext,
+			DeadlineTime: gw.DeadlineTime,
+		})
+	}
+
+	return gameweeks, nil
 }
 
 func (w *wrapper) fetchData(url string, data interface{}) error {

@@ -99,8 +99,6 @@ func TestGetGameweeks(t *testing.T) {
 }
 
 func TestFetchData(t *testing.T) {
-	// TODO add this test
-
 	testcases := []struct {
 		name                string
 		handlerStatusCode   int

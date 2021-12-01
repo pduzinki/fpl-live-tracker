@@ -2,7 +2,6 @@ package wrapper
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -60,8 +59,17 @@ func TestGetGameweeks(t *testing.T) {
 		name                string
 		handlerStatusCode   int
 		handlerBodyFilePath string
+		wantErr             error
+		want                *tracker.Gameweek // verify just one particular gw data, just to save some space
 	}{
-		{"ok", http.StatusOK, "./testdata/bootstrap-static.json"},
+		{"ok", http.StatusOK, "./testdata/bootstrap-static.json", nil, &tracker.Gameweek{
+			ID:           12,
+			Name:         "Gameweek 12",
+			Finished:     false,
+			IsCurrent:    true,
+			IsNext:       false,
+			DeadlineTime: "2021-11-20T11:00:00Z",
+		}},
 	}
 
 	for _, test := range testcases {
@@ -80,10 +88,13 @@ func TestGetGameweeks(t *testing.T) {
 
 		w := NewWrapper(server.URL)
 
-		_, err := w.GetGameweeks()
-		fmt.Println(err)
-
-		// TODO finish up this test
+		got, err := w.GetGameweeks()
+		if err != test.wantErr {
+			t.Errorf("error: testcase '%s', want error '%v', got error '%v'", test.name, test.wantErr, err)
+		}
+		if got[11] != *test.want {
+			t.Errorf("error: testcase '%s', want '%v', got '%v'", test.name, test.want, got[11])
+		}
 	}
 }
 
@@ -91,14 +102,45 @@ func TestFetchData(t *testing.T) {
 	// TODO add this test
 
 	testcases := []struct {
-		foo int
+		name                string
+		handlerStatusCode   int
+		handlerBodyFilePath string
+		wantErr             error
 	}{
-		{0},
-		{1},
-		{2},
+		{"ok", http.StatusOK, "./testdata/fetchdata.json", nil},
+		{"too many requests", http.StatusTooManyRequests, "./testdata/fetchdata.json", errorHttpNotOk{429}},
+		{"not found", http.StatusNotFound, "./testdata/fetchdata.json", errorHttpNotOk{404}},
+		{"service unavailable", http.StatusServiceUnavailable, "./testdata/fetchdata.json", errorHttpNotOk{503}},
+		{"unmarshal error", http.StatusOK, "./testdata/fetchdata.broken_json", ErrUnmarshalFailure},
 	}
 
 	for _, test := range testcases {
-		_ = test
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(test.handlerStatusCode)
+			w.Header().Set("Content-Type", "application/json")
+
+			f, err := os.ReadFile(test.handlerBodyFilePath)
+			if err != nil {
+				t.Error(err)
+			}
+
+			w.Write(f)
+		}))
+		defer server.Close()
+
+		w := wrapper{
+			client:  &http.Client{},
+			baseURL: server.URL,
+		}
+
+		type tmp struct {
+			Data int `json:"data"`
+		}
+		var data tmp
+
+		gotErr := w.fetchData(w.baseURL, &data)
+		if gotErr != test.wantErr {
+			t.Errorf("error: testcase '%s', want error '%v', got error '%v'", test.name, test.wantErr, gotErr)
+		}
 	}
 }

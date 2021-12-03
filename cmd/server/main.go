@@ -2,11 +2,14 @@ package main
 
 import (
 	"fmt"
-	tracker "fpl-live-tracker/pkg"
-	"fpl-live-tracker/pkg/http/rest"
-	"fpl-live-tracker/pkg/storage/memory"
 	"log"
 	"net/http"
+
+	"fpl-live-tracker/pkg/http/rest"
+	"fpl-live-tracker/pkg/services/gameweek"
+	"fpl-live-tracker/pkg/services/tracker"
+	"fpl-live-tracker/pkg/storage/memory"
+	"fpl-live-tracker/pkg/wrapper"
 )
 
 func main() {
@@ -18,7 +21,13 @@ func main() {
 	}
 	_ = mr
 
-	tracker, err := tracker.NewTracker()
+	wrapper := wrapper.NewWrapper(wrapper.DefaultURL)
+	_ = wrapper
+
+	gwService := gameweek.NewGameweekService()
+	_ = gwService
+
+	tracker, err := tracker.NewTracker(tracker.WithGameweekService())
 	if err != nil {
 		log.Fatalf("failed to init tracker: %v\n", err)
 	}

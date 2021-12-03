@@ -8,8 +8,3 @@ type Gameweek struct {
 	IsNext       bool
 	DeadlineTime string // TODO change to time.Time
 }
-
-type GameweekService interface {
-	GetCurrentGameweek()
-	GetNextGameweek()
-}

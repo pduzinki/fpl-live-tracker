@@ -1,15 +1,20 @@
 package gameweek
 
+import "fpl-live-tracker/pkg/wrapper"
+
 type GameweekService interface {
 	GetCurrentGameweek()
 	GetNextGameweek()
 }
 
 type gameweekService struct {
+	wrapper wrapper.Wrapper
 }
 
-func NewGameweekService() GameweekService {
-	return &gameweekService{}
+func NewGameweekService(w wrapper.Wrapper) GameweekService {
+	return &gameweekService{
+		wrapper: w,
+	}
 }
 
 // GetCurrentGameweek returns current, ongoing gameweek.

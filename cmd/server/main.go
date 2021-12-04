@@ -22,12 +22,10 @@ func main() {
 	_ = mr
 
 	wrapper := wrapper.NewWrapper(wrapper.DefaultURL)
-	_ = wrapper
 
-	gwService := gameweek.NewGameweekService()
-	_ = gwService
+	gwService := gameweek.NewGameweekService(wrapper)
 
-	tracker, err := tracker.NewTracker(tracker.WithGameweekService())
+	tracker, err := tracker.NewTracker(tracker.WithGameweekService(gwService))
 	if err != nil {
 		log.Fatalf("failed to init tracker: %v\n", err)
 	}

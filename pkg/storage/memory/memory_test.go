@@ -1,20 +1,20 @@
 package memory
 
 import (
-	tracker "fpl-live-tracker/pkg"
+	domain "fpl-live-tracker/pkg"
 	"testing"
 )
 
 var (
-	john = tracker.Manager{FplID: 1, FullName: "John Doe", TeamName: "FC John"}
-	jim  = tracker.Manager{FplID: 2, FullName: "Jim Jim", TeamName: "FC Jim"}
-	jane = tracker.Manager{FplID: 3, FullName: "Jane Foo", TeamName: "Jane City"}
-	joel = tracker.Manager{FplID: 66, FullName: "Joel Bar", TeamName: "Bar AFC"}
+	john = domain.Manager{FplID: 1, FullName: "John Doe", TeamName: "FC John"}
+	jim  = domain.Manager{FplID: 2, FullName: "Jim Jim", TeamName: "FC Jim"}
+	jane = domain.Manager{FplID: 3, FullName: "Jane Foo", TeamName: "Jane City"}
+	joel = domain.Manager{FplID: 66, FullName: "Joel Bar", TeamName: "Bar AFC"}
 )
 
 func TestAdd(t *testing.T) {
 	testcases := []struct {
-		manager tracker.Manager
+		manager domain.Manager
 		want    error
 	}{
 		{jane, nil},
@@ -22,7 +22,7 @@ func TestAdd(t *testing.T) {
 	}
 
 	mr := managerRepository{
-		managers: map[int]tracker.Manager{
+		managers: map[int]domain.Manager{
 			john.FplID: john,
 			jim.FplID:  jim,
 		},
@@ -38,21 +38,21 @@ func TestAdd(t *testing.T) {
 
 func TestAddMany(t *testing.T) {
 	testcases := []struct {
-		managers []tracker.Manager
+		managers []domain.Manager
 		want     error
 	}{
 		{
-			managers: []tracker.Manager{jane, joel},
+			managers: []domain.Manager{jane, joel},
 			want:     nil,
 		},
 		{
-			managers: []tracker.Manager{jim, jim},
+			managers: []domain.Manager{jim, jim},
 			want:     errorRecordAlreadyExists{jim.FplID},
 		},
 	}
 
 	mr := managerRepository{
-		managers: map[int]tracker.Manager{
+		managers: map[int]domain.Manager{
 			john.FplID: john,
 			jim.FplID:  jim,
 		},
@@ -69,15 +69,15 @@ func TestAddMany(t *testing.T) {
 func TestGetByFplID(t *testing.T) {
 	testcases := []struct {
 		fplID   int
-		want    tracker.Manager
+		want    domain.Manager
 		wantErr error
 	}{
 		{john.FplID, john, nil},
-		{jane.FplID, tracker.Manager{}, ErrRecordNotFound},
+		{jane.FplID, domain.Manager{}, ErrRecordNotFound},
 	}
 
 	mr := managerRepository{
-		managers: map[int]tracker.Manager{
+		managers: map[int]domain.Manager{
 			john.FplID: john,
 			jim.FplID:  jim,
 		},

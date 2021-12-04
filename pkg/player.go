@@ -1,4 +1,4 @@
-package tracker
+package domain
 
 type Player struct {
 	ID   int

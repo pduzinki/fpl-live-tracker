@@ -1,4 +1,4 @@
-package tracker
+package domain
 
 type Gameweek struct {
 	ID           int
@@ -8,3 +8,5 @@ type Gameweek struct {
 	IsNext       bool
 	DeadlineTime string // TODO change to time.Time
 }
+
+// TODO move domain types to separate folder

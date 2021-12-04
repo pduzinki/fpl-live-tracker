@@ -1,7 +1,7 @@
 package memory
 
 import (
-	tracker "fpl-live-tracker/pkg"
+	domain "fpl-live-tracker/pkg"
 	"sync"
 )
 
@@ -12,21 +12,21 @@ import (
 
 //
 type managerRepository struct {
-	managers map[int]tracker.Manager
+	managers map[int]domain.Manager
 	sync.Mutex
 }
 
 // NewManagerRepository creates new repository for managers
-func NewManagerRepository() (tracker.ManagerRepository, error) {
+func NewManagerRepository() (domain.ManagerRepository, error) {
 	mr := managerRepository{
-		managers: make(map[int]tracker.Manager),
+		managers: make(map[int]domain.Manager),
 	}
 
 	return &mr, nil
 }
 
 //
-func (mr *managerRepository) Add(manager tracker.Manager) error {
+func (mr *managerRepository) Add(manager domain.Manager) error {
 	if _, ok := mr.managers[manager.FplID]; ok {
 		return errorRecordAlreadyExists{
 			fplID: manager.FplID,
@@ -41,7 +41,7 @@ func (mr *managerRepository) Add(manager tracker.Manager) error {
 }
 
 //
-func (mr *managerRepository) AddMany(managers []tracker.Manager) error {
+func (mr *managerRepository) AddMany(managers []domain.Manager) error {
 	for _, manager := range managers {
 		err := mr.Add(manager)
 		if err != nil {
@@ -52,10 +52,10 @@ func (mr *managerRepository) AddMany(managers []tracker.Manager) error {
 }
 
 //
-func (mr *managerRepository) GetByFplID(id int) (tracker.Manager, error) {
+func (mr *managerRepository) GetByFplID(id int) (domain.Manager, error) {
 	if manager, ok := mr.managers[id]; ok {
 		return manager, nil
 	}
 
-	return tracker.Manager{}, ErrRecordNotFound
+	return domain.Manager{}, ErrRecordNotFound
 }

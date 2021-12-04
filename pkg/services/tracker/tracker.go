@@ -1,6 +1,7 @@
 package tracker
 
 import (
+	"errors"
 	"fpl-live-tracker/pkg/services/gameweek"
 	"log"
 )
@@ -25,8 +26,12 @@ func NewTracker(fns ...TrackerConfigFunc) (*Tracker, error) {
 	return &t, nil
 }
 
-func WithGameweekService() TrackerConfigFunc {
+func WithGameweekService(gwService gameweek.GameweekService) TrackerConfigFunc {
 	return func(t *Tracker) error {
+		if gwService == nil {
+			return errors.New("tracker init error: gwService is nil")
+		}
+		t.GwService = gwService
 		return nil
 	}
 }

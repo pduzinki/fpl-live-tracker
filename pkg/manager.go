@@ -1,4 +1,4 @@
-package tracker
+package domain
 
 // Manager represents a human being that plays Fantasy Premier League
 type Manager struct {

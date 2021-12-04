@@ -2,25 +2,24 @@ package wrapper
 
 import (
 	"errors"
+	domain "fpl-live-tracker/pkg"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"reflect"
 	"testing"
-
-	tracker "fpl-live-tracker/pkg"
 )
 
 func TestGetManager(t *testing.T) {
 	testcases := []struct {
 		name                string
 		id                  int
-		want                *tracker.Manager
+		want                *domain.Manager
 		wantErr             error
 		handlerStatusCode   int
 		handlerBodyFilePath string
 	}{
-		{"ok", 123, &tracker.Manager{FplID: 123, FullName: "John Doe", TeamName: "FC John"}, nil, http.StatusOK, "./testdata/getmanager.json"},
+		{"ok", 123, &domain.Manager{FplID: 123, FullName: "John Doe", TeamName: "FC John"}, nil, http.StatusOK, "./testdata/getmanager.json"},
 		{"too many requests", 123, nil, errorHttpNotOk{429}, http.StatusTooManyRequests, "./testdata/empty.json"},
 		{"not found", 123, nil, errorHttpNotOk{404}, http.StatusNotFound, "./testdata/empty.json"},
 		{"service unavailable", 123, nil, errorHttpNotOk{503}, http.StatusServiceUnavailable, "./testdata/empty.json"},
@@ -60,9 +59,9 @@ func TestGetGameweeks(t *testing.T) {
 		handlerStatusCode   int
 		handlerBodyFilePath string
 		wantErr             error
-		want                *tracker.Gameweek // verify just one particular gw data, just to save some space
+		want                *domain.Gameweek // verify just one particular gw data, just to save some space
 	}{
-		{"ok", http.StatusOK, "./testdata/bootstrap-static.json", nil, &tracker.Gameweek{
+		{"ok", http.StatusOK, "./testdata/bootstrap-static.json", nil, &domain.Gameweek{
 			ID:           12,
 			Name:         "Gameweek 12",
 			Finished:     false,

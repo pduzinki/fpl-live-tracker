@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	tracker "fpl-live-tracker/pkg"
+	domain "fpl-live-tracker/pkg"
 )
 
 const DefaultURL = "https://fantasy.premierleague.com/api"
@@ -35,9 +35,9 @@ func (err errorHttpNotOk) GetHttpStatusCode() int {
 
 // Wrapper is a helper interface around FPL API
 type Wrapper interface {
-	GetManager(id int) (*tracker.Manager, error)
-	GetTeam(id, gw int) (*tracker.Team, error)
-	GetGameweeks() ([]tracker.Gameweek, error)
+	GetManager(id int) (*domain.Manager, error)
+	GetTeam(id, gw int) (*domain.Team, error)
+	GetGameweeks() ([]domain.Gameweek, error)
 }
 
 type wrapper struct {
@@ -57,7 +57,7 @@ func NewWrapper(url string) Wrapper {
 }
 
 // GetManager returns data from FPL API "/api/entry/{managerID}/" endpoint
-func (w *wrapper) GetManager(id int) (*tracker.Manager, error) {
+func (w *wrapper) GetManager(id int) (*domain.Manager, error) {
 	url := fmt.Sprintf(w.baseURL+"/entry/%d/", id)
 	var m Manager
 
@@ -66,7 +66,7 @@ func (w *wrapper) GetManager(id int) (*tracker.Manager, error) {
 		return nil, err
 	}
 
-	tm := tracker.Manager{
+	tm := domain.Manager{
 		FplID:    m.ID,
 		FullName: fmt.Sprintf("%s %s", m.FirstName, m.LastName),
 		TeamName: m.Name,
@@ -76,7 +76,7 @@ func (w *wrapper) GetManager(id int) (*tracker.Manager, error) {
 }
 
 //
-func (w *wrapper) GetTeam(id, gw int) (*tracker.Team, error) {
+func (w *wrapper) GetTeam(id, gw int) (*domain.Team, error) {
 	url := fmt.Sprintf(w.baseURL+"/entry/%d/event/%d/picks/", id, gw)
 	var t Team
 
@@ -86,14 +86,14 @@ func (w *wrapper) GetTeam(id, gw int) (*tracker.Team, error) {
 	}
 
 	// TODO add proper translation wrapper.Team -> tracker.Team
-	tt := tracker.Team{
+	tt := domain.Team{
 		FplID: id,
 	}
 
 	return &tt, nil
 }
 
-func (w *wrapper) GetGameweeks() ([]tracker.Gameweek, error) {
+func (w *wrapper) GetGameweeks() ([]domain.Gameweek, error) {
 	url := fmt.Sprintf(w.baseURL + "/bootstrap-static/")
 	var bs Bootstrap
 
@@ -102,9 +102,9 @@ func (w *wrapper) GetGameweeks() ([]tracker.Gameweek, error) {
 		return nil, err
 	}
 
-	gameweeks := make([]tracker.Gameweek, 0)
+	gameweeks := make([]domain.Gameweek, 0)
 	for _, gw := range bs.Gws {
-		gameweeks = append(gameweeks, tracker.Gameweek{
+		gameweeks = append(gameweeks, domain.Gameweek{
 			ID:           gw.ID,
 			Name:         gw.Name,
 			Finished:     gw.Finished,

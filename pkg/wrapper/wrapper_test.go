@@ -8,6 +8,7 @@ import (
 	"os"
 	"reflect"
 	"testing"
+	"time"
 )
 
 func TestGetManager(t *testing.T) {
@@ -54,6 +55,8 @@ func TestGetManager(t *testing.T) {
 }
 
 func TestGetGameweeks(t *testing.T) {
+	dt, _ := time.Parse(time.RFC3339, "2021-11-20T11:00:00Z")
+
 	testcases := []struct {
 		name                string
 		handlerStatusCode   int
@@ -67,7 +70,7 @@ func TestGetGameweeks(t *testing.T) {
 			Finished:     false,
 			IsCurrent:    true,
 			IsNext:       false,
-			DeadlineTime: "2021-11-20T11:00:00Z",
+			DeadlineTime: dt,
 		}},
 	}
 

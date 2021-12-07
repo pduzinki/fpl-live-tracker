@@ -2,8 +2,10 @@ package tracker
 
 import (
 	"errors"
+	domain "fpl-live-tracker/pkg"
 	"fpl-live-tracker/pkg/services/gameweek"
 	"log"
+	"time"
 )
 
 type TrackerConfigFunc func(t *Tracker) error
@@ -41,10 +43,28 @@ func WithGameweekService(gwService gameweek.GameweekService) TrackerConfigFunc {
 func (t *Tracker) Track() {
 	log.Println("hello from Track()")
 
-	// now := time.Now()
-	// log.Println(now)
+	// check if there is current, ongoing gameweek, if yes, then proceed with processing data from it
+	// if there is no ongoing gameweek, check when the next gameweek starts, and sleep until then
+	// if there is no next gameweek, this means game ended
 
-	// get current gameweek
+	var gameweek domain.Gameweek
+
+	gameweek, err := t.GwService.GetOngoingGameweek()
+	if err != nil {
+		log.Println(err) // TODO handle err properly
+
+		gameweek, err = t.GwService.GetNextGameweek()
+		if err != nil {
+			log.Println(err) // TODO handle err properly
+		}
+	}
+
+	now := time.Now()
+	if now.Before(gameweek.DeadlineTime) {
+		diff := gameweek.DeadlineTime.Sub(now)
+		log.Printf("Next gameweek starts in %v", diff)
+	}
+
 	// get current gameweek fixtures
 	// tbd next steps
 

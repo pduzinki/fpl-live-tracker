@@ -1,10 +1,17 @@
 package gameweek
 
-import "fpl-live-tracker/pkg/wrapper"
+import (
+	"errors"
+	domain "fpl-live-tracker/pkg"
+	"fpl-live-tracker/pkg/wrapper"
+)
+
+var ErrGameweekAllFinished error = errors.New("gameweek: all gameweeks finished") // game finished
+var ErrGameweekNoneOngoing error = errors.New("gameweek: none ongoing gameweeks")
 
 type GameweekService interface {
-	GetCurrentGameweek()
-	GetNextGameweek()
+	GetOngoingGameweek() (domain.Gameweek, error)
+	GetNextGameweek() (domain.Gameweek, error)
 }
 
 type gameweekService struct {
@@ -17,12 +24,34 @@ func NewGameweekService(w wrapper.Wrapper) GameweekService {
 	}
 }
 
-// GetCurrentGameweek returns current, ongoing gameweek.
-func (gs *gameweekService) GetCurrentGameweek() {
+// GetOngoingGameweek returns current, ongoing gameweek.
+func (gs *gameweekService) GetOngoingGameweek() (domain.Gameweek, error) {
+	gameweeks, err := gs.wrapper.GetGameweeks()
+	if err != nil {
+		return domain.Gameweek{}, err // propagate error
+	}
 
+	for _, gw := range gameweeks {
+		if gw.IsCurrent && !gw.Finished {
+			return gw, nil
+		}
+	}
+
+	return domain.Gameweek{}, ErrGameweekNoneOngoing
 }
 
 // GetNextGameweek returns subsequent gameweek
-func (gs *gameweekService) GetNextGameweek() {
+func (gs *gameweekService) GetNextGameweek() (domain.Gameweek, error) {
+	gameweeks, err := gs.wrapper.GetGameweeks()
+	if err != nil {
+		return domain.Gameweek{}, err // propagate error
+	}
 
+	for _, gw := range gameweeks {
+		if gw.IsNext {
+			return gw, nil
+		}
+	}
+
+	return domain.Gameweek{}, ErrGameweekAllFinished
 }

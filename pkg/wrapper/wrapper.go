@@ -104,13 +104,18 @@ func (w *wrapper) GetGameweeks() ([]domain.Gameweek, error) {
 
 	gameweeks := make([]domain.Gameweek, 0)
 	for _, gw := range bs.Gws {
+		deadlineTime, err := time.Parse(time.RFC3339, gw.DeadlineTime)
+		if err != nil {
+			panic(err)
+		}
+
 		gameweeks = append(gameweeks, domain.Gameweek{
 			ID:           gw.ID,
 			Name:         gw.Name,
 			Finished:     gw.Finished,
 			IsCurrent:    gw.IsCurrent,
 			IsNext:       gw.IsNext,
-			DeadlineTime: gw.DeadlineTime,
+			DeadlineTime: deadlineTime,
 		})
 	}
 

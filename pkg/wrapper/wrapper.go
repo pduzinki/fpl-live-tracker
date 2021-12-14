@@ -38,6 +38,7 @@ type Wrapper interface {
 	GetManager(id int) (*domain.Manager, error)
 	GetTeam(id, gw int) (*domain.Team, error)
 	GetGameweeks() ([]domain.Gameweek, error)
+	GetFixtures(gameweekID int) ([]domain.Fixture, error)
 }
 
 type wrapper struct {
@@ -120,6 +121,26 @@ func (w *wrapper) GetGameweeks() ([]domain.Gameweek, error) {
 	}
 
 	return gameweeks, nil
+}
+
+func (w *wrapper) GetFixtures(gameweekID int) ([]domain.Fixture, error) {
+	url := fmt.Sprintf(w.baseURL+"/fixtures?event=%d", gameweekID)
+	fixtures := make([]Fixture, 0)
+
+	err := w.fetchData(url, &fixtures)
+	if err != nil {
+		return nil, err
+	}
+
+	df := make([]domain.Fixture, 0)
+	for _, f := range fixtures {
+		df = append(df, domain.Fixture{
+			ID: f.ID,
+			// TODO add rest of the fields
+		})
+	}
+
+	return df, nil
 }
 
 func (w *wrapper) fetchData(url string, data interface{}) error {

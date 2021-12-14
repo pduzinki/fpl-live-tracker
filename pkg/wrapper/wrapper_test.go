@@ -2,13 +2,14 @@ package wrapper
 
 import (
 	"errors"
-	domain "fpl-live-tracker/pkg"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"reflect"
 	"testing"
 	"time"
+
+	domain "fpl-live-tracker/pkg"
 )
 
 func TestGetManager(t *testing.T) {
@@ -62,9 +63,9 @@ func TestGetGameweeks(t *testing.T) {
 		handlerStatusCode   int
 		handlerBodyFilePath string
 		wantErr             error
-		want                *domain.Gameweek // verify just one particular gw data, just to save some space
+		want                domain.Gameweek // verify just one particular gw data, just to save some space
 	}{
-		{"ok", http.StatusOK, "./testdata/bootstrap-static.json", nil, &domain.Gameweek{
+		{"ok", http.StatusOK, "./testdata/bootstrap-static.json", nil, domain.Gameweek{
 			ID:           12,
 			Name:         "Gameweek 12",
 			Finished:     false,
@@ -94,8 +95,53 @@ func TestGetGameweeks(t *testing.T) {
 		if err != test.wantErr {
 			t.Errorf("error: testcase '%s', want error '%v', got error '%v'", test.name, test.wantErr, err)
 		}
-		if got[11] != *test.want {
+		if got[11] != test.want {
 			t.Errorf("error: testcase '%s', want '%v', got '%v'", test.name, test.want, got[11])
+		}
+	}
+}
+
+func TestGetFixtures(t *testing.T) {
+	testcases := []struct {
+		name                string
+		handlerStatusCode   int
+		handlerBodyFilePath string
+		wantErr             error
+		want                domain.Fixture
+	}{
+		{
+			name:                "ok",
+			handlerStatusCode:   200,
+			handlerBodyFilePath: "./testdata/fixtures17.json",
+			wantErr:             nil,
+			want: domain.Fixture{
+				ID: 163,
+			},
+		},
+	}
+
+	for _, test := range testcases {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(test.handlerStatusCode)
+			w.Header().Set("Content-Type", "application/json")
+
+			f, err := os.ReadFile(test.handlerBodyFilePath)
+			if err != nil {
+				t.Error(err)
+			}
+
+			w.Write(f)
+		}))
+		defer server.Close()
+
+		w := NewWrapper(server.URL)
+
+		got, err := w.GetFixtures(17)
+		if err != test.wantErr {
+			t.Errorf("error: testcase '%s', want error '%v', got error '%v'", test.name, test.wantErr, err)
+		}
+		if got[2] != test.want {
+			t.Errorf("error: testcase '%s', want '%v', got '%v'", test.name, test.want, got[2])
 		}
 	}
 }

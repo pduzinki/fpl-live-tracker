@@ -62,8 +62,11 @@ func (t *Tracker) Track() {
 	now := time.Now()
 	if now.Before(gameweek.DeadlineTime) {
 		diff := gameweek.DeadlineTime.Sub(now)
-		log.Printf("Next gameweek starts in %v", diff)
+		log.Printf("Gameweek %d starts in %v", gameweek.ID, diff)
 	}
+
+	log.Println(now)
+	log.Println(gameweek.DeadlineTime)
 
 	// get current gameweek fixtures
 	// tbd next steps

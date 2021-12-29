@@ -28,7 +28,7 @@ func NewManagerRepository() (domain.ManagerRepository, error) {
 //
 func (mr *managerRepository) Add(manager domain.Manager) error {
 	if _, ok := mr.managers[manager.FplID]; ok {
-		return errorRecordAlreadyExists{
+		return errManagerAlreadyExists{
 			fplID: manager.FplID,
 		}
 	}
@@ -57,5 +57,5 @@ func (mr *managerRepository) GetByFplID(id int) (domain.Manager, error) {
 		return manager, nil
 	}
 
-	return domain.Manager{}, ErrRecordNotFound
+	return domain.Manager{}, ErrManagerNotFound
 }

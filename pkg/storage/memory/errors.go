@@ -6,21 +6,21 @@ import (
 )
 
 // var ErrRecordAlreadyExists error = errors.New("storage: record already exists") // TODO not sure if that's the best place for those
-var ErrRecordNotFound error = errors.New("storage: record not found")
+var ErrManagerNotFound error = errors.New("storage: manager not found")
 
-type errorRecordAlreadyExists struct {
+type errManagerAlreadyExists struct {
 	fplID int
 }
 
-type ErrorRecordAlreadyExists interface {
+type ErrManagerAlreadyExists interface {
 	error
 	GetFplID() int
 }
 
-func (err errorRecordAlreadyExists) Error() string {
-	return fmt.Sprintf("storage: record with fplID '%d' already exists\n", err.fplID)
+func (err errManagerAlreadyExists) Error() string {
+	return fmt.Sprintf("storage: manager with fplID '%d' already exists\n", err.fplID)
 }
 
-func (err errorRecordAlreadyExists) GetFplID() int {
+func (err errManagerAlreadyExists) GetFplID() int {
 	return err.fplID
 }

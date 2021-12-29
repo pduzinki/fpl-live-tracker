@@ -18,7 +18,7 @@ func TestManagerAdd(t *testing.T) {
 		want    error
 	}{
 		{jane, nil},
-		{john, errorRecordAlreadyExists{john.FplID}},
+		{john, errManagerAlreadyExists{john.FplID}},
 	}
 
 	mr := managerRepository{
@@ -47,7 +47,7 @@ func TestManagerAddMany(t *testing.T) {
 		},
 		{
 			managers: []domain.Manager{jim, jim},
-			want:     errorRecordAlreadyExists{jim.FplID},
+			want:     errManagerAlreadyExists{jim.FplID},
 		},
 	}
 
@@ -73,7 +73,7 @@ func TestManagerGetByFplID(t *testing.T) {
 		wantErr error
 	}{
 		{john.FplID, john, nil},
-		{jane.FplID, domain.Manager{}, ErrRecordNotFound},
+		{jane.FplID, domain.Manager{}, ErrManagerNotFound},
 	}
 
 	mr := managerRepository{

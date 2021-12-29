@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"fpl-live-tracker/pkg/http/rest"
+	"fpl-live-tracker/pkg/services/fixture"
 	"fpl-live-tracker/pkg/services/gameweek"
 	"fpl-live-tracker/pkg/services/tracker"
 	"fpl-live-tracker/pkg/storage/memory"
@@ -24,8 +25,11 @@ func main() {
 	wrapper := wrapper.NewWrapper(wrapper.DefaultURL)
 
 	gwService := gameweek.NewGameweekService(wrapper)
+	fs := fixture.NewFixtureService(wrapper)
 
-	tracker, err := tracker.NewTracker(tracker.WithGameweekService(gwService))
+	tracker, err := tracker.NewTracker(
+		tracker.WithGameweekService(gwService),
+		tracker.WithFixtureService(fs))
 	if err != nil {
 		log.Fatalf("failed to init tracker: %v\n", err)
 	}

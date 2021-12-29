@@ -3,6 +3,7 @@ package tracker
 import (
 	"errors"
 	domain "fpl-live-tracker/pkg"
+	"fpl-live-tracker/pkg/services/fixture"
 	"fpl-live-tracker/pkg/services/gameweek"
 	"log"
 	"time"
@@ -12,6 +13,7 @@ type TrackerConfigFunc func(t *Tracker) error
 
 type Tracker struct {
 	GwService gameweek.GameweekService
+	Fs        fixture.FixtureService
 }
 
 //
@@ -31,9 +33,19 @@ func NewTracker(fns ...TrackerConfigFunc) (*Tracker, error) {
 func WithGameweekService(gwService gameweek.GameweekService) TrackerConfigFunc {
 	return func(t *Tracker) error {
 		if gwService == nil {
-			return errors.New("tracker init error: gwService is nil")
+			return errors.New("tracker init error: Gameweek Service is nil")
 		}
 		t.GwService = gwService
+		return nil
+	}
+}
+
+func WithFixtureService(fs fixture.FixtureService) TrackerConfigFunc {
+	return func(t *Tracker) error {
+		if fs == nil {
+			return errors.New("tracker init error: Fixture Service is nil")
+		}
+		t.Fs = fs
 		return nil
 	}
 }
@@ -43,10 +55,7 @@ func WithGameweekService(gwService gameweek.GameweekService) TrackerConfigFunc {
 func (t *Tracker) Track() {
 	log.Println("hello from Track()")
 
-	// check if there is current, ongoing gameweek, if yes, then proceed with processing data from it
-	// if there is no ongoing gameweek, check when the next gameweek starts, and sleep until then
-	// if there is no next gameweek, this means game ended
-
+	// find ongoing or next gameweek, if there is none, the game finished
 	var gameweek domain.Gameweek
 
 	gameweek, err := t.GwService.GetOngoingGameweek()
@@ -63,13 +72,18 @@ func (t *Tracker) Track() {
 	if now.Before(gameweek.DeadlineTime) {
 		diff := gameweek.DeadlineTime.Sub(now)
 		log.Printf("Gameweek %d starts in %v", gameweek.ID, diff)
+	} else {
+		log.Printf("Gameweekd %d is live!", gameweek.ID)
 	}
-
-	log.Println(now)
-	log.Println(gameweek.DeadlineTime)
+	// log.Println(now)
+	// log.Println(gameweek.DeadlineTime)
 
 	// get current gameweek fixtures
-	// tbd next steps
+	fixtures, err := t.Fs.GetFixtures(gameweek.ID)
+	if err != nil {
+		log.Println(err) // TODO handle err properly
+	}
+	log.Println(fixtures)
 
 	log.Println("goodbye from Track()")
 }

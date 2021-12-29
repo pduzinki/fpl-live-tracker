@@ -10,15 +10,22 @@ type FixtureService interface {
 }
 
 type fixtureService struct {
-	// wrapper wrapper.Wrapper
+	wrapper wrapper.Wrapper
 }
 
 //
 func NewFixtureService(w wrapper.Wrapper) FixtureService {
-	return &fixtureService{}
+	return &fixtureService{
+		wrapper: w,
+	}
 }
 
 //
 func (fs *fixtureService) GetFixtures(gameweekID int) ([]domain.Fixture, error) {
-	return nil, nil
+	fixtures, err := fs.wrapper.GetFixtures(gameweekID)
+	if err != nil {
+		return []domain.Fixture{}, err
+	}
+
+	return fixtures, nil
 }

@@ -12,7 +12,7 @@ var (
 	joel = domain.Manager{FplID: 66, FullName: "Joel Bar", TeamName: "Bar AFC"}
 )
 
-func TestAdd(t *testing.T) {
+func TestManagerAdd(t *testing.T) {
 	testcases := []struct {
 		manager domain.Manager
 		want    error
@@ -36,7 +36,7 @@ func TestAdd(t *testing.T) {
 	}
 }
 
-func TestAddMany(t *testing.T) {
+func TestManagerAddMany(t *testing.T) {
 	testcases := []struct {
 		managers []domain.Manager
 		want     error
@@ -66,7 +66,7 @@ func TestAddMany(t *testing.T) {
 	}
 }
 
-func TestGetByFplID(t *testing.T) {
+func TestManagerGetByFplID(t *testing.T) {
 	testcases := []struct {
 		fplID   int
 		want    domain.Manager

@@ -1,5 +1,6 @@
 package domain
 
+//
 type Fixture struct {
 	GameweekID int
 	ID         int
@@ -10,8 +11,8 @@ type Fixture struct {
 }
 
 type FixtureRepository interface {
-	Add(Fixture) error
-	AddMany([]Fixture) error
+	Add(fixture Fixture) error
+	AddMany(fixtures []Fixture) error
 	// Update() error // TODO add later
 	GetByGameweek(gameweekID int) ([]Fixture, error)
 	// TODO maybe add Get(s string) (Fixture, error) // s in form LEILIV, TOTCHE

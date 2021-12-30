@@ -12,6 +12,7 @@ type Fixture struct {
 type FixtureRepository interface {
 	Add(Fixture) error
 	AddMany([]Fixture) error
+	// Update() error // TODO add later
 	GetByGameweek(gameweekID int) ([]Fixture, error)
 	// TODO maybe add Get(s string) (Fixture, error) // s in form LEILIV, TOTCHE
 }

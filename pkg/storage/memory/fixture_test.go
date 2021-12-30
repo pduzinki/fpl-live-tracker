@@ -2,6 +2,7 @@ package memory
 
 import (
 	domain "fpl-live-tracker/pkg"
+	"reflect"
 	"testing"
 )
 
@@ -35,7 +36,7 @@ func TestFixtureAdd(t *testing.T) {
 
 		if v, ok := fr.fixtures[test.fixture.ID]; ok {
 			if v != test.fixture {
-				t.Errorf("error: incorrect fixture in memory storage")
+				t.Errorf("error: incorrect fixture data in memory storage")
 			}
 		} else {
 			t.Errorf("error: fixture not found in memory storage")
@@ -48,8 +49,8 @@ func TestFixtureAddMany(t *testing.T) {
 		fixtures []domain.Fixture
 		want     error
 	}{
-		{},
-		{},
+		{[]domain.Fixture{livche, cheliv}, nil},
+		{[]domain.Fixture{cheliv, cheliv}, ErrFixtureAlreadyExists},
 	}
 
 	fr := fixtureRepository{
@@ -61,12 +62,49 @@ func TestFixtureAddMany(t *testing.T) {
 	for _, test := range testcases {
 		got := fr.AddMany(test.fixtures)
 		if got != test.want {
-			t.Errorf("error: 1")
+			t.Errorf("error: got err '%v', want '%v'", got, test.want)
+		}
+
+		for _, f := range test.fixtures {
+			if v, ok := fr.fixtures[f.ID]; ok {
+				if v != f {
+					t.Errorf("error: incorrect fixture data in memory storage")
+				}
+			} else {
+				t.Errorf("error: fixture not found in memory storage")
+			}
 		}
 	}
-
 }
 
 func TestFixtureGetByGameweek(t *testing.T) {
-	// TODO
+	testcases := []struct {
+		gw   int
+		want []domain.Fixture
+		err  error
+	}{
+		{13, []domain.Fixture{mcitot, burlei}, nil},
+		{12, []domain.Fixture{livche}, nil},
+		{40, nil, ErrFixtureNotFound},
+	}
+
+	fr := fixtureRepository{
+		fixtures: map[int]domain.Fixture{
+			livche.ID: livche,
+			mcitot.ID: mcitot,
+			burlei.ID: burlei,
+			cheliv.ID: cheliv,
+		},
+	}
+
+	for _, test := range testcases {
+		got, err := fr.GetByGameweek(test.gw)
+		if err != test.err {
+			t.Errorf("error: got err '%v', want '%v'", err, test.err)
+		}
+
+		if !reflect.DeepEqual(got, test.want) {
+			t.Errorf("error: for gw %v, got fixtures %v, want %v", test.gw, got, test.want)
+		}
+	}
 }

@@ -58,5 +58,9 @@ func (fr *fixtureRepository) GetByGameweek(gameweekID int) ([]domain.Fixture, er
 		}
 	}
 
+	if len(fixtures) == 0 {
+		return nil, ErrFixtureNotFound
+	}
+
 	return fixtures, nil
 }

@@ -33,6 +33,7 @@ func TestManagerAdd(t *testing.T) {
 		if got != test.want {
 			t.Errorf("error: for %v, got '%v', want '%v'", test.manager, got, test.want)
 		}
+		// TODO check if manager was really saved in storage
 	}
 }
 
@@ -63,6 +64,8 @@ func TestManagerAddMany(t *testing.T) {
 		if got != test.want {
 			t.Errorf("error: got err '%v', want err '%v'", got, test.want)
 		}
+
+		// TODO check if managers were really saved in storage
 	}
 }
 

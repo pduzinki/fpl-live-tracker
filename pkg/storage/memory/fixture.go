@@ -6,7 +6,10 @@ import (
 	"sync"
 )
 
-var ErrFixtureAlreadyExists error = errors.New("storage: fixture already exists")
+var (
+	ErrFixtureNotFound      error = errors.New("storage: fixture not found")
+	ErrFixtureAlreadyExists error = errors.New("storage: fixture already exists")
+)
 
 //
 type fixtureRepository struct {
@@ -19,19 +22,6 @@ func NewFixtureRepository() domain.FixtureRepository {
 	return &fixtureRepository{
 		fixtures: make(map[int]domain.Fixture),
 	}
-}
-
-//
-func (fr *fixtureRepository) GetByGameweek(gameweekID int) ([]domain.Fixture, error) {
-	fixtures := make([]domain.Fixture, 0)
-
-	for _, f := range fr.fixtures {
-		if f.GameweekID == gameweekID {
-			fixtures = append(fixtures, f)
-		}
-	}
-
-	return fixtures, nil
 }
 
 //
@@ -56,4 +46,17 @@ func (fr *fixtureRepository) AddMany(fixtures []domain.Fixture) error {
 		}
 	}
 	return nil
+}
+
+//
+func (fr *fixtureRepository) GetByGameweek(gameweekID int) ([]domain.Fixture, error) {
+	fixtures := make([]domain.Fixture, 0)
+
+	for _, f := range fr.fixtures {
+		if f.GameweekID == gameweekID {
+			fixtures = append(fixtures, f)
+		}
+	}
+
+	return fixtures, nil
 }

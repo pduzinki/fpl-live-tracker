@@ -1,6 +1,6 @@
 package domain
 
-//
+// Fixture represents a single match of football between two clubs in the Premier League
 type Fixture struct {
 	GameweekID int
 	ID         int

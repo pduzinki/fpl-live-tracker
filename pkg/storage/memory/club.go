@@ -54,5 +54,5 @@ func (cr *clubRepository) GetByID(id int) (domain.Club, error) {
 		return club, nil
 	}
 
-	return domain.Club{}, nil
+	return domain.Club{}, ErrClubNotFound
 }

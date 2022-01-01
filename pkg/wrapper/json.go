@@ -17,7 +17,8 @@ type League struct {
 
 type Bootstrap struct {
 	// Count int        `json:"total_players"`
-	Gws []Gameweek `json:"events"`
+	Gws   []Gameweek `json:"events"`
+	Clubs []Club     `json:"teams"`
 }
 
 type Gameweek struct {
@@ -37,4 +38,10 @@ type Fixture struct {
 	Finished            bool `json:"finished"`
 	TeamA               int  `json:"team_a"`
 	TeamH               int  `json:"team_h"`
+}
+
+type Club struct {
+	ID        int    `json:"id"`
+	Name      string `json:"name"`
+	Shortname string `json:"short_name"`
 }

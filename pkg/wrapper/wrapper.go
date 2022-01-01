@@ -38,6 +38,7 @@ type Wrapper interface {
 	GetManager(id int) (*domain.Manager, error)
 	GetTeam(id, gw int) (*domain.Team, error)
 	GetGameweeks() ([]domain.Gameweek, error)
+	GetClubs() ([]Club, error)
 	GetFixtures(gameweekID int) ([]domain.Fixture, error)
 }
 
@@ -141,6 +142,19 @@ func (w *wrapper) GetFixtures(gameweekID int) ([]domain.Fixture, error) {
 	}
 
 	return df, nil
+}
+
+//
+func (w *wrapper) GetClubs() ([]Club, error) {
+	url := fmt.Sprintf(w.baseURL + "/bootstrap-static/")
+	var bs Bootstrap
+
+	err := w.fetchData(url, &bs)
+	if err != nil {
+		return nil, err
+	}
+
+	return bs.Clubs, nil
 }
 
 func (w *wrapper) fetchData(url string, data interface{}) error {

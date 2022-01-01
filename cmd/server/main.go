@@ -1,11 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
 	"fpl-live-tracker/pkg/http/rest"
+	"fpl-live-tracker/pkg/services/club"
 	"fpl-live-tracker/pkg/services/fixture"
 	"fpl-live-tracker/pkg/services/gameweek"
 	"fpl-live-tracker/pkg/services/tracker"
@@ -14,18 +14,19 @@ import (
 )
 
 func main() {
-	fmt.Println("fpl-live-tracker started")
+	log.Println("fpl-live-tracker started")
 
-	mr, err := memory.NewManagerRepository()
+	w := wrapper.NewWrapper(wrapper.DefaultURL)
+
+	cr := memory.NewClubRepository()
+	cs, err := club.NewClubService(cr, w)
 	if err != nil {
 		panic(err)
 	}
-	_ = mr
+	_ = cs
 
-	wrapper := wrapper.NewWrapper(wrapper.DefaultURL)
-
-	gwService := gameweek.NewGameweekService(wrapper)
-	fs := fixture.NewFixtureService(wrapper)
+	gwService := gameweek.NewGameweekService(w)
+	fs := fixture.NewFixtureService(w)
 
 	tracker, err := tracker.NewTracker(
 		tracker.WithGameweekService(gwService),

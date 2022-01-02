@@ -21,15 +21,17 @@ func main() {
 	cr := memory.NewClubRepository()
 	cs, err := club.NewClubService(cr, w)
 	if err != nil {
-		panic(err)
+		panic(err) // TODO handle properly
 	}
 	_ = cs
 
-	gwService := gameweek.NewGameweekService(w)
-	fs := fixture.NewFixtureService(w)
+	fr := memory.NewFixtureRepository()
+	fs := fixture.NewFixtureService(fr, cs, w)
+
+	gs := gameweek.NewGameweekService(w)
 
 	tracker, err := tracker.NewTracker(
-		tracker.WithGameweekService(gwService),
+		tracker.WithGameweekService(gs),
 		tracker.WithFixtureService(fs))
 	if err != nil {
 		log.Fatalf("failed to init tracker: %v\n", err)

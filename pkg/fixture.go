@@ -4,10 +4,10 @@ package domain
 type Fixture struct {
 	GameweekID int
 	ID         int
+	ClubAway   Club
+	ClubHome   Club
 	// Started    bool
 	// Finished   bool
-	// TeamA      int // TODO add TeamAName
-	// TeamH      int // TODO add TeamHName
 }
 
 type FixtureRepository interface {

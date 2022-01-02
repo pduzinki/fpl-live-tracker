@@ -73,17 +73,25 @@ func (t *Tracker) Track() {
 		diff := gameweek.DeadlineTime.Sub(now)
 		log.Printf("Gameweek %d starts in %v", gameweek.ID, diff)
 	} else {
-		log.Printf("Gameweekd %d is live!", gameweek.ID)
+		log.Printf("Gameweek %d is live!", gameweek.ID)
 	}
 	// log.Println(now)
 	// log.Println(gameweek.DeadlineTime)
 
+	// update fixtures
+	err = t.Fs.Update(gameweek.ID)
+	if err != nil {
+		panic(err)
+	}
+
 	// get current gameweek fixtures
-	fixtures, err := t.Fs.GetFixtures(gameweek.ID)
+	fixtures, err := t.Fs.GetFixturesByGameweek(gameweek.ID)
 	if err != nil {
 		log.Println(err) // TODO handle err properly
 	}
-	log.Println(fixtures)
+	for _, f := range fixtures {
+		log.Println(f)
+	}
 
 	log.Println("goodbye from Track()")
 }

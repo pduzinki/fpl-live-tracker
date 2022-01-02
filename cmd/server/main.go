@@ -21,7 +21,7 @@ func main() {
 	cr := memory.NewClubRepository()
 	cs, err := club.NewClubService(cr, w)
 	if err != nil {
-		panic(err) // TODO handle properly
+		log.Fatalln("error: failed to init club storage")
 	}
 	_ = cs
 

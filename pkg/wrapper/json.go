@@ -7,14 +7,6 @@ type Manager struct {
 	Name      string `json:"name"`
 }
 
-type Team struct {
-	// TODO
-}
-
-type League struct {
-	// TODO
-}
-
 type Bootstrap struct {
 	// Count int        `json:"total_players"`
 	Gws   []Gameweek `json:"events"`

@@ -12,8 +12,8 @@ import (
 type TrackerConfigFunc func(t *Tracker) error
 
 type Tracker struct {
-	GwService gameweek.GameweekService
-	Fs        fixture.FixtureService
+	Gs gameweek.GameweekService
+	Fs fixture.FixtureService
 }
 
 //
@@ -35,7 +35,7 @@ func WithGameweekService(gwService gameweek.GameweekService) TrackerConfigFunc {
 		if gwService == nil {
 			return errors.New("tracker init error: Gameweek Service is nil")
 		}
-		t.GwService = gwService
+		t.Gs = gwService
 		return nil
 	}
 }
@@ -58,11 +58,11 @@ func (t *Tracker) Track() {
 	// find ongoing or next gameweek, if there is none, the game finished
 	var gameweek domain.Gameweek
 
-	gameweek, err := t.GwService.GetOngoingGameweek()
+	gameweek, err := t.Gs.GetOngoingGameweek()
 	if err != nil {
 		log.Println(err) // TODO handle err properly
 
-		gameweek, err = t.GwService.GetNextGameweek()
+		gameweek, err = t.Gs.GetNextGameweek()
 		if err != nil {
 			log.Println(err) // TODO handle err properly
 		}
@@ -75,8 +75,6 @@ func (t *Tracker) Track() {
 	} else {
 		log.Printf("Gameweek %d is live!", gameweek.ID)
 	}
-	// log.Println(now)
-	// log.Println(gameweek.DeadlineTime)
 
 	// update fixtures
 	err = t.Fs.Update(gameweek.ID)

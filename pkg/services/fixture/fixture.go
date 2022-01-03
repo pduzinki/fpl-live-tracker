@@ -30,10 +30,8 @@ func NewFixtureService(fr domain.FixtureRepository, cs club.ClubService, w wrapp
 func (fs *fixtureService) Update(gameweekID int) error {
 	wrapperFixtures, err := fs.wrapper.GetFixtures(gameweekID)
 	if err != nil {
-		// return []domain.Fixture{}, err
 		return err
 	}
-	_ = wrapperFixtures
 
 	fixtures := make([]domain.Fixture, 0)
 	for _, wf := range wrapperFixtures {
@@ -53,7 +51,6 @@ func (fs *fixtureService) Update(gameweekID int) error {
 		panic(err)
 	}
 
-	// return fixtures, nil
 	return nil
 }
 

@@ -7,7 +7,6 @@ import (
 
 type ClubService interface {
 	// Add(domain.Club) is not needed, all clubs are added when service is created
-	// Update() error
 	GetClubByID(id int) (domain.Club, error)
 }
 

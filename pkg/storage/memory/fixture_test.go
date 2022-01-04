@@ -2,6 +2,7 @@ package memory
 
 import (
 	domain "fpl-live-tracker/pkg"
+	"fpl-live-tracker/pkg/storage"
 	"reflect"
 	"testing"
 )
@@ -19,7 +20,7 @@ func TestFixtureAdd(t *testing.T) {
 		want    error
 	}{
 		{fixture: livche, want: nil},
-		{fixture: mcitot, want: ErrFixtureAlreadyExists},
+		{fixture: mcitot, want: storage.ErrFixtureAlreadyExists},
 	}
 
 	fr := fixtureRepository{
@@ -50,7 +51,7 @@ func TestFixtureAddMany(t *testing.T) {
 		want     error
 	}{
 		{[]domain.Fixture{livche, cheliv}, nil},
-		{[]domain.Fixture{cheliv, cheliv}, ErrFixtureAlreadyExists},
+		{[]domain.Fixture{cheliv, cheliv}, storage.ErrFixtureAlreadyExists},
 	}
 
 	fr := fixtureRepository{
@@ -85,7 +86,7 @@ func TestFixtureGetByGameweek(t *testing.T) {
 	}{
 		{13, []domain.Fixture{mcitot, burlei}, nil},
 		{12, []domain.Fixture{livche}, nil},
-		{40, nil, ErrFixtureNotFound},
+		{40, nil, storage.ErrFixtureNotFound},
 	}
 
 	fr := fixtureRepository{

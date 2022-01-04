@@ -5,7 +5,8 @@ import (
 	"fmt"
 )
 
-// var ErrRecordAlreadyExists error = errors.New("storage: record already exists") // TODO not sure if that's the best place for those
+// TODO move to storage/errors.go
+// var ErrRecordAlreadyExists error = errors.New("storage: record already exists")
 var ErrManagerNotFound error = errors.New("storage: manager not found")
 
 type errManagerAlreadyExists struct {

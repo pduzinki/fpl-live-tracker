@@ -149,6 +149,16 @@ func TestGetFixtures(t *testing.T) {
 TODO fix this later
 */
 
+func TestGetFixtures(t *testing.T) {
+	w := NewWrapper(DefaultURL)
+
+	f, _ := w.GetFixtures()
+	_ = f
+
+	i := 0
+	i++
+}
+
 func TestFetchData(t *testing.T) {
 	testcases := []struct {
 		name                string

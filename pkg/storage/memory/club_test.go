@@ -2,6 +2,7 @@ package memory
 
 import (
 	domain "fpl-live-tracker/pkg"
+	"fpl-live-tracker/pkg/storage"
 	"testing"
 )
 
@@ -18,7 +19,7 @@ func TestClubAdd(t *testing.T) {
 		err  error
 	}{
 		{liv, nil},
-		{ars, ErrClubAlreadyExists},
+		{ars, storage.ErrClubAlreadyExists},
 	}
 
 	cr := clubRepository{
@@ -50,7 +51,7 @@ func TestClubAddMany(t *testing.T) {
 	}{
 		{[]domain.Club{ars}, nil},
 		{[]domain.Club{liv, che}, nil},
-		{[]domain.Club{liv}, ErrClubAlreadyExists},
+		{[]domain.Club{liv}, storage.ErrClubAlreadyExists},
 	}
 
 	cr := clubRepository{
@@ -82,7 +83,7 @@ func TestClubGetByID(t *testing.T) {
 		err  error
 	}{
 		{ars.ID, ars, nil},
-		{123, domain.Club{}, ErrClubNotFound},
+		{123, domain.Club{}, storage.ErrClubNotFound},
 	}
 
 	cr := clubRepository{

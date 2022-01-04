@@ -1,19 +1,14 @@
 package memory
 
 import (
-	"errors"
 	domain "fpl-live-tracker/pkg"
+	"fpl-live-tracker/pkg/storage"
 	"sync"
-)
-
-var (
-	ErrFixtureNotFound      error = errors.New("storage: fixture not found")
-	ErrFixtureAlreadyExists error = errors.New("storage: fixture already exists")
 )
 
 //
 type fixtureRepository struct {
-	fixtures map[int]domain.Fixture // TODO change to more proper data structure
+	fixtures map[int]domain.Fixture
 	sync.Mutex
 }
 
@@ -27,7 +22,7 @@ func NewFixtureRepository() domain.FixtureRepository {
 //
 func (fr *fixtureRepository) Add(fixture domain.Fixture) error {
 	if _, ok := fr.fixtures[fixture.ID]; ok {
-		return ErrFixtureAlreadyExists
+		return storage.ErrFixtureAlreadyExists
 	}
 
 	fr.Lock()
@@ -49,6 +44,16 @@ func (fr *fixtureRepository) AddMany(fixtures []domain.Fixture) error {
 }
 
 //
+func (fr *fixtureRepository) Update(fixture domain.Fixture) error {
+	if _, ok := fr.fixtures[fixture.ID]; ok {
+		fr.fixtures[fixture.ID] = fixture
+		return nil
+	}
+
+	return storage.ErrFixtureNotFound
+}
+
+//
 func (fr *fixtureRepository) GetByGameweek(gameweekID int) ([]domain.Fixture, error) {
 	fixtures := make([]domain.Fixture, 0)
 
@@ -59,7 +64,7 @@ func (fr *fixtureRepository) GetByGameweek(gameweekID int) ([]domain.Fixture, er
 	}
 
 	if len(fixtures) == 0 {
-		return nil, ErrFixtureNotFound
+		return nil, storage.ErrFixtureNotFound
 	}
 
 	return fixtures, nil

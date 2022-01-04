@@ -2,11 +2,9 @@ package tracker
 
 import (
 	"errors"
-	domain "fpl-live-tracker/pkg"
 	"fpl-live-tracker/pkg/services/fixture"
 	"fpl-live-tracker/pkg/services/gameweek"
 	"log"
-	"time"
 )
 
 type TrackerConfigFunc func(t *Tracker) error
@@ -56,34 +54,36 @@ func (t *Tracker) Track() {
 	log.Println("hello from Track()")
 
 	// find ongoing or next gameweek, if there is none, the game finished
-	var gameweek domain.Gameweek
+	// var gameweek domain.Gameweek
 
-	gameweek, err := t.Gs.GetOngoingGameweek()
-	if err != nil {
-		log.Println(err) // TODO handle err properly
+	// gameweek, err := t.Gs.GetOngoingGameweek()
+	// if err != nil {
+	// 	log.Println(err) // TODO handle err properly
 
-		gameweek, err = t.Gs.GetNextGameweek()
-		if err != nil {
-			log.Println(err) // TODO handle err properly
-		}
-	}
+	// 	gameweek, err = t.Gs.GetNextGameweek()
+	// 	if err != nil {
+	// 		log.Println(err) // TODO handle err properly
+	// 	}
+	// }
 
-	now := time.Now()
-	if now.Before(gameweek.DeadlineTime) {
-		diff := gameweek.DeadlineTime.Sub(now)
-		log.Printf("Gameweek %d starts in %v", gameweek.ID, diff)
-	} else {
-		log.Printf("Gameweek %d is live!", gameweek.ID)
-	}
+	// now := time.Now()
+	// if now.Before(gameweek.DeadlineTime) {
+	// 	diff := gameweek.DeadlineTime.Sub(now)
+	// 	log.Printf("Gameweek %d starts in %v", gameweek.ID, diff)
+	// } else {
+	// 	log.Printf("Gameweek %d is live!", gameweek.ID)
+	// }
+
+	gw := 21
 
 	// update fixtures
-	err = t.Fs.Update(gameweek.ID)
+	err := t.Fs.Update()
 	if err != nil {
 		panic(err)
 	}
 
 	// get current gameweek fixtures
-	fixtures, err := t.Fs.GetFixturesByGameweek(gameweek.ID)
+	fixtures, err := t.Fs.GetFixturesByGameweek(gw)
 	if err != nil {
 		log.Println(err) // TODO handle err properly
 	}

@@ -1,14 +1,9 @@
 package memory
 
 import (
-	"errors"
 	domain "fpl-live-tracker/pkg"
+	"fpl-live-tracker/pkg/storage"
 	"sync"
-)
-
-var (
-	ErrClubNotFound      error = errors.New("storage: club not found")
-	ErrClubAlreadyExists error = errors.New("storage: club already exists")
 )
 
 //
@@ -27,7 +22,7 @@ func NewClubRepository() domain.ClubRepository {
 //
 func (cr *clubRepository) Add(club domain.Club) error {
 	if _, ok := cr.clubs[club.ID]; ok {
-		return ErrClubAlreadyExists
+		return storage.ErrClubAlreadyExists
 	}
 
 	cr.Lock()
@@ -54,5 +49,5 @@ func (cr *clubRepository) GetByID(id int) (domain.Club, error) {
 		return club, nil
 	}
 
-	return domain.Club{}, ErrClubNotFound
+	return domain.Club{}, storage.ErrClubNotFound
 }

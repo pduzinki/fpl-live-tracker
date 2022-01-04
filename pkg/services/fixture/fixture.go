@@ -3,11 +3,13 @@ package fixture
 import (
 	domain "fpl-live-tracker/pkg"
 	"fpl-live-tracker/pkg/services/club"
+	"fpl-live-tracker/pkg/storage"
 	"fpl-live-tracker/pkg/wrapper"
+	"log"
 )
 
 type FixtureService interface {
-	Update(gameweekID int) error
+	Update() error
 	GetFixturesByGameweek(gameweekID int) ([]domain.Fixture, error)
 }
 
@@ -27,28 +29,37 @@ func NewFixtureService(fr domain.FixtureRepository, cs club.ClubService, w wrapp
 }
 
 //
-func (fs *fixtureService) Update(gameweekID int) error {
-	wrapperFixtures, err := fs.wrapper.GetFixtures(gameweekID)
+func (fs *fixtureService) Update() error {
+	wrapperFixtures, err := fs.wrapper.GetFixtures()
 	if err != nil {
 		return err
 	}
 
-	fixtures := make([]domain.Fixture, 0)
-	for _, wf := range wrapperFixtures {
+	fixtures := make([]domain.Fixture, len(wrapperFixtures))
+	for i, wf := range wrapperFixtures {
 		clubAway, _ := fs.cs.GetClubByID(wf.TeamA)
 		clubHome, _ := fs.cs.GetClubByID(wf.TeamH)
 
-		fixtures = append(fixtures, domain.Fixture{
+		fixtures[i] = domain.Fixture{
 			GameweekID: wf.Event,
 			ID:         wf.ID,
 			ClubAway:   clubAway,
 			ClubHome:   clubHome,
-		})
+		}
 	}
 
-	err = fs.fr.AddMany(fixtures)
-	if err != nil {
-		panic(err)
+	for _, f := range fixtures {
+		err = fs.fr.Update(f)
+		if err == storage.ErrFixtureNotFound {
+			err = fs.fr.Add(f)
+			if err != nil {
+				log.Println("fixture service:", err)
+				return err
+			}
+		} else if err != nil {
+			log.Println("fixture service:", err)
+			return err
+		}
 	}
 
 	return nil

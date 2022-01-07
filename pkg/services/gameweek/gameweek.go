@@ -1,21 +1,23 @@
 package gameweek
 
 import (
-	"errors"
-	domain "fpl-live-tracker/pkg"
 	"fpl-live-tracker/pkg/wrapper"
+	"log"
+	"time"
+
+	domain "fpl-live-tracker/pkg"
 )
 
-var ErrGameweekAllFinished error = errors.New("gameweek: all gameweeks finished") // game finished
-var ErrGameweekNoneOngoing error = errors.New("gameweek: none ongoing gameweeks")
-
 type GameweekService interface {
-	GetOngoingGameweek() (domain.Gameweek, error)
+	Update() error
+	GetCurrentGameweek() (domain.Gameweek, error)
 	GetNextGameweek() (domain.Gameweek, error)
 }
 
 type gameweekService struct {
-	wrapper wrapper.Wrapper
+	CurrentGameweek domain.Gameweek
+	NextGameweek    domain.Gameweek
+	wrapper         wrapper.Wrapper
 }
 
 func NewGameweekService(w wrapper.Wrapper) GameweekService {
@@ -24,34 +26,52 @@ func NewGameweekService(w wrapper.Wrapper) GameweekService {
 	}
 }
 
-// GetOngoingGameweek returns current, ongoing gameweek.
-func (gs *gameweekService) GetOngoingGameweek() (domain.Gameweek, error) {
-	gameweeks, err := gs.wrapper.GetGameweeks()
+func (gs *gameweekService) Update() error {
+	wrapperGameweeks, err := gs.wrapper.GetGameweeks()
 	if err != nil {
-		return domain.Gameweek{}, err // propagate error
+		log.Println("gameweek service:", err)
+		return err
 	}
 
-	for _, gw := range gameweeks {
-		if gw.IsCurrent && !gw.Finished {
-			return gw, nil
+	for _, gw := range wrapperGameweeks {
+		if gw.IsCurrent {
+			deadlineTime, err := time.Parse(time.RFC3339, gw.DeadlineTime)
+			if err != nil {
+				log.Println("gameweek service:", err)
+				return err
+			}
+
+			gs.CurrentGameweek = domain.Gameweek{
+				ID:           gw.ID,
+				Name:         gw.Name,
+				Finished:     gw.Finished,
+				DeadlineTime: deadlineTime,
+			}
+		}
+
+		if gw.IsNext {
+			deadlineTime, err := time.Parse(time.RFC3339, gw.DeadlineTime)
+			if err != nil {
+				log.Println("gameweek service:", err)
+				return err
+			}
+
+			gs.NextGameweek = domain.Gameweek{
+				ID:           gw.ID,
+				Name:         gw.Name,
+				Finished:     gw.Finished,
+				DeadlineTime: deadlineTime,
+			}
 		}
 	}
 
-	return domain.Gameweek{}, ErrGameweekNoneOngoing
+	return nil
 }
 
-// GetNextGameweek returns subsequent gameweek
+func (gs *gameweekService) GetCurrentGameweek() (domain.Gameweek, error) {
+	return gs.CurrentGameweek, nil
+}
+
 func (gs *gameweekService) GetNextGameweek() (domain.Gameweek, error) {
-	gameweeks, err := gs.wrapper.GetGameweeks()
-	if err != nil {
-		return domain.Gameweek{}, err // propagate error
-	}
-
-	for _, gw := range gameweeks {
-		if gw.IsNext {
-			return gw, nil
-		}
-	}
-
-	return domain.Gameweek{}, ErrGameweekAllFinished
+	return gs.NextGameweek, nil
 }

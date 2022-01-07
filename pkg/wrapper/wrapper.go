@@ -37,9 +37,8 @@ func (err errorHttpNotOk) GetHttpStatusCode() int {
 type Wrapper interface {
 	GetManager(id int) (*domain.Manager, error)
 	GetTeam(id, gw int) (*domain.Team, error)
-	GetGameweeks() ([]domain.Gameweek, error)
+	GetGameweeks() ([]Gameweek, error)
 	GetClubs() ([]Club, error)
-	// GetFixtures(gameweekID int) ([]Fixture, error)
 	GetFixtures() ([]Fixture, error)
 }
 
@@ -88,7 +87,6 @@ func (w *wrapper) GetTeam(id, gw int) (*domain.Team, error) {
 		return nil, err
 	}
 
-	// TODO add proper translation wrapper.Team -> tracker.Team
 	tt := domain.Team{
 		FplID: id,
 	}
@@ -96,7 +94,8 @@ func (w *wrapper) GetTeam(id, gw int) (*domain.Team, error) {
 	return &tt, nil
 }
 
-func (w *wrapper) GetGameweeks() ([]domain.Gameweek, error) {
+//
+func (w *wrapper) GetGameweeks() ([]Gameweek, error) {
 	url := fmt.Sprintf(w.baseURL + "/bootstrap-static/")
 	var bs Bootstrap
 
@@ -105,38 +104,10 @@ func (w *wrapper) GetGameweeks() ([]domain.Gameweek, error) {
 		return nil, err
 	}
 
-	gameweeks := make([]domain.Gameweek, 0)
-	for _, gw := range bs.Gws {
-		deadlineTime, err := time.Parse(time.RFC3339, gw.DeadlineTime)
-		if err != nil {
-			panic(err)
-		}
-
-		gameweeks = append(gameweeks, domain.Gameweek{
-			ID:           gw.ID,
-			Name:         gw.Name,
-			Finished:     gw.Finished,
-			IsCurrent:    gw.IsCurrent,
-			IsNext:       gw.IsNext,
-			DeadlineTime: deadlineTime,
-		})
-	}
-
-	return gameweeks, nil
+	return bs.Gws, nil
 }
 
-// func (w *wrapper) GetFixtures(gameweekID int) ([]Fixture, error) {
-// 	url := fmt.Sprintf(w.baseURL+"/fixtures?event=%d", gameweekID)
-// 	fixtures := make([]Fixture, 0)
-
-// 	err := w.fetchData(url, &fixtures)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	return fixtures, nil
-// }
-
+//
 func (w *wrapper) GetFixtures() ([]Fixture, error) {
 	url := fmt.Sprintf(w.baseURL + "/fixtures/")
 	fixtures := make([]Fixture, 380)

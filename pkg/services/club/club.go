@@ -42,5 +42,6 @@ func NewClubService(clubRepo domain.ClubRepository, wrapper wrapper.Wrapper) (Cl
 
 func (cs *clubService) GetClubByID(id int) (domain.Club, error) {
 	// TODO add validations
+
 	return cs.clubs.GetByID(id)
 }

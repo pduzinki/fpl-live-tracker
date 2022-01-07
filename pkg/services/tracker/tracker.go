@@ -2,6 +2,7 @@ package tracker
 
 import (
 	"errors"
+	"fpl-live-tracker/pkg/services/club"
 	"fpl-live-tracker/pkg/services/fixture"
 	"fpl-live-tracker/pkg/services/gameweek"
 	"log"
@@ -10,8 +11,9 @@ import (
 type TrackerConfigFunc func(t *Tracker) error
 
 type Tracker struct {
-	Gs gameweek.GameweekService
+	Cs club.ClubService
 	Fs fixture.FixtureService
+	Gs gameweek.GameweekService
 }
 
 //
@@ -28,16 +30,18 @@ func NewTracker(fns ...TrackerConfigFunc) (*Tracker, error) {
 	return &t, nil
 }
 
-func WithGameweekService(gwService gameweek.GameweekService) TrackerConfigFunc {
+//
+func WithClubService(cs club.ClubService) TrackerConfigFunc {
 	return func(t *Tracker) error {
-		if gwService == nil {
-			return errors.New("tracker init error: Gameweek Service is nil")
+		if cs == nil {
+			return errors.New("tracker init error: Club Service is nil")
 		}
-		t.Gs = gwService
+		t.Cs = cs
 		return nil
 	}
 }
 
+//
 func WithFixtureService(fs fixture.FixtureService) TrackerConfigFunc {
 	return func(t *Tracker) error {
 		if fs == nil {
@@ -48,44 +52,43 @@ func WithFixtureService(fs fixture.FixtureService) TrackerConfigFunc {
 	}
 }
 
+//
+func WithGameweekService(gwService gameweek.GameweekService) TrackerConfigFunc {
+	return func(t *Tracker) error {
+		if gwService == nil {
+			return errors.New("tracker init error: Gameweek Service is nil")
+		}
+		t.Gs = gwService
+		return nil
+	}
+}
+
 // Track is responsible for keeping all the data from FPL up-to-date.
 // Should be run as a goroutine.
 func (t *Tracker) Track() {
 	log.Println("hello from Track()")
 
-	// find ongoing or next gameweek, if there is none, the game finished
-	// var gameweek domain.Gameweek
+	err := t.Gs.Update()
+	if err != nil {
+		log.Println("tracker service: failed to update gameweek data", err)
+	}
 
-	// gameweek, err := t.Gs.GetOngoingGameweek()
-	// if err != nil {
-	// 	log.Println(err) // TODO handle err properly
-
-	// 	gameweek, err = t.Gs.GetNextGameweek()
-	// 	if err != nil {
-	// 		log.Println(err) // TODO handle err properly
-	// 	}
-	// }
-
-	// now := time.Now()
-	// if now.Before(gameweek.DeadlineTime) {
-	// 	diff := gameweek.DeadlineTime.Sub(now)
-	// 	log.Printf("Gameweek %d starts in %v", gameweek.ID, diff)
-	// } else {
-	// 	log.Printf("Gameweek %d is live!", gameweek.ID)
-	// }
-
-	gw := 21
+	gw, err := t.Gs.GetCurrentGameweek()
+	if err != nil {
+		log.Println("tracker service: failed to get current gameweek", err)
+	}
+	log.Println("current gameweek:", gw)
 
 	// update fixtures
-	err := t.Fs.Update()
+	err = t.Fs.Update()
 	if err != nil {
-		panic(err)
+		log.Println("tracker service: failed to update gameweek data")
 	}
 
 	// get current gameweek fixtures
-	fixtures, err := t.Fs.GetFixturesByGameweek(gw)
+	fixtures, err := t.Fs.GetFixturesByGameweek(gw.ID)
 	if err != nil {
-		log.Println(err) // TODO handle err properly
+		log.Println(err)
 	}
 	for _, f := range fixtures {
 		log.Println(f)

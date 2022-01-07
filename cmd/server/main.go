@@ -31,8 +31,9 @@ func main() {
 	gs := gameweek.NewGameweekService(w)
 
 	tracker, err := tracker.NewTracker(
-		tracker.WithGameweekService(gs),
-		tracker.WithFixtureService(fs))
+		tracker.WithClubService(cs),
+		tracker.WithFixtureService(fs),
+		tracker.WithGameweekService(gs))
 	if err != nil {
 		log.Fatalf("failed to init tracker: %v\n", err)
 	}

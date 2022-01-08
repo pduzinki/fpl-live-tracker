@@ -7,8 +7,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"time"
-
-	domain "fpl-live-tracker/pkg"
 )
 
 const DefaultURL = "https://fantasy.premierleague.com/api"
@@ -35,11 +33,11 @@ func (err errorHttpNotOk) GetHttpStatusCode() int {
 
 // Wrapper is a helper interface around FPL API
 type Wrapper interface {
-	GetManager(id int) (*domain.Manager, error)
-	GetTeam(id, gw int) (*domain.Team, error)
-	GetGameweeks() ([]Gameweek, error)
 	GetClubs() ([]Club, error)
 	GetFixtures() ([]Fixture, error)
+	GetGameweeks() ([]Gameweek, error)
+	// GetManager(id int) (*domain.Manager, error)
+	// GetTeam(id, gw int) (*domain.Team, error)
 }
 
 type wrapper struct {
@@ -59,6 +57,7 @@ func NewWrapper(url string) Wrapper {
 }
 
 // GetManager returns data from FPL API "/api/entry/{managerID}/" endpoint
+/*
 func (w *wrapper) GetManager(id int) (*domain.Manager, error) {
 	url := fmt.Sprintf(w.baseURL+"/entry/%d/", id)
 	var m Manager
@@ -76,8 +75,10 @@ func (w *wrapper) GetManager(id int) (*domain.Manager, error) {
 
 	return &tm, nil
 }
+*/
 
 //
+/*
 func (w *wrapper) GetTeam(id, gw int) (*domain.Team, error) {
 	url := fmt.Sprintf(w.baseURL+"/entry/%d/event/%d/picks/", id, gw)
 	var t Team
@@ -93,6 +94,7 @@ func (w *wrapper) GetTeam(id, gw int) (*domain.Team, error) {
 
 	return &tt, nil
 }
+*/
 
 //
 func (w *wrapper) GetGameweeks() ([]Gameweek, error) {

@@ -73,19 +73,17 @@ func (t *Tracker) Track() {
 		log.Println("tracker service: failed to update gameweek data", err)
 	}
 
+	err = t.Fs.Update()
+	if err != nil {
+		log.Println("tracker service: failed to update gameweek data")
+	}
+
 	gw, err := t.Gs.GetCurrentGameweek()
 	if err != nil {
 		log.Println("tracker service: failed to get current gameweek", err)
 	}
 	log.Println("current gameweek:", gw)
 
-	// update fixtures
-	err = t.Fs.Update()
-	if err != nil {
-		log.Println("tracker service: failed to update gameweek data")
-	}
-
-	// get current gameweek fixtures
 	fixtures, err := t.Fs.GetFixturesByGameweek(gw.ID)
 	if err != nil {
 		log.Println(err)

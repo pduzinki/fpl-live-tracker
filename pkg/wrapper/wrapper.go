@@ -2,7 +2,6 @@ package wrapper
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -11,31 +10,12 @@ import (
 
 const DefaultURL = "https://fantasy.premierleague.com/api"
 
-var ErrReadFailure error = errors.New("failed to read the response")
-var ErrUnmarshalFailure error = errors.New("failed to unmarshal data")
-
-type errorHttpNotOk struct {
-	statusCode int
-}
-
-type ErrorHttpNotOk interface {
-	error
-	GetHttpStatusCode() int
-}
-
-func (err errorHttpNotOk) Error() string {
-	return fmt.Sprintf("http status not ok: %d\n", err.statusCode)
-}
-
-func (err errorHttpNotOk) GetHttpStatusCode() int {
-	return err.statusCode
-}
-
 // Wrapper is a helper interface around FPL API
 type Wrapper interface {
 	GetClubs() ([]Club, error)
 	GetFixtures() ([]Fixture, error)
 	GetGameweeks() ([]Gameweek, error)
+	GetPlayers() ([]Player, error)
 	// GetManager(id int) (*domain.Manager, error)
 	// GetTeam(id, gw int) (*domain.Team, error)
 }
@@ -97,7 +77,7 @@ func (w *wrapper) GetTeam(id, gw int) (*domain.Team, error) {
 */
 
 //
-func (w *wrapper) GetGameweeks() ([]Gameweek, error) {
+func (w *wrapper) GetClubs() ([]Club, error) {
 	url := fmt.Sprintf(w.baseURL + "/bootstrap-static/")
 	var bs Bootstrap
 
@@ -106,7 +86,7 @@ func (w *wrapper) GetGameweeks() ([]Gameweek, error) {
 		return nil, err
 	}
 
-	return bs.Gws, nil
+	return bs.Clubs, nil
 }
 
 //
@@ -123,7 +103,7 @@ func (w *wrapper) GetFixtures() ([]Fixture, error) {
 }
 
 //
-func (w *wrapper) GetClubs() ([]Club, error) {
+func (w *wrapper) GetGameweeks() ([]Gameweek, error) {
 	url := fmt.Sprintf(w.baseURL + "/bootstrap-static/")
 	var bs Bootstrap
 
@@ -132,9 +112,23 @@ func (w *wrapper) GetClubs() ([]Club, error) {
 		return nil, err
 	}
 
-	return bs.Clubs, nil
+	return bs.Gameweeks, nil
 }
 
+//
+func (w *wrapper) GetPlayers() ([]Player, error) {
+	url := fmt.Sprintf(w.baseURL + "/bootstrap-static/")
+	var bs Bootstrap
+
+	err := w.fetchData(url, &bs)
+	if err != nil {
+		return nil, err
+	}
+
+	return bs.Players, nil
+}
+
+//
 func (w *wrapper) fetchData(url string, data interface{}) error {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {

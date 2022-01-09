@@ -31,9 +31,16 @@ func TestManagerAdd(t *testing.T) {
 	for _, test := range testcases {
 		got := mr.Add(test.manager)
 		if got != test.want {
-			t.Errorf("error: for %v, got '%v', want '%v'", test.manager, got, test.want)
+			t.Errorf("error: for %v, got err '%v', want '%v'", test.manager, got, test.want)
 		}
-		// TODO check if manager was really saved in storage
+
+		if v, ok := mr.managers[test.manager.FplID]; ok {
+			if v != test.manager {
+				t.Errorf("error: incorrect manager data in memory storage")
+			}
+		} else {
+			t.Errorf("error: manager not found in memory storage")
+		}
 	}
 }
 
@@ -65,7 +72,16 @@ func TestManagerAddMany(t *testing.T) {
 			t.Errorf("error: got err '%v', want err '%v'", got, test.want)
 		}
 
-		// TODO check if managers were really saved in storage
+		for _, m := range test.managers {
+			if v, ok := mr.managers[m.FplID]; ok {
+				if v != m {
+					t.Errorf("error: incorrect manager data in memory storage")
+				}
+			} else {
+				t.Errorf("error: manager not found in memory storage")
+			}
+
+		}
 	}
 }
 

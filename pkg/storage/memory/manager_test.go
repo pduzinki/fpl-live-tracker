@@ -2,6 +2,7 @@ package memory
 
 import (
 	domain "fpl-live-tracker/pkg"
+	"fpl-live-tracker/pkg/storage"
 	"testing"
 )
 
@@ -18,7 +19,7 @@ func TestManagerAdd(t *testing.T) {
 		want    error
 	}{
 		{jane, nil},
-		{john, errManagerAlreadyExists{john.FplID}},
+		{john, storage.ErrManagerAlreadyExists},
 	}
 
 	mr := managerRepository{
@@ -55,7 +56,7 @@ func TestManagerAddMany(t *testing.T) {
 		},
 		{
 			managers: []domain.Manager{jim, jim},
-			want:     errManagerAlreadyExists{jim.FplID},
+			want:     storage.ErrManagerAlreadyExists,
 		},
 	}
 
@@ -92,7 +93,7 @@ func TestManagerGetByFplID(t *testing.T) {
 		wantErr error
 	}{
 		{john.FplID, john, nil},
-		{jane.FplID, domain.Manager{}, ErrManagerNotFound},
+		{jane.FplID, domain.Manager{}, storage.ErrManagerNotFound},
 	}
 
 	mr := managerRepository{

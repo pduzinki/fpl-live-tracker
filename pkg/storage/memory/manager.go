@@ -2,6 +2,7 @@ package memory
 
 import (
 	domain "fpl-live-tracker/pkg"
+	"fpl-live-tracker/pkg/storage"
 	"sync"
 )
 
@@ -28,9 +29,7 @@ func NewManagerRepository() (domain.ManagerRepository, error) {
 //
 func (mr *managerRepository) Add(manager domain.Manager) error {
 	if _, ok := mr.managers[manager.FplID]; ok {
-		return errManagerAlreadyExists{
-			fplID: manager.FplID,
-		}
+		return storage.ErrManagerAlreadyExists
 	}
 
 	mr.Lock()
@@ -57,5 +56,5 @@ func (mr *managerRepository) GetByFplID(id int) (domain.Manager, error) {
 		return manager, nil
 	}
 
-	return domain.Manager{}, ErrManagerNotFound
+	return domain.Manager{}, storage.ErrManagerNotFound
 }

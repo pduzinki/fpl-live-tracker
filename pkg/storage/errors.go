@@ -14,6 +14,12 @@ var (
 	ErrFixtureAlreadyExists error = errors.New("storage: fixture already exists")
 )
 
+// player errors
+var (
+	ErrPlayerNotFound      error = errors.New("storage: player not found")
+	ErrPlayerAlreadyExists error = errors.New("storage: player already exists")
+)
+
 // manager errors
 var (
 	ErrManagerAlreadyExists error = errors.New("storage: manager already exists")

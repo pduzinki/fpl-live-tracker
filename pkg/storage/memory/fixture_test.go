@@ -78,6 +78,10 @@ func TestFixtureAddMany(t *testing.T) {
 	}
 }
 
+func TestFixtureUpdate(t *testing.T) {
+	// TODO add test
+}
+
 func TestFixtureGetByGameweek(t *testing.T) {
 	testcases := []struct {
 		gw   int

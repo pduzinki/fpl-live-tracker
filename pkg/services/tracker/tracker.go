@@ -5,12 +5,14 @@ import (
 	"fpl-live-tracker/pkg/services/club"
 	"fpl-live-tracker/pkg/services/fixture"
 	"fpl-live-tracker/pkg/services/gameweek"
+	"fpl-live-tracker/pkg/services/player"
 	"log"
 )
 
 type TrackerConfigFunc func(t *Tracker) error
 
 type Tracker struct {
+	Ps player.PlayerService
 	Cs club.ClubService
 	Fs fixture.FixtureService
 	Gs gameweek.GameweekService
@@ -28,6 +30,17 @@ func NewTracker(fns ...TrackerConfigFunc) (*Tracker, error) {
 	}
 
 	return &t, nil
+}
+
+//
+func WithPlayerService(ps player.PlayerService) TrackerConfigFunc {
+	return func(t *Tracker) error {
+		if ps == nil {
+			return errors.New("tracker init error: Player Service is nil")
+		}
+		t.Ps = ps
+		return nil
+	}
 }
 
 //

@@ -14,12 +14,14 @@ type PlayerService interface {
 
 type playerService struct {
 	wrapper wrapper.Wrapper
+	pr      domain.PlayerRepository
 }
 
 //
-func NewPlayerService(w wrapper.Wrapper) PlayerService {
+func NewPlayerService(w wrapper.Wrapper, pr domain.PlayerRepository) PlayerService {
 	return &playerService{
 		wrapper: w,
+		pr:      pr,
 	}
 }
 

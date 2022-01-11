@@ -8,6 +8,7 @@ import (
 	"fpl-live-tracker/pkg/services/club"
 	"fpl-live-tracker/pkg/services/fixture"
 	"fpl-live-tracker/pkg/services/gameweek"
+	"fpl-live-tracker/pkg/services/player"
 	"fpl-live-tracker/pkg/services/tracker"
 	"fpl-live-tracker/pkg/storage/memory"
 	"fpl-live-tracker/pkg/wrapper"
@@ -17,6 +18,9 @@ func main() {
 	log.Println("fpl-live-tracker started")
 
 	w := wrapper.NewWrapper(wrapper.DefaultURL)
+
+	pr := memory.NewPlayerRepository()
+	ps := player.NewPlayerService(w, pr)
 
 	cr := memory.NewClubRepository()
 	cs, err := club.NewClubService(cr, w)
@@ -31,6 +35,7 @@ func main() {
 	gs := gameweek.NewGameweekService(w)
 
 	tracker, err := tracker.NewTracker(
+		tracker.WithPlayerService(ps),
 		tracker.WithClubService(cs),
 		tracker.WithFixtureService(fs),
 		tracker.WithGameweekService(gs))

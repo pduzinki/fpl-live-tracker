@@ -16,6 +16,7 @@ type Wrapper interface {
 	GetFixtures() ([]Fixture, error)
 	GetGameweeks() ([]Gameweek, error)
 	GetPlayers() ([]Player, error)
+	GetLiveData(gameweekID int) ([]PlayerLive, error)
 	// GetManager(id int) (*domain.Manager, error)
 	// GetTeam(id, gw int) (*domain.Team, error)
 }
@@ -126,6 +127,19 @@ func (w *wrapper) GetPlayers() ([]Player, error) {
 	}
 
 	return bs.Players, nil
+}
+
+//
+func (w *wrapper) GetLiveData(gameweekID int) ([]PlayerLive, error) {
+	url := fmt.Sprintf(w.baseURL+"/event/%d/live/", gameweekID)
+	var elements Elements
+
+	err := w.fetchData(url, &elements)
+	if err != nil {
+		return nil, err
+	}
+
+	return elements.Elements, nil
 }
 
 //

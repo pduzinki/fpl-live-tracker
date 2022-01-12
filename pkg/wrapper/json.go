@@ -49,3 +49,18 @@ type Player struct {
 	Position int    `json:"element_type"`
 	WebName  string `json:"web_name"`
 }
+
+// TODO rename structs below to something more meaningful
+type Elements struct {
+	Elements []PlayerLive `json:"elements"`
+}
+
+type PlayerLive struct {
+	ID    int         `json:"id"`
+	Stats PlayerStats `json:"stats"`
+}
+
+type PlayerStats struct {
+	Minutes     int `json:"minutes"`
+	TotalPoints int `json:"total_point"`
+}

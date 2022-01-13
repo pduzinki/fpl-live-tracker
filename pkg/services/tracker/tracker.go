@@ -2,6 +2,7 @@ package tracker
 
 import (
 	"errors"
+	domain "fpl-live-tracker/pkg"
 	"fpl-live-tracker/pkg/services/club"
 	"fpl-live-tracker/pkg/services/fixture"
 	"fpl-live-tracker/pkg/services/gameweek"
@@ -83,24 +84,52 @@ func (t *Tracker) Track() {
 
 	err := t.Gs.Update()
 	if err != nil {
-		log.Println("tracker service: failed to update gameweek data", err)
+		log.Println("tracker service: failed to update gameweek data:", err)
 	}
 
 	err = t.Fs.Update()
 	if err != nil {
-		log.Println("tracker service: failed to update gameweek data")
+		log.Println("tracker service: failed to update fixture data:", err)
+	}
+
+	err = t.Ps.Update()
+	if err != nil {
+		log.Println("tracker service: failed to update player data:", err)
+	}
+
+	err = t.Ps.UpdateStats()
+	if err != nil {
+		log.Println("tracker service: failed to update player data:", err)
 	}
 
 	gw, err := t.Gs.GetCurrentGameweek()
 	if err != nil {
 		log.Println("tracker service: failed to get current gameweek", err)
 	}
-	log.Println("current gameweek:", gw)
 
-	fixtures, err := t.Fs.GetFixturesByGameweek(gw.ID)
+	ngw, err := t.Gs.GetNextGameweek()
 	if err != nil {
-		log.Println(err)
+		log.Println("tracker service: failed to get next gameweek", err)
 	}
+
+	var fixtures []domain.Fixture
+	if !gw.Finished {
+		log.Println("current gameweek:", gw)
+
+		fixtures, err = t.Fs.GetFixturesByGameweek(gw.ID)
+		if err != nil {
+			log.Println(err)
+		}
+
+	} else {
+		log.Println("next gameweek:", ngw)
+
+		fixtures, err = t.Fs.GetFixturesByGameweek(ngw.ID)
+		if err != nil {
+			log.Println(err)
+		}
+	}
+
 	for _, f := range fixtures {
 		log.Println(f)
 	}

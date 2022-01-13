@@ -70,6 +70,10 @@ func TestPlayerUpdate(t *testing.T) {
 	// TODO add test
 }
 
+func TestPlayerUpdateStats(t *testing.T) {
+	// TODO add test
+}
+
 func TestPlayerGetByID(t *testing.T) {
 	testcases := []struct {
 		id   int

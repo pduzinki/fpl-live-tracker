@@ -40,6 +40,11 @@ func (pr *playerRepository) Update(player domain.Player) error {
 	return storage.ErrPlayerNotFound
 }
 
+func (pr *playerRepository) UpdateStats(playerID int, stats domain.Stats) error {
+	// TODO
+	return nil
+}
+
 func (pr *playerRepository) GetByID(ID int) (domain.Player, error) {
 	if player, ok := pr.players[ID]; ok {
 		return player, nil

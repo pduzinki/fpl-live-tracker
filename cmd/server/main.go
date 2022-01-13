@@ -19,20 +19,19 @@ func main() {
 
 	w := wrapper.NewWrapper(wrapper.DefaultURL)
 
-	pr := memory.NewPlayerRepository()
-	ps := player.NewPlayerService(w, pr)
-
 	cr := memory.NewClubRepository()
 	cs, err := club.NewClubService(cr, w)
 	if err != nil {
 		log.Fatalln("error: failed to init club storage")
 	}
-	_ = cs
 
 	fr := memory.NewFixtureRepository()
 	fs := fixture.NewFixtureService(fr, cs, w)
 
 	gs := gameweek.NewGameweekService(w)
+
+	pr := memory.NewPlayerRepository()
+	ps := player.NewPlayerService(w, pr, cs, gs)
 
 	tracker, err := tracker.NewTracker(
 		tracker.WithPlayerService(ps),

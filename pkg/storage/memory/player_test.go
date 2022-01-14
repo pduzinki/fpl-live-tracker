@@ -67,11 +67,99 @@ func TestPlayerAdd(t *testing.T) {
 }
 
 func TestPlayerUpdate(t *testing.T) {
-	// TODO add test
+	testcases := []struct {
+		player domain.Player
+		want   error
+	}{
+		{
+			player: domain.Player{
+				ID:       kane.ID,
+				Name:     kane.Name,
+				Position: "MID",
+				Club:     kane.Club,
+			},
+			want: nil,
+		},
+		{
+			player: domain.Player{
+				ID:       123,
+				Name:     "Doe",
+				Position: "MID",
+			},
+			want: storage.ErrPlayerNotFound,
+		},
+	}
+
+	pr := playerRepository{
+		players: map[int]domain.Player{
+			kane.ID:     kane,
+			salah.ID:    salah,
+			cancelo.ID:  cancelo,
+			ramsdale.ID: ramsdale,
+		},
+	}
+
+	for _, test := range testcases {
+		got := pr.Update(test.player)
+		if got != test.want {
+			t.Errorf("error: got err '%v', want '%v'", got, test.want)
+		}
+
+		if got == nil {
+			if v, ok := pr.players[test.player.ID]; ok {
+				if v != test.player {
+					t.Errorf("error: incorrect player data in memory storage")
+				}
+			} else {
+				t.Errorf("error: player not found in memory storage")
+			}
+		}
+	}
 }
 
 func TestPlayerUpdateStats(t *testing.T) {
-	// TODO add test
+	testcases := []struct {
+		playerID int
+		stats    domain.Stats
+		want     error
+	}{
+		{
+			playerID: kane.ID,
+			stats:    domain.Stats{},
+			want:     nil,
+		},
+		{
+			playerID: 123,
+			stats:    domain.Stats{},
+			want:     storage.ErrPlayerNotFound,
+		},
+	}
+
+	pr := playerRepository{
+		players: map[int]domain.Player{
+			kane.ID:     kane,
+			salah.ID:    salah,
+			cancelo.ID:  cancelo,
+			ramsdale.ID: ramsdale,
+		},
+	}
+
+	for _, test := range testcases {
+		got := pr.UpdateStats(test.playerID, test.stats)
+		if got != test.want {
+			t.Errorf("error: got err '%v', want '%v'", got, test.want)
+		}
+
+		if got == nil {
+			if v, ok := pr.players[test.playerID]; ok {
+				if v.Stats != test.stats {
+					t.Errorf("error: incorrect player data in memory storage")
+				}
+			} else {
+				t.Errorf("error: player not found in memory storage")
+			}
+		}
+	}
 }
 
 func TestPlayerGetByID(t *testing.T) {

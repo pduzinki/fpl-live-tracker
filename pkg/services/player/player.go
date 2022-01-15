@@ -76,7 +76,7 @@ func (ps *playerService) UpdateStats() error {
 		return err
 	}
 
-	liveData, err := ps.wrapper.GetLiveData(gw.ID)
+	liveData, err := ps.wrapper.GetPlayersStats(gw.ID)
 	if err != nil {
 		log.Println(err)
 		return err

@@ -37,14 +37,14 @@ func (fs *fixtureService) Update() error {
 
 	fixtures := make([]domain.Fixture, len(wrapperFixtures))
 	for i, wf := range wrapperFixtures {
-		clubAway, _ := fs.cs.GetClubByID(wf.TeamA)
 		clubHome, _ := fs.cs.GetClubByID(wf.TeamH)
+		clubAway, _ := fs.cs.GetClubByID(wf.TeamA)
 
 		fixtures[i] = domain.Fixture{
 			GameweekID: wf.Event,
 			ID:         wf.ID,
-			ClubAway:   clubAway,
 			ClubHome:   clubHome,
+			ClubAway:   clubAway,
 		}
 	}
 

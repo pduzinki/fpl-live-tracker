@@ -4,8 +4,8 @@ package domain
 type Fixture struct {
 	GameweekID int
 	ID         int
-	ClubAway   Club
 	ClubHome   Club
+	ClubAway   Club
 	// Started    bool
 	// Finished   bool
 }

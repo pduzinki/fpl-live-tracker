@@ -3,11 +3,13 @@ package player
 import (
 	"fpl-live-tracker/pkg/domain"
 	"fpl-live-tracker/pkg/services/club"
+	"fpl-live-tracker/pkg/services/fixture"
 	"fpl-live-tracker/pkg/services/gameweek"
 	"fpl-live-tracker/pkg/wrapper"
 	"log"
 )
 
+// TODO this map should probably be moved to domain package
 var positions = map[int]string{
 	1: "GKP",
 	2: "DEF",
@@ -25,15 +27,18 @@ type playerService struct {
 	wrapper wrapper.Wrapper
 	pr      domain.PlayerRepository
 	cs      club.ClubService
+	fs      fixture.FixtureService
 	gs      gameweek.GameweekService
 }
 
 //
-func NewPlayerService(w wrapper.Wrapper, pr domain.PlayerRepository, cs club.ClubService, gs gameweek.GameweekService) PlayerService {
+func NewPlayerService(w wrapper.Wrapper, pr domain.PlayerRepository, cs club.ClubService,
+	fs fixture.FixtureService, gs gameweek.GameweekService) PlayerService {
 	return &playerService{
 		wrapper: w,
 		pr:      pr,
 		cs:      cs,
+		fs:      fs,
 		gs:      gs,
 	}
 }
@@ -75,17 +80,25 @@ func (ps *playerService) UpdateStats() error {
 		return err
 	}
 
-	liveData, err := ps.wrapper.GetPlayersStats(gw.ID)
+	playersStats, err := ps.wrapper.GetPlayersStats(gw.ID)
 	if err != nil {
 		log.Println(err)
 		return err
 	}
 
-	// log.Println(liveData[13])
+	for _, ws := range playersStats {
+		stats := domain.Stats{
+			Minutes:     ws.Stats.Minutes,
+			TotalPoints: ws.Stats.TotalPoints,
+		}
 
-	for _, item := range liveData {
-		_ = item
+		err := ps.pr.UpdateStats(ws.ID, stats)
+		if err != nil {
+			log.Println("player service: failed to update player stats", err)
+		}
 	}
+
+	// TODO add live bonus points
 
 	return nil
 }

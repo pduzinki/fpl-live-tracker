@@ -31,7 +31,7 @@ func main() {
 	gs := gameweek.NewGameweekService(w)
 
 	pr := memory.NewPlayerRepository()
-	ps := player.NewPlayerService(w, pr, cs, gs)
+	ps := player.NewPlayerService(w, pr, cs, fs, gs)
 
 	tracker, err := tracker.NewTracker(
 		tracker.WithPlayerService(ps),

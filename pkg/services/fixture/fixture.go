@@ -67,6 +67,12 @@ func (fs *fixtureService) Update() error {
 
 //
 func (fs *fixtureService) GetFixturesByGameweek(gameweekID int) ([]domain.Fixture, error) {
-	// TODO add validations
+	fixture := domain.Fixture{GameweekID: gameweekID}
+
+	err := runFixtureValidations(&fixture, gameweekIDBetween1and38)
+	if err != nil {
+		return []domain.Fixture{}, err
+	}
+
 	return fs.fr.GetByGameweek(gameweekID)
 }

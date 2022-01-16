@@ -5,7 +5,7 @@ import (
 	"fpl-live-tracker/pkg/domain"
 )
 
-var ErrClubIDInvalid = errors.New("invalid id")
+var ErrClubIDInvalid = errors.New("invalid club ID")
 
 type clubValidatorFunc func(*domain.Club) error
 
@@ -19,16 +19,8 @@ func runClubValidations(club *domain.Club, fns ...clubValidatorFunc) error {
 	return nil
 }
 
-func idGreaterThanZero(club *domain.Club) error {
-	if club.ID <= 0 {
-		return ErrClubIDInvalid
-	}
-
-	return nil
-}
-
-func idNotGreaterThanTwenty(club *domain.Club) error {
-	if club.ID > 20 {
+func idBetween1and20(club *domain.Club) error {
+	if club.ID <= 0 || club.ID > 20 {
 		return ErrClubIDInvalid
 	}
 

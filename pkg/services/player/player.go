@@ -1,12 +1,11 @@
 package player
 
 import (
+	"fpl-live-tracker/pkg/domain"
 	"fpl-live-tracker/pkg/services/club"
 	"fpl-live-tracker/pkg/services/gameweek"
 	"fpl-live-tracker/pkg/wrapper"
 	"log"
-
-	domain "fpl-live-tracker/pkg"
 )
 
 var positions = map[int]string{

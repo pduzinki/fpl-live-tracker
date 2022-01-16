@@ -1,7 +1,7 @@
 package memory
 
 import (
-	domain "fpl-live-tracker/pkg"
+	"fpl-live-tracker/pkg/domain"
 	"fpl-live-tracker/pkg/storage"
 	"sync"
 )

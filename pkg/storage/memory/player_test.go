@@ -1,11 +1,10 @@
 package memory
 
 import (
+	"fpl-live-tracker/pkg/domain"
 	"fpl-live-tracker/pkg/storage"
 	"reflect"
 	"testing"
-
-	domain "fpl-live-tracker/pkg"
 )
 
 var (

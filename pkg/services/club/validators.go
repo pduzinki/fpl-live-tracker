@@ -2,7 +2,7 @@ package club
 
 import (
 	"errors"
-	domain "fpl-live-tracker/pkg"
+	"fpl-live-tracker/pkg/domain"
 )
 
 var ErrClubIDInvalid = errors.New("invalid id")

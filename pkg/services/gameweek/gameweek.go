@@ -1,11 +1,10 @@
 package gameweek
 
 import (
+	"fpl-live-tracker/pkg/domain"
 	"fpl-live-tracker/pkg/wrapper"
 	"log"
 	"time"
-
-	domain "fpl-live-tracker/pkg"
 )
 
 type GameweekService interface {

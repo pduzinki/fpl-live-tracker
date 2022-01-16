@@ -2,7 +2,7 @@ package tracker
 
 import (
 	"errors"
-	domain "fpl-live-tracker/pkg"
+	"fpl-live-tracker/pkg/domain"
 	"fpl-live-tracker/pkg/services/club"
 	"fpl-live-tracker/pkg/services/fixture"
 	"fpl-live-tracker/pkg/services/gameweek"

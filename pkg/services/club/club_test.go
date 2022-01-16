@@ -1,7 +1,7 @@
 package club
 
 import (
-	domain "fpl-live-tracker/pkg"
+	"fpl-live-tracker/pkg/domain"
 	"fpl-live-tracker/pkg/mock"
 	"fpl-live-tracker/pkg/storage/memory"
 	"testing"

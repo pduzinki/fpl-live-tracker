@@ -1,7 +1,7 @@
 package fixture
 
 import (
-	domain "fpl-live-tracker/pkg"
+	"fpl-live-tracker/pkg/domain"
 	"fpl-live-tracker/pkg/services/club"
 	"fpl-live-tracker/pkg/storage"
 	"fpl-live-tracker/pkg/wrapper"

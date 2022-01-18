@@ -28,13 +28,26 @@ type Gameweek struct {
 }
 
 type Fixture struct {
-	Event int `json:"event"`
-	ID    int `json:"id"`
-	// Started             bool `json:"started"`
-	// FinishedProvisional bool `json:"finished_provisional"`
-	// Finished            bool `json:"finished"`
-	TeamA int `json:"team_a"`
-	TeamH int `json:"team_h"`
+	Event               int           `json:"event"`
+	ID                  int           `json:"id"`
+	KickoffTime         string        `json:"kickoff_time"`
+	Started             bool          `json:"started"`
+	Finished            bool          `json:"finished"`
+	FinishedProvisional bool          `json:"finished_provisional"`
+	TeamA               int           `json:"team_a"`
+	TeamH               int           `json:"team_h"`
+	Stats               []FixtureStat `json:"stats"`
+}
+
+type FixtureStat struct {
+	Identifier string             `json:"identifier"`
+	TeamA      []FixtureStatValue `json:"a"`
+	TeamH      []FixtureStatValue `json:"h"`
+}
+
+type FixtureStatValue struct {
+	Value   int `json:"value"`
+	Element int `json:"element"`
 }
 
 type Club struct {

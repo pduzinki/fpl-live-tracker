@@ -1,13 +1,17 @@
 package domain
 
+import "time"
+
 // Fixture represents a single match of football between two clubs in the Premier League
 type Fixture struct {
-	GameweekID int
-	ID         int
-	ClubHome   Club
-	ClubAway   Club
-	// Started    bool
-	// Finished   bool
+	GameweekID          int
+	ID                  int
+	ClubHome            Club
+	ClubAway            Club
+	Started             bool
+	Finished            bool
+	FinishedProvisional bool
+	KickoffTime         time.Time
 }
 
 type FixtureRepository interface {

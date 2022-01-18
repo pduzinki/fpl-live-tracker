@@ -116,7 +116,7 @@ func (t *Tracker) Track() {
 	if !gw.Finished {
 		log.Println("current gameweek:", gw)
 
-		fixtures, err = t.Fs.GetFixturesByGameweek(gw.ID)
+		fixtures, err = t.Fs.GetLiveFixtures(gw.ID)
 		if err != nil {
 			log.Println(err)
 		}

@@ -6,11 +6,13 @@ import (
 	"fpl-live-tracker/pkg/storage"
 	"fpl-live-tracker/pkg/wrapper"
 	"log"
+	"time"
 )
 
 type FixtureService interface {
 	Update() error
 	GetFixturesByGameweek(gameweekID int) ([]domain.Fixture, error)
+	GetLiveFixtures(gameweekID int) ([]domain.Fixture, error)
 }
 
 type fixtureService struct {
@@ -40,11 +42,24 @@ func (fs *fixtureService) Update() error {
 		clubHome, _ := fs.cs.GetClubByID(wf.TeamH)
 		clubAway, _ := fs.cs.GetClubByID(wf.TeamA)
 
+		var kickoffTime time.Time
+		if wf.Event != 0 { // if fixture is scheduled
+			kickoffTime, err = time.Parse(time.RFC3339, wf.KickoffTime)
+			if err != nil {
+				log.Println("fixture service:", err)
+				return err
+			}
+		}
+
 		fixtures[i] = domain.Fixture{
-			GameweekID: wf.Event,
-			ID:         wf.ID,
-			ClubHome:   clubHome,
-			ClubAway:   clubAway,
+			GameweekID:          wf.Event,
+			ID:                  wf.ID,
+			ClubHome:            clubHome,
+			ClubAway:            clubAway,
+			Started:             wf.Started,
+			Finished:            wf.Finished,
+			FinishedProvisional: wf.FinishedProvisional,
+			KickoffTime:         kickoffTime,
 		}
 	}
 
@@ -75,4 +90,21 @@ func (fs *fixtureService) GetFixturesByGameweek(gameweekID int) ([]domain.Fixtur
 	}
 
 	return fs.fr.GetByGameweek(gameweekID)
+}
+
+//
+func (fs *fixtureService) GetLiveFixtures(gameweekID int) ([]domain.Fixture, error) {
+	gwFixtures, err := fs.GetFixturesByGameweek(gameweekID)
+	if err != nil {
+		return []domain.Fixture{}, err
+	}
+
+	liveFixtures := make([]domain.Fixture, 0)
+	for _, f := range gwFixtures {
+		if f.Started && !f.FinishedProvisional {
+			liveFixtures = append(liveFixtures, f)
+		}
+	}
+
+	return liveFixtures, nil
 }

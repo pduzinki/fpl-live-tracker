@@ -51,6 +51,34 @@ func (fs *fixtureService) Update() error {
 			}
 		}
 
+		stats := make([]domain.FixtureStat, 0)
+		for _, s := range wf.Stats {
+			tmpH := make([]domain.FixtureStatValue, 0)
+			tmpA := make([]domain.FixtureStatValue, 0)
+
+			for _, item := range s.TeamH {
+				tmpH = append(tmpH, domain.FixtureStatValue{
+					PlayerID: item.Element,
+					Value:    item.Value,
+				})
+			}
+
+			for _, item := range s.TeamA {
+				tmpA = append(tmpA, domain.FixtureStatValue{
+					PlayerID: item.Element,
+					Value:    item.Value,
+				})
+			}
+
+			tmp := domain.FixtureStat{
+				Name:             s.Identifier,
+				HomePlayersStats: tmpH,
+				AwayPlayersStats: tmpA,
+			}
+
+			stats = append(stats, tmp)
+		}
+
 		fixtures[i] = domain.Fixture{
 			GameweekID:          wf.Event,
 			ID:                  wf.ID,
@@ -60,6 +88,7 @@ func (fs *fixtureService) Update() error {
 			Finished:            wf.Finished,
 			FinishedProvisional: wf.FinishedProvisional,
 			KickoffTime:         kickoffTime,
+			Stats:               stats,
 		}
 	}
 
@@ -101,7 +130,7 @@ func (fs *fixtureService) GetLiveFixtures(gameweekID int) ([]domain.Fixture, err
 
 	liveFixtures := make([]domain.Fixture, 0)
 	for _, f := range gwFixtures {
-		if f.Started && !f.FinishedProvisional {
+		if f.Started && !f.Finished {
 			liveFixtures = append(liveFixtures, f)
 		}
 	}

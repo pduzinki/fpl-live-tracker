@@ -7,6 +7,7 @@ import (
 	"fpl-live-tracker/pkg/services/gameweek"
 	"fpl-live-tracker/pkg/wrapper"
 	"log"
+	"sort"
 )
 
 // TODO this map should probably be moved to domain package
@@ -98,13 +99,49 @@ func (ps *playerService) UpdateStats() error {
 		}
 	}
 
-	// TODO add live bonus points
+	// add live bonus points
+	liveFixtures, err := ps.fs.GetLiveFixtures(gw.ID)
+	if err != nil {
+		log.Println("player service:", err)
+	}
+
+	for _, f := range liveFixtures {
+		for _, s := range f.Stats {
+			if s.Name == "bps" {
+				merged := make([]domain.FixtureStatValue, 0)
+				merged = append(merged, s.AwayPlayersStats...)
+				merged = append(merged, s.HomePlayersStats...)
+
+				// sort in descending order
+				sort.Slice(merged, func(i, j int) bool {
+					return (merged[i].Value > merged[j].Value)
+				})
+
+				// TODO add predicted bonus points to players here
+				// topBPS := make([]int, 0)
+
+				// get three top bps values
+				// then add bonus points to players with first top bps value, second, third
+				// after each, check if number of bps players awarded > 3
+
+				break
+			}
+		}
+	}
 
 	return nil
 }
 
 //
 func (ps *playerService) GetByID(ID int) (domain.Player, error) {
-	// TODO
-	return domain.Player{}, nil
+	// TODO add validations
+
+	return ps.pr.GetByID(ID)
+	// return domain.Player{}, nil
+}
+
+func (ps *playerService) addBPS(playerID, points int) {
+	player, _ := ps.pr.GetByID(playerID)
+	player.Stats.TotalPoints += points
+	ps.pr.UpdateStats(playerID, player.Stats)
 }

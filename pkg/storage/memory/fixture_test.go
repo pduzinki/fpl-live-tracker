@@ -36,7 +36,7 @@ func TestFixtureAdd(t *testing.T) {
 		}
 
 		if v, ok := fr.fixtures[test.fixture.ID]; ok {
-			if v != test.fixture {
+			if !reflect.DeepEqual(v, test.fixture) {
 				t.Errorf("error: incorrect fixture data in memory storage")
 			}
 		} else {
@@ -68,7 +68,7 @@ func TestFixtureAddMany(t *testing.T) {
 
 		for _, f := range test.fixtures {
 			if v, ok := fr.fixtures[f.ID]; ok {
-				if v != f {
+				if !reflect.DeepEqual(v, f) {
 					t.Errorf("error: incorrect fixture data in memory storage")
 				}
 			} else {

@@ -117,8 +117,33 @@ func (ps *playerService) UpdateStats() error {
 					return (merged[i].Value > merged[j].Value)
 				})
 
-				// TODO add predicted bonus points to players here
-				// topBPS := make([]int, 0)
+				topBPS := make([]int, 0, 3)
+				topBPS = append(topBPS, merged[0].Value)
+				for _, p := range merged {
+					if len(topBPS) == 3 {
+						break
+					}
+					if p.Value == topBPS[len(topBPS)-1] {
+						continue
+					}
+					topBPS = append(topBPS, p.Value)
+				}
+
+				// log.Println("----")
+				bonus := 3
+				awardedPlayersCounts := 0
+				for i := 0; i < 3; i++ {
+					for _, p := range merged {
+						if p.Value == topBPS[i] {
+							ps.addBPS(p.PlayerID, bonus)
+							awardedPlayersCounts++
+						}
+					}
+					if awardedPlayersCounts >= 3 {
+						break
+					}
+					bonus--
+				}
 
 				// get three top bps values
 				// then add bonus points to players with first top bps value, second, third
@@ -143,5 +168,6 @@ func (ps *playerService) GetByID(ID int) (domain.Player, error) {
 func (ps *playerService) addBPS(playerID, points int) {
 	player, _ := ps.pr.GetByID(playerID)
 	player.Stats.TotalPoints += points
+	// log.Printf("%s %d", player.Name, points)
 	ps.pr.UpdateStats(playerID, player.Stats)
 }

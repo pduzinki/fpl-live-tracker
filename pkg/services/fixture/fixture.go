@@ -34,62 +34,19 @@ func NewFixtureService(fr domain.FixtureRepository, cs club.ClubService, w wrapp
 func (fs *fixtureService) Update() error {
 	wrapperFixtures, err := fs.wrapper.GetFixtures()
 	if err != nil {
+		log.Println("fixture service:", err)
 		return err
 	}
 
 	fixtures := make([]domain.Fixture, len(wrapperFixtures))
 	for i, wf := range wrapperFixtures {
-		clubHome, _ := fs.cs.GetClubByID(wf.TeamH)
-		clubAway, _ := fs.cs.GetClubByID(wf.TeamA)
-
-		var kickoffTime time.Time
-		if wf.Event != 0 { // if fixture is scheduled
-			kickoffTime, err = time.Parse(time.RFC3339, wf.KickoffTime)
-			if err != nil {
-				log.Println("fixture service:", err)
-				return err
-			}
+		f, err := fs.convertToDomainFixture(wf)
+		if err != nil {
+			log.Println("fixture service:", err)
+			return err
 		}
 
-		stats := make([]domain.FixtureStat, 0)
-		for _, s := range wf.Stats {
-			tmpH := make([]domain.FixtureStatValue, 0)
-			tmpA := make([]domain.FixtureStatValue, 0)
-
-			for _, item := range s.TeamH {
-				tmpH = append(tmpH, domain.FixtureStatValue{
-					PlayerID: item.Element,
-					Value:    item.Value,
-				})
-			}
-
-			for _, item := range s.TeamA {
-				tmpA = append(tmpA, domain.FixtureStatValue{
-					PlayerID: item.Element,
-					Value:    item.Value,
-				})
-			}
-
-			tmp := domain.FixtureStat{
-				Name:             s.Identifier,
-				HomePlayersStats: tmpH,
-				AwayPlayersStats: tmpA,
-			}
-
-			stats = append(stats, tmp)
-		}
-
-		fixtures[i] = domain.Fixture{
-			GameweekID:          wf.Event,
-			ID:                  wf.ID,
-			ClubHome:            clubHome,
-			ClubAway:            clubAway,
-			Started:             wf.Started,
-			Finished:            wf.Finished,
-			FinishedProvisional: wf.FinishedProvisional,
-			KickoffTime:         kickoffTime,
-			Stats:               stats,
-		}
+		fixtures[i] = f
 	}
 
 	for _, f := range fixtures {
@@ -136,4 +93,67 @@ func (fs *fixtureService) GetLiveFixtures(gameweekID int) ([]domain.Fixture, err
 	}
 
 	return liveFixtures, nil
+}
+
+func (fs *fixtureService) convertToDomainFixture(wf wrapper.Fixture) (domain.Fixture, error) {
+	clubHome, err := fs.cs.GetClubByID(wf.TeamH)
+	if err != nil {
+		return domain.Fixture{}, err
+	}
+
+	clubAway, err := fs.cs.GetClubByID(wf.TeamA)
+	if err != nil {
+		return domain.Fixture{}, err
+	}
+
+	var kickoffTime time.Time
+	if wf.Event != 0 { // if fixture is scheduled
+		kickoffTime, err = time.Parse(time.RFC3339, wf.KickoffTime)
+		if err != nil {
+			log.Println("fixture service:", err)
+			return domain.Fixture{}, err
+		}
+	}
+
+	stats := make([]domain.FixtureStat, len(wf.Stats))
+	for _, s := range wf.Stats {
+		homePlayersStats := make([]domain.FixtureStatValue, len(s.TeamH))
+		awayPlayersStats := make([]domain.FixtureStatValue, len(s.TeamA))
+
+		for _, stat := range s.TeamH {
+			homePlayersStats = append(homePlayersStats, domain.FixtureStatValue{
+				PlayerID: stat.Element,
+				Value:    stat.Value,
+			})
+		}
+
+		for _, stat := range s.TeamA {
+			awayPlayersStats = append(awayPlayersStats, domain.FixtureStatValue{
+				PlayerID: stat.Element,
+				Value:    stat.Value,
+			})
+		}
+
+		fixtureStat := domain.FixtureStat{
+			Name:             s.Identifier,
+			HomePlayersStats: homePlayersStats,
+			AwayPlayersStats: awayPlayersStats,
+		}
+
+		stats = append(stats, fixtureStat)
+	}
+
+	fixture := domain.Fixture{
+		GameweekID:          wf.Event,
+		ID:                  wf.ID,
+		ClubHome:            clubHome,
+		ClubAway:            clubAway,
+		Started:             wf.Started,
+		Finished:            wf.Finished,
+		FinishedProvisional: wf.FinishedProvisional,
+		KickoffTime:         kickoffTime,
+		Stats:               stats,
+	}
+
+	return fixture, nil
 }

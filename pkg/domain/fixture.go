@@ -40,5 +40,12 @@ type FixtureStatValue struct {
 }
 
 func (f Fixture) String() string {
-	return fmt.Sprintf("{%s %s %t %t %t}", f.ClubHome.Shortname, f.ClubAway.Shortname, f.Started, f.FinishedProvisional, f.Finished)
+	return fmt.Sprintf("{%d %d %s %s %t %t %t}",
+		f.GameweekID,
+		f.ID,
+		f.ClubHome.Shortname,
+		f.ClubAway.Shortname,
+		f.Started,
+		f.FinishedProvisional,
+		f.Finished)
 }

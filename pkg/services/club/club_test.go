@@ -32,8 +32,9 @@ func TestGetClubByID(t *testing.T) {
 
 	cr := memory.NewClubRepository()
 
-	wr := mock.Wrapper{}
-	wr.GetClubsFn = mock.GetClubsOK
+	wr := mock.Wrapper{
+		GetClubsFn: mock.GetClubsOK,
+	}
 
 	cs, err := NewClubService(cr, &wr)
 	if err != nil {

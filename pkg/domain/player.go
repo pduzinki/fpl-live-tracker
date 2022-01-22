@@ -13,19 +13,18 @@ type Player struct {
 	Name     string
 	Position string
 	Club     Club
-	Stats    Stats
+	Stats    PlayerStats
 }
 
 type PlayerRepository interface {
 	Add(player Player) error
 	Update(player Player) error
-	UpdateStats(playerID int, stats Stats) error
+	UpdateStats(playerID int, stats PlayerStats) error
 	GetByID(ID int) (Player, error)
 }
 
-// Stats contains data about Player's performance during Gameweek
-type Stats struct {
-	// Finished    bool
+// PlayerStats contains data about Player's performance during Gameweek
+type PlayerStats struct {
 	Minutes     int
-	TotalPoints int // doesn't include bonus points just yet
+	TotalPoints int
 }

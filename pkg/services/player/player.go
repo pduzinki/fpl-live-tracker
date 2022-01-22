@@ -45,17 +45,7 @@ func (ps *playerService) Update() error {
 
 	players := make([]domain.Player, len(wrapperPlayers))
 	for i, wp := range wrapperPlayers {
-		club, err := ps.cs.GetClubByID(wp.Team)
-		if err != nil {
-			log.Println(err)
-		}
-
-		players[i] = domain.Player{
-			ID:       wp.ID,
-			Name:     wp.WebName,
-			Position: domain.PlayerPosition[wp.Position],
-			Club:     club,
-		}
+		players[i] = ps.convertToDomainPlayer(wp)
 
 		err = ps.pr.Add(players[i])
 		if err != nil {
@@ -80,11 +70,7 @@ func (ps *playerService) UpdateStats() error {
 	}
 
 	for _, ws := range playersStats {
-		stats := domain.Stats{
-			Minutes:     ws.Stats.Minutes,
-			TotalPoints: ws.Stats.TotalPoints,
-		}
-
+		stats := ps.convertToDomainPlayerStats(ws)
 		err := ps.pr.UpdateStats(ws.ID, stats)
 		if err != nil {
 			log.Println("player service: failed to update player stats", err)
@@ -112,33 +98,8 @@ func (ps *playerService) UpdateStats() error {
 			return (allPlayersStats[i].Value > allPlayersStats[j].Value)
 		})
 
-		topBPS := make([]int, 0, 3)
-		topBPS = append(topBPS, allPlayersStats[0].Value)
-		for _, p := range allPlayersStats {
-			if len(topBPS) == 3 {
-				break
-			}
-			if p.Value == topBPS[len(topBPS)-1] {
-				continue
-			}
-			topBPS = append(topBPS, p.Value)
-		}
-
-		// log.Println("----")
-		bonus := 3
-		awardedPlayersCounts := 0
-		for i := 0; i < 3; i++ {
-			for _, p := range allPlayersStats {
-				if p.Value == topBPS[i] {
-					ps.addBPS(p.PlayerID, bonus)
-					awardedPlayersCounts++
-				}
-			}
-			if awardedPlayersCounts >= 3 {
-				break
-			}
-			bonus--
-		}
+		topBPS := ps.topBPS(allPlayersStats)
+		ps.awardBonusPoints(allPlayersStats, topBPS)
 	}
 
 	return nil
@@ -152,9 +113,64 @@ func (ps *playerService) GetByID(ID int) (domain.Player, error) {
 	// return domain.Player{}, nil
 }
 
+func (ps *playerService) topBPS(bpsPlayers []domain.FixtureStatValue) []int {
+	topBPS := make([]int, 0, 3)
+	topBPS = append(topBPS, bpsPlayers[0].Value)
+	for _, p := range bpsPlayers {
+		if len(topBPS) == 3 {
+			break
+		}
+		if p.Value == topBPS[len(topBPS)-1] {
+			continue
+		}
+		topBPS = append(topBPS, p.Value)
+	}
+
+	return topBPS
+}
+
+func (ps *playerService) awardBonusPoints(allPlayersStats []domain.FixtureStatValue, topBPS []int) {
+	// log.Println("----")
+	bonus := 3
+	awardedPlayersCounts := 0
+	for i := 0; i < 3; i++ {
+		for _, p := range allPlayersStats {
+			if p.Value == topBPS[i] {
+				ps.addBPS(p.PlayerID, bonus)
+				awardedPlayersCounts++
+			}
+		}
+		if awardedPlayersCounts >= 3 {
+			break
+		}
+		bonus--
+	}
+}
+
 func (ps *playerService) addBPS(playerID, points int) {
 	player, _ := ps.pr.GetByID(playerID)
 	player.Stats.TotalPoints += points
 	// log.Printf("%s %d", player.Name, points)
 	ps.pr.UpdateStats(playerID, player.Stats)
+}
+
+func (ps *playerService) convertToDomainPlayer(wp wrapper.Player) domain.Player {
+	club, err := ps.cs.GetClubByID(wp.Team)
+	if err != nil {
+		log.Println(err)
+	}
+
+	return domain.Player{
+		ID:       wp.ID,
+		Name:     wp.WebName,
+		Position: domain.PlayerPosition[wp.Position],
+		Club:     club,
+	}
+}
+
+func (ps *playerService) convertToDomainPlayerStats(ws wrapper.PlayerStats) domain.PlayerStats {
+	return domain.PlayerStats{
+		Minutes:     ws.Stats.Minutes,
+		TotalPoints: ws.Stats.TotalPoints,
+	}
 }

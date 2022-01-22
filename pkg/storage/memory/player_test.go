@@ -119,17 +119,17 @@ func TestPlayerUpdate(t *testing.T) {
 func TestPlayerUpdateStats(t *testing.T) {
 	testcases := []struct {
 		playerID int
-		stats    domain.Stats
+		stats    domain.PlayerStats
 		want     error
 	}{
 		{
 			playerID: kane.ID,
-			stats:    domain.Stats{},
+			stats:    domain.PlayerStats{},
 			want:     nil,
 		},
 		{
 			playerID: 123,
-			stats:    domain.Stats{},
+			stats:    domain.PlayerStats{},
 			want:     storage.ErrPlayerNotFound,
 		},
 	}

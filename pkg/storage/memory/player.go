@@ -42,7 +42,7 @@ func (pr *playerRepository) Update(player domain.Player) error {
 	return storage.ErrPlayerNotFound
 }
 
-func (pr *playerRepository) UpdateStats(playerID int, stats domain.Stats) error {
+func (pr *playerRepository) UpdateStats(playerID int, stats domain.PlayerStats) error {
 	if player, ok := pr.players[playerID]; ok {
 		player.Stats = stats
 		pr.Lock()

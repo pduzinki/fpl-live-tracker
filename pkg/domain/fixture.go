@@ -15,7 +15,7 @@ type Fixture struct {
 	Finished            bool
 	FinishedProvisional bool
 	KickoffTime         time.Time
-	Stats               []FixtureStat // TODO this can be a map
+	Stats               map[string]FixtureStat
 }
 
 type FixtureRepository interface {

@@ -10,14 +10,6 @@ import (
 	"sort"
 )
 
-// TODO this map should probably be moved to domain package
-var positions = map[int]string{
-	1: "GKP",
-	2: "DEF",
-	3: "MID",
-	4: "FWD",
-}
-
 type PlayerService interface {
 	Update() error
 	UpdateStats() error
@@ -61,7 +53,7 @@ func (ps *playerService) Update() error {
 		players[i] = domain.Player{
 			ID:       wp.ID,
 			Name:     wp.WebName,
-			Position: positions[wp.Position],
+			Position: domain.PlayerPosition[wp.Position],
 			Club:     club,
 		}
 
@@ -106,51 +98,46 @@ func (ps *playerService) UpdateStats() error {
 	}
 
 	for _, f := range liveFixtures {
-		for _, s := range f.Stats {
-			if s.Name == "bps" {
-				merged := make([]domain.FixtureStatValue, 0)
-				merged = append(merged, s.AwayPlayersStats...)
-				merged = append(merged, s.HomePlayersStats...)
+		s, ok := f.Stats["bps"]
+		if !ok {
+			log.Println("player service: bps stats not found in live fixture")
+			continue
+		}
 
-				// sort in descending order
-				sort.Slice(merged, func(i, j int) bool {
-					return (merged[i].Value > merged[j].Value)
-				})
+		allPlayersStats := make([]domain.FixtureStatValue, len(s.AwayPlayersStats)+len(s.HomePlayersStats))
+		allPlayersStats = append(s.AwayPlayersStats, s.HomePlayersStats...)
 
-				topBPS := make([]int, 0, 3)
-				topBPS = append(topBPS, merged[0].Value)
-				for _, p := range merged {
-					if len(topBPS) == 3 {
-						break
-					}
-					if p.Value == topBPS[len(topBPS)-1] {
-						continue
-					}
-					topBPS = append(topBPS, p.Value)
-				}
+		// sort in descending order
+		sort.Slice(allPlayersStats, func(i, j int) bool {
+			return (allPlayersStats[i].Value > allPlayersStats[j].Value)
+		})
 
-				// log.Println("----")
-				bonus := 3
-				awardedPlayersCounts := 0
-				for i := 0; i < 3; i++ {
-					for _, p := range merged {
-						if p.Value == topBPS[i] {
-							ps.addBPS(p.PlayerID, bonus)
-							awardedPlayersCounts++
-						}
-					}
-					if awardedPlayersCounts >= 3 {
-						break
-					}
-					bonus--
-				}
-
-				// get three top bps values
-				// then add bonus points to players with first top bps value, second, third
-				// after each, check if number of bps players awarded > 3
-
+		topBPS := make([]int, 0, 3)
+		topBPS = append(topBPS, allPlayersStats[0].Value)
+		for _, p := range allPlayersStats {
+			if len(topBPS) == 3 {
 				break
 			}
+			if p.Value == topBPS[len(topBPS)-1] {
+				continue
+			}
+			topBPS = append(topBPS, p.Value)
+		}
+
+		// log.Println("----")
+		bonus := 3
+		awardedPlayersCounts := 0
+		for i := 0; i < 3; i++ {
+			for _, p := range allPlayersStats {
+				if p.Value == topBPS[i] {
+					ps.addBPS(p.PlayerID, bonus)
+					awardedPlayersCounts++
+				}
+			}
+			if awardedPlayersCounts >= 3 {
+				break
+			}
+			bonus--
 		}
 	}
 

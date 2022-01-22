@@ -1,5 +1,12 @@
 package domain
 
+var PlayerPosition = map[int]string{
+	1: "GKP",
+	2: "DEF",
+	3: "MID",
+	4: "FWD",
+}
+
 // Player represents a human being that plays in one of Premier League clubs (e.g. Harry Kane, Mohamed Salah)
 type Player struct {
 	ID       int

@@ -1,5 +1,6 @@
 package domain
 
+// PlayerPosition maps FPL API position IDs to more readable string representation
 var PlayerPosition = map[int]string{
 	1: "GKP",
 	2: "DEF",

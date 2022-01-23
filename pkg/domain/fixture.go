@@ -26,14 +26,14 @@ type FixtureRepository interface {
 	// TODO maybe add Get(s string) (Fixture, error) // s in form LEILIV, TOTCHE
 }
 
-//
+// FixtureStat represents particular fixture statistic (e.g. goals scored, assists, or bonus points)
 type FixtureStat struct {
 	Name             string
 	HomePlayersStats []FixtureStatValue
 	AwayPlayersStats []FixtureStatValue
 }
 
-//
+// FixtureStatValue represents particular instance of fixture statistic, and player responsible for it (e.g. number of goals scored by Harry Kane)
 type FixtureStatValue struct {
 	PlayerID int
 	Value    int

@@ -14,12 +14,12 @@ type clubService struct {
 	clubs domain.ClubRepository
 }
 
-func NewClubService(clubRepo domain.ClubRepository, wrapper wrapper.Wrapper) (ClubService, error) {
+func NewClubService(clubRepo domain.ClubRepository, w wrapper.Wrapper) (ClubService, error) {
 	cs := &clubService{
 		clubs: clubRepo,
 	}
 
-	wrapperClubs, err := wrapper.GetClubs() // TODO to add http retries would be nice
+	wrapperClubs, err := w.GetClubs() // TODO to add http retries would be nice
 	if err != nil {
 		return nil, err
 	}

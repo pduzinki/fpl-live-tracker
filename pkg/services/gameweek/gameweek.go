@@ -1,11 +1,14 @@
 package gameweek
 
 import (
+	"errors"
 	"fpl-live-tracker/pkg/domain"
 	"fpl-live-tracker/pkg/wrapper"
 	"log"
 	"time"
 )
+
+var ErrGameweekNotUpdated = errors.New("gameweek service: gameweek data hasn't been updated")
 
 type GameweekService interface {
 	Update() error
@@ -17,11 +20,13 @@ type gameweekService struct {
 	CurrentGameweek domain.Gameweek
 	NextGameweek    domain.Gameweek
 	wrapper         wrapper.Wrapper
+	updatedOnce     bool
 }
 
 func NewGameweekService(w wrapper.Wrapper) GameweekService {
 	return &gameweekService{
-		wrapper: w,
+		wrapper:     w,
+		updatedOnce: false,
 	}
 }
 
@@ -64,13 +69,20 @@ func (gs *gameweekService) Update() error {
 		}
 	}
 
+	gs.updatedOnce = true
 	return nil
 }
 
 func (gs *gameweekService) GetCurrentGameweek() (domain.Gameweek, error) {
+	if !gs.updatedOnce {
+		return domain.Gameweek{}, ErrGameweekNotUpdated
+	}
 	return gs.CurrentGameweek, nil
 }
 
 func (gs *gameweekService) GetNextGameweek() (domain.Gameweek, error) {
+	if !gs.updatedOnce {
+		return domain.Gameweek{}, ErrGameweekNotUpdated
+	}
 	return gs.NextGameweek, nil
 }

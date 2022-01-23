@@ -49,7 +49,7 @@ func (ps *playerService) Update() error {
 
 		err = ps.pr.Add(players[i])
 		if err != nil {
-			log.Println(err)
+			log.Println("player service: failed to add player data,", err)
 		}
 	}
 
@@ -130,13 +130,14 @@ func (ps *playerService) topBPS(bpsPlayers []domain.FixtureStatValue) []int {
 }
 
 func (ps *playerService) awardBonusPoints(allPlayersStats []domain.FixtureStatValue, topBPS []int) {
-	// log.Println("----")
+	log.Println("----")
 	bonus := 3
 	awardedPlayersCounts := 0
 	for i := 0; i < 3; i++ {
 		for _, p := range allPlayersStats {
 			if p.Value == topBPS[i] {
 				ps.addBPS(p.PlayerID, bonus)
+				log.Printf("playerID: %d, bps: %d, bonus %d", p.PlayerID, p.Value, bonus)
 				awardedPlayersCounts++
 			}
 		}
@@ -150,7 +151,7 @@ func (ps *playerService) awardBonusPoints(allPlayersStats []domain.FixtureStatVa
 func (ps *playerService) addBPS(playerID, points int) {
 	player, _ := ps.pr.GetByID(playerID)
 	player.Stats.TotalPoints += points
-	// log.Printf("%s %d", player.Name, points)
+	log.Printf("playerID: %d name: %s bonus: %d", player.ID, player.Name, points)
 	ps.pr.UpdateStats(playerID, player.Stats)
 }
 

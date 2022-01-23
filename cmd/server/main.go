@@ -22,7 +22,7 @@ func main() {
 	cr := memory.NewClubRepository()
 	cs, err := club.NewClubService(cr, w)
 	if err != nil {
-		log.Fatalln("error: failed to init club storage")
+		log.Fatalln("error: failed to init club service")
 	}
 
 	fr := memory.NewFixtureRepository()

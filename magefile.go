@@ -4,6 +4,7 @@ package main
 
 import (
 	"os"
+	"runtime"
 
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
@@ -23,8 +24,8 @@ func Build() error {
 	}
 
 	env := map[string]string{
-		"GOOS":   "linux",
-		"GOARCH": "amd64",
+		"GOOS":   runtime.GOOS,
+		"GOARCH": runtime.GOARCH,
 	}
 	_, err := sh.Exec(env, os.Stdout, os.Stderr, "go", "build", "-ldflags="+"-w -s", "-o", "app", "./cmd/server")
 

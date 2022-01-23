@@ -9,6 +9,7 @@ import (
 )
 
 var ErrGameweekNotUpdated = errors.New("gameweek service: gameweek data hasn't been updated")
+var ErrNoNextGameweek = errors.New("gameweek service: no noxt gameweek found")
 
 type GameweekService interface {
 	Update() error
@@ -21,12 +22,14 @@ type gameweekService struct {
 	NextGameweek    domain.Gameweek
 	wrapper         wrapper.Wrapper
 	updatedOnce     bool
+	noNextGameweek  bool
 }
 
 func NewGameweekService(w wrapper.Wrapper) GameweekService {
 	return &gameweekService{
-		wrapper:     w,
-		updatedOnce: false,
+		wrapper:        w,
+		updatedOnce:    false,
+		noNextGameweek: false,
 	}
 }
 
@@ -37,38 +40,29 @@ func (gs *gameweekService) Update() error {
 		return err
 	}
 
+	nextGameweekFound := false
 	for _, gw := range wrapperGameweeks {
 		if gw.IsCurrent {
-			deadlineTime, err := time.Parse(time.RFC3339, gw.DeadlineTime)
+			currentGameweek, err := gs.convertToDomainGameweek(gw)
 			if err != nil {
-				log.Println("gameweek service:", err)
 				return err
 			}
-
-			gs.CurrentGameweek = domain.Gameweek{
-				ID:           gw.ID,
-				Name:         gw.Name,
-				Finished:     gw.Finished,
-				DeadlineTime: deadlineTime,
-			}
+			gs.CurrentGameweek = currentGameweek
 		}
 
 		if gw.IsNext {
-			deadlineTime, err := time.Parse(time.RFC3339, gw.DeadlineTime)
+			nextGameweek, err := gs.convertToDomainGameweek(gw)
 			if err != nil {
-				log.Println("gameweek service:", err)
 				return err
 			}
-
-			gs.NextGameweek = domain.Gameweek{
-				ID:           gw.ID,
-				Name:         gw.Name,
-				Finished:     gw.Finished,
-				DeadlineTime: deadlineTime,
-			}
+			gs.NextGameweek = nextGameweek
+			nextGameweekFound = true
 		}
 	}
 
+	if !nextGameweekFound {
+		gs.noNextGameweek = true
+	}
 	gs.updatedOnce = true
 	return nil
 }
@@ -84,5 +78,23 @@ func (gs *gameweekService) GetNextGameweek() (domain.Gameweek, error) {
 	if !gs.updatedOnce {
 		return domain.Gameweek{}, ErrGameweekNotUpdated
 	}
+	if gs.noNextGameweek {
+		return domain.Gameweek{}, ErrNoNextGameweek
+	}
 	return gs.NextGameweek, nil
+}
+
+func (gs *gameweekService) convertToDomainGameweek(gw wrapper.Gameweek) (domain.Gameweek, error) {
+	deadlineTime, err := time.Parse(time.RFC3339, gw.DeadlineTime)
+	if err != nil {
+		log.Println("gameweek service:", err)
+		return domain.Gameweek{}, err
+	}
+
+	return domain.Gameweek{
+		ID:           gw.ID,
+		Name:         gw.Name,
+		Finished:     gw.Finished,
+		DeadlineTime: deadlineTime,
+	}, nil
 }

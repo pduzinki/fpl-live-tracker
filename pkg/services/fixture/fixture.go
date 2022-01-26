@@ -22,12 +22,20 @@ type fixtureService struct {
 }
 
 //
-func NewFixtureService(fr domain.FixtureRepository, cs club.ClubService, w wrapper.Wrapper) FixtureService {
-	return &fixtureService{
+func NewFixtureService(fr domain.FixtureRepository, cs club.ClubService, w wrapper.Wrapper) (FixtureService, error) {
+	fs := fixtureService{
 		fr:      fr,
 		cs:      cs,
 		wrapper: w,
 	}
+
+	err := fs.Update()
+	if err != nil {
+		log.Println("fixture service: failed to init data")
+		return nil, err
+	}
+
+	return &fs, nil
 }
 
 //

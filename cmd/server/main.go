@@ -26,9 +26,15 @@ func main() {
 	}
 
 	fr := memory.NewFixtureRepository()
-	fs := fixture.NewFixtureService(fr, cs, w)
+	fs, err := fixture.NewFixtureService(fr, cs, w)
+	if err != nil {
+		log.Fatalln("error: failed to init fixture service")
+	}
 
-	gs := gameweek.NewGameweekService(w)
+	gs, err := gameweek.NewGameweekService(w)
+	if err != nil {
+		log.Fatalln("error: failed to init gameweek service")
+	}
 
 	pr := memory.NewPlayerRepository()
 	ps := player.NewPlayerService(w, pr, cs, fs, gs)

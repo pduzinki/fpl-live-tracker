@@ -21,16 +21,22 @@ type gameweekService struct {
 	CurrentGameweek domain.Gameweek
 	NextGameweek    domain.Gameweek
 	wrapper         wrapper.Wrapper
-	updatedOnce     bool
 	noNextGameweek  bool
 }
 
-func NewGameweekService(w wrapper.Wrapper) GameweekService {
-	return &gameweekService{
+func NewGameweekService(w wrapper.Wrapper) (GameweekService, error) {
+	gs := gameweekService{
 		wrapper:        w,
-		updatedOnce:    false,
 		noNextGameweek: false,
 	}
+
+	err := gs.Update()
+	if err != nil {
+		log.Println("gameweek service: failed to init data")
+		return nil, err
+	}
+
+	return &gs, nil
 }
 
 func (gs *gameweekService) Update() error {
@@ -63,21 +69,14 @@ func (gs *gameweekService) Update() error {
 	if !nextGameweekFound {
 		gs.noNextGameweek = true
 	}
-	gs.updatedOnce = true
 	return nil
 }
 
 func (gs *gameweekService) GetCurrentGameweek() (domain.Gameweek, error) {
-	if !gs.updatedOnce {
-		return domain.Gameweek{}, ErrGameweekNotUpdated
-	}
 	return gs.CurrentGameweek, nil
 }
 
 func (gs *gameweekService) GetNextGameweek() (domain.Gameweek, error) {
-	if !gs.updatedOnce {
-		return domain.Gameweek{}, ErrGameweekNotUpdated
-	}
 	if gs.noNextGameweek {
 		return domain.Gameweek{}, ErrNoNextGameweek
 	}

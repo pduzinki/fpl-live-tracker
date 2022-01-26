@@ -17,26 +17,18 @@ func TestUpdate(t *testing.T) {
 
 func TestGetCurrentGameweek(t *testing.T) {
 	testcases := []struct {
-		want    domain.Gameweek
-		err     error
-		updated bool
+		want domain.Gameweek
+		err  error
 	}{
 		{
-			want:    gameweek,
-			err:     nil,
-			updated: true,
-		},
-		{
-			want:    domain.Gameweek{},
-			err:     ErrGameweekNotUpdated,
-			updated: false,
+			want: gameweek,
+			err:  nil,
 		},
 	}
 
 	for _, test := range testcases {
 		gs := gameweekService{
 			CurrentGameweek: gameweek,
-			updatedOnce:     test.updated,
 		}
 
 		got, err := gs.GetCurrentGameweek()
@@ -53,25 +45,16 @@ func TestGetNextGameweek(t *testing.T) {
 	testcases := []struct {
 		want         domain.Gameweek
 		err          error
-		updated      bool
 		gameFinished bool
 	}{
 		{
 			want:         gameweek,
 			err:          nil,
-			updated:      true,
-			gameFinished: false,
-		},
-		{
-			want:         domain.Gameweek{},
-			err:          ErrGameweekNotUpdated,
-			updated:      false,
 			gameFinished: false,
 		},
 		{
 			want:         domain.Gameweek{},
 			err:          ErrNoNextGameweek,
-			updated:      true,
 			gameFinished: true,
 		},
 	}
@@ -79,7 +62,6 @@ func TestGetNextGameweek(t *testing.T) {
 	for _, test := range testcases {
 		gs := gameweekService{
 			NextGameweek:   gameweek,
-			updatedOnce:    test.updated,
 			noNextGameweek: test.gameFinished,
 		}
 

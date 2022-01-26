@@ -107,10 +107,14 @@ func (ps *playerService) UpdateStats() error {
 
 //
 func (ps *playerService) GetByID(ID int) (domain.Player, error) {
-	// TODO add validations
+	player := domain.Player{ID: ID}
+
+	err := runPlayerValidations(&player, idHigherThanZero)
+	if err != nil {
+		return domain.Player{}, err
+	}
 
 	return ps.pr.GetByID(ID)
-	// return domain.Player{}, nil
 }
 
 func (ps *playerService) topBPS(bpsPlayers []domain.FixtureStatValue) []int {

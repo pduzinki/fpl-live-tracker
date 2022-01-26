@@ -3,9 +3,10 @@ package club
 import (
 	"fpl-live-tracker/pkg/domain"
 	"fpl-live-tracker/pkg/mock"
-	"fpl-live-tracker/pkg/storage/memory"
 	"testing"
 )
+
+var che = domain.Club{ID: 6, Name: "Chelsea", Shortname: "CHE"}
 
 func TestGetClubByID(t *testing.T) {
 	testcases := []struct {
@@ -20,7 +21,7 @@ func TestGetClubByID(t *testing.T) {
 		},
 		{
 			clubID: 6,
-			want:   domain.Club{ID: 6, Name: "Chelsea", Shortname: "CHE"},
+			want:   che,
 			err:    nil,
 		},
 		{
@@ -30,16 +31,15 @@ func TestGetClubByID(t *testing.T) {
 		},
 	}
 
-	cr := memory.NewClubRepository()
-
-	wr := mock.Wrapper{
-		GetClubsFn: mock.GetClubsOK,
+	cr := mock.ClubRepository{
+		GetByIDFn: func(id int) (domain.Club, error) {
+			if id != 6 {
+				t.Fatalf("unexpected club id: %d", id)
+			}
+			return che, nil
+		},
 	}
-
-	cs, err := NewClubService(cr, &wr)
-	if err != nil {
-		t.Fatal("error: failed to init club service")
-	}
+	cs := clubService{&cr}
 
 	for _, test := range testcases {
 		got, err := cs.GetClubByID(test.clubID)

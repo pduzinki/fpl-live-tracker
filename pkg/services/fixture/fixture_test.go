@@ -47,10 +47,7 @@ func TestGetFixturesByGameweek(t *testing.T) {
 			return gw8Fixtures, nil
 		},
 	}
-	wr := mock.Wrapper{}
-	cs := mock.ClubService{}
-
-	fs := NewFixtureService(&fr, &cs, &wr)
+	fs := fixtureService{fr: &fr}
 
 	for _, test := range testcases {
 		got, err := fs.GetFixturesByGameweek(test.gwID)
@@ -92,10 +89,7 @@ func TestGetLiveFixtures(t *testing.T) {
 			return gw8Fixtures, nil
 		},
 	}
-	wr := mock.Wrapper{}
-	cs := mock.ClubService{}
-
-	fs := NewFixtureService(&fr, &cs, &wr)
+	fs := fixtureService{fr: &fr}
 
 	for _, test := range testcases {
 		got, err := fs.GetLiveFixtures(test.gwID)

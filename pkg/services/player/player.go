@@ -5,6 +5,7 @@ import (
 	"fpl-live-tracker/pkg/services/club"
 	"fpl-live-tracker/pkg/services/fixture"
 	"fpl-live-tracker/pkg/services/gameweek"
+	"fpl-live-tracker/pkg/storage"
 	"fpl-live-tracker/pkg/wrapper"
 	"log"
 	"sort"
@@ -45,11 +46,25 @@ func (ps *playerService) Update() error {
 
 	players := make([]domain.Player, len(wrapperPlayers))
 	for i, wp := range wrapperPlayers {
-		players[i] = ps.convertToDomainPlayer(wp)
-
-		err = ps.pr.Add(players[i])
+		p, err := ps.convertToDomainPlayer(wp)
 		if err != nil {
-			log.Println("player service: failed to add player data,", err)
+			log.Println("player service:", err)
+			return err
+		}
+		players[i] = p
+	}
+
+	for _, p := range players {
+		err := ps.pr.Update(p)
+		if err == storage.ErrPlayerNotFound {
+			err = ps.pr.Add(p)
+			if err != nil {
+				log.Println("player service:", err)
+				return err
+			}
+		} else if err != nil {
+			log.Println("player service:", err)
+			return err
 		}
 	}
 
@@ -159,10 +174,11 @@ func (ps *playerService) addBPS(playerID, points int) {
 	ps.pr.UpdateStats(playerID, player.Stats)
 }
 
-func (ps *playerService) convertToDomainPlayer(wp wrapper.Player) domain.Player {
+func (ps *playerService) convertToDomainPlayer(wp wrapper.Player) (domain.Player, error) {
 	club, err := ps.cs.GetClubByID(wp.Team)
 	if err != nil {
 		log.Println(err)
+		return domain.Player{}, err
 	}
 
 	return domain.Player{
@@ -170,7 +186,7 @@ func (ps *playerService) convertToDomainPlayer(wp wrapper.Player) domain.Player 
 		Name:     wp.WebName,
 		Position: domain.PlayerPosition[wp.Position],
 		Club:     club,
-	}
+	}, nil
 }
 
 func (ps *playerService) convertToDomainPlayerStats(ws wrapper.PlayerStats) domain.PlayerStats {

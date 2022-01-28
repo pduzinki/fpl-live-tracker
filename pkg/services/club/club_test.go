@@ -52,3 +52,7 @@ func TestGetClubByID(t *testing.T) {
 		}
 	}
 }
+
+func TestConvertToDomainClub(t *testing.T) {
+	// TODO add test
+}

@@ -50,3 +50,8 @@ func (cs *clubService) GetClubByID(id int) (domain.Club, error) {
 
 	return cs.clubs.GetByID(id)
 }
+
+func (cs *clubService) convertToDomainClub(wc wrapper.Club) (domain.Club, error) {
+	// TODO
+	return domain.Club{}, nil
+}

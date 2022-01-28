@@ -27,14 +27,21 @@ type playerService struct {
 
 //
 func NewPlayerService(w wrapper.Wrapper, pr domain.PlayerRepository, cs club.ClubService,
-	fs fixture.FixtureService, gs gameweek.GameweekService) PlayerService {
-	return &playerService{
+	fs fixture.FixtureService, gs gameweek.GameweekService) (PlayerService, error) {
+	ps := playerService{
 		wrapper: w,
 		pr:      pr,
 		cs:      cs,
 		fs:      fs,
 		gs:      gs,
 	}
+
+	err := ps.Update()
+	if err != nil {
+		return nil, err
+	}
+
+	return &ps, nil
 }
 
 //

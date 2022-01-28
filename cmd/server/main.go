@@ -37,7 +37,10 @@ func main() {
 	}
 
 	pr := memory.NewPlayerRepository()
-	ps := player.NewPlayerService(w, pr, cs, fs, gs)
+	ps, err := player.NewPlayerService(w, pr, cs, fs, gs)
+	if err != nil {
+		log.Fatalln("error: failed to init player service")
+	}
 
 	tracker, err := tracker.NewTracker(
 		tracker.WithPlayerService(ps),

@@ -60,7 +60,7 @@ func TestUpdate(t *testing.T) {
 			err:  errWrapperFail,
 		},
 		{
-			name: "wrapper type to domain type convertion fail",
+			name: "wrapper type to domain type conversion fail",
 			err:  errGetClubFail,
 		},
 		{
@@ -107,7 +107,7 @@ func TestUpdate(t *testing.T) {
 
 		cs := mock.ClubService{
 			GetClubByIDFn: func(id int) (domain.Club, error) {
-				if test.name == "wrapper type to domain type convertion fail" {
+				if test.name == "wrapper type to domain type conversion fail" {
 					return domain.Club{}, errGetClubFail
 				}
 				return domain.Club{}, nil

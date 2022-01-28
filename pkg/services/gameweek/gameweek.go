@@ -20,13 +20,13 @@ type GameweekService interface {
 type gameweekService struct {
 	CurrentGameweek domain.Gameweek
 	NextGameweek    domain.Gameweek
-	wrapper         wrapper.Wrapper
+	wr              wrapper.Wrapper
 	noNextGameweek  bool
 }
 
 func NewGameweekService(w wrapper.Wrapper) (GameweekService, error) {
 	gs := gameweekService{
-		wrapper:        w,
+		wr:             w,
 		noNextGameweek: false,
 	}
 
@@ -40,7 +40,7 @@ func NewGameweekService(w wrapper.Wrapper) (GameweekService, error) {
 }
 
 func (gs *gameweekService) Update() error {
-	wrapperGameweeks, err := gs.wrapper.GetGameweeks()
+	wrapperGameweeks, err := gs.wr.GetGameweeks()
 	if err != nil {
 		log.Println("gameweek service:", err)
 		return err

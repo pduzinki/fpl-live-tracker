@@ -25,10 +25,9 @@ func NewClubService(clubRepo domain.ClubRepository, w wrapper.Wrapper) (ClubServ
 	}
 
 	for _, wc := range wrapperClubs {
-		club := domain.Club{
-			ID:        wc.ID,
-			Name:      wc.Name,
-			Shortname: wc.Shortname,
+		club, err := cs.convertToDomainClub(wc)
+		if err != nil {
+			return nil, err
 		}
 
 		err = clubRepo.Add(club)
@@ -52,6 +51,9 @@ func (cs *clubService) GetClubByID(id int) (domain.Club, error) {
 }
 
 func (cs *clubService) convertToDomainClub(wc wrapper.Club) (domain.Club, error) {
-	// TODO
-	return domain.Club{}, nil
+	return domain.Club{
+		ID:        wc.ID,
+		Name:      wc.Name,
+		Shortname: wc.Shortname,
+	}, nil
 }

@@ -17,8 +17,8 @@ type Wrapper interface {
 	GetGameweeks() ([]Gameweek, error)
 	GetPlayers() ([]Player, error)
 	GetPlayersStats(gameweekID int) ([]PlayerStats, error)
-	// GetManager(id int) (*domain.Manager, error)
-	// GetTeam(id, gw int) (*domain.Team, error)
+	GetManager(id int) (Manager, error)
+	GetManagersTeam(managerID, gameweekID int) (Team, error)
 }
 
 type wrapper struct {
@@ -27,55 +27,14 @@ type wrapper struct {
 }
 
 // NewWrapper returns an instance of an FPL API wrapper.
-// Pass wrapper.DefaultURL as an argument, if you're not testing anything.
-func NewWrapper(url string) Wrapper {
+func NewWrapper() Wrapper {
 	return &wrapper{
 		client: &http.Client{
 			Timeout: time.Second * 10,
 		},
-		baseURL: url,
+		baseURL: DefaultURL,
 	}
 }
-
-// GetManager returns data from FPL API "/api/entry/{managerID}/" endpoint
-/*
-func (w *wrapper) GetManager(id int) (*domain.Manager, error) {
-	url := fmt.Sprintf(w.baseURL+"/entry/%d/", id)
-	var m Manager
-
-	err := w.fetchData(url, &m)
-	if err != nil {
-		return nil, err
-	}
-
-	tm := domain.Manager{
-		FplID:    m.ID,
-		FullName: fmt.Sprintf("%s %s", m.FirstName, m.LastName),
-		TeamName: m.Name,
-	}
-
-	return &tm, nil
-}
-*/
-
-//
-/*
-func (w *wrapper) GetTeam(id, gw int) (*domain.Team, error) {
-	url := fmt.Sprintf(w.baseURL+"/entry/%d/event/%d/picks/", id, gw)
-	var t Team
-
-	err := w.fetchData(url, &t)
-	if err != nil {
-		return nil, err
-	}
-
-	tt := domain.Team{
-		FplID: id,
-	}
-
-	return &tt, nil
-}
-*/
 
 //
 func (w *wrapper) GetClubs() ([]Club, error) {
@@ -140,6 +99,32 @@ func (w *wrapper) GetPlayersStats(gameweekID int) ([]PlayerStats, error) {
 	}
 
 	return elements.PlayersStats, nil
+}
+
+// GetManager returns data from FPL API "/api/entry/{managerID}/" endpoint
+func (w *wrapper) GetManager(id int) (Manager, error) {
+	url := fmt.Sprintf(w.baseURL+"/entry/%d/", id)
+	var m Manager
+
+	err := w.fetchData(url, &m)
+	if err != nil {
+		return Manager{}, err
+	}
+
+	return m, nil
+}
+
+//
+func (w *wrapper) GetManagersTeam(managerID, gameweekID int) (Team, error) {
+	url := fmt.Sprintf(w.baseURL+"/entry/%d/event/%d/picks/", managerID, gameweekID)
+	var t Team
+
+	err := w.fetchData(url, &t)
+	if err != nil {
+		return Team{}, err
+	}
+
+	return t, nil
 }
 
 //

@@ -5,7 +5,7 @@ type Manager struct {
 	FplID    int
 	FullName string
 	TeamName string
-	// TODO add more fields
+	Team     Team
 }
 
 // ManagerRepository is an interface for interacting with Manager storage
@@ -13,4 +13,9 @@ type ManagerRepository interface {
 	Add(manager Manager) error
 	AddMany(managers []Manager) error
 	GetByFplID(id int) (Manager, error)
+}
+
+//
+type Team struct {
+	// TODO
 }

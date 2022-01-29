@@ -17,7 +17,7 @@ import (
 func main() {
 	log.Println("fpl-live-tracker started")
 
-	w := wrapper.NewWrapper(wrapper.DefaultURL)
+	w := wrapper.NewWrapper()
 
 	cr := memory.NewClubRepository()
 	cs, err := club.NewClubService(cr, w)

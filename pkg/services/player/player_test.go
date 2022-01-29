@@ -13,3 +13,11 @@ func TestUpdateStats(t *testing.T) {
 func TestGetByID(t *testing.T) {
 	// TODO add test
 }
+
+func TestConvertToDomainPlayer(t *testing.T) {
+	// TODO add test
+}
+
+func TestConvertToDomainPlayerStats(t *testing.T) {
+	// TODO add test
+}

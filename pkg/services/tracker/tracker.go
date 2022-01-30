@@ -6,6 +6,7 @@ import (
 	"fpl-live-tracker/pkg/services/club"
 	"fpl-live-tracker/pkg/services/fixture"
 	"fpl-live-tracker/pkg/services/gameweek"
+	"fpl-live-tracker/pkg/services/manager"
 	"fpl-live-tracker/pkg/services/player"
 	"log"
 )
@@ -17,6 +18,7 @@ type Tracker struct {
 	Cs club.ClubService
 	Fs fixture.FixtureService
 	Gs gameweek.GameweekService
+	Ms manager.ManagerService
 }
 
 //
@@ -77,6 +79,17 @@ func WithGameweekService(gwService gameweek.GameweekService) TrackerConfigFunc {
 	}
 }
 
+//
+func WithManagerService(ms manager.ManagerService) TrackerConfigFunc {
+	return func(t *Tracker) error {
+		if ms == nil {
+			return errors.New("tracker init error: Manager Service is nil")
+		}
+		t.Ms = ms
+		return nil
+	}
+}
+
 // Track is responsible for keeping all the data from FPL up-to-date.
 // Should be run as a goroutine.
 func (t *Tracker) Track() {
@@ -102,6 +115,8 @@ func (t *Tracker) Track() {
 		log.Println("tracker service: failed to update player data:", err)
 	}
 
+	t.Ms.Update() // TODO remove later
+
 	gw, err := t.Gs.GetCurrentGameweek()
 	if err != nil {
 		log.Println("tracker service: failed to get current gameweek", err)
@@ -115,15 +130,12 @@ func (t *Tracker) Track() {
 	var fixtures []domain.Fixture
 	if !gw.Finished {
 		log.Println("current gameweek:", gw)
-
 		fixtures, err = t.Fs.GetFixturesByGameweek(gw.ID)
 		if err != nil {
 			log.Println(err)
 		}
-
 	} else {
 		log.Println("next gameweek:", ngw)
-
 		fixtures, err = t.Fs.GetFixturesByGameweek(ngw.ID)
 		if err != nil {
 			log.Println(err)

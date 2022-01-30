@@ -18,22 +18,22 @@ type managerRepository struct {
 }
 
 // NewManagerRepository creates new repository for managers
-func NewManagerRepository() (domain.ManagerRepository, error) {
+func NewManagerRepository() domain.ManagerRepository {
 	mr := managerRepository{
 		managers: make(map[int]domain.Manager),
 	}
 
-	return &mr, nil
+	return &mr
 }
 
 //
 func (mr *managerRepository) Add(manager domain.Manager) error {
-	if _, ok := mr.managers[manager.FplID]; ok {
+	if _, ok := mr.managers[manager.ID]; ok {
 		return storage.ErrManagerAlreadyExists
 	}
 
 	mr.Lock()
-	mr.managers[manager.FplID] = manager
+	mr.managers[manager.ID] = manager
 	mr.Unlock()
 
 	return nil

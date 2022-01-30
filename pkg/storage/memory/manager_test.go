@@ -3,14 +3,15 @@ package memory
 import (
 	"fpl-live-tracker/pkg/domain"
 	"fpl-live-tracker/pkg/storage"
+	"reflect"
 	"testing"
 )
 
 var (
-	john = domain.Manager{FplID: 1, FullName: "John Doe", TeamName: "FC John"}
-	jim  = domain.Manager{FplID: 2, FullName: "Jim Jim", TeamName: "FC Jim"}
-	jane = domain.Manager{FplID: 3, FullName: "Jane Foo", TeamName: "Jane City"}
-	joel = domain.Manager{FplID: 66, FullName: "Joel Bar", TeamName: "Bar AFC"}
+	john = domain.Manager{ID: 1, Name: "John Doe", TeamName: "FC John"}
+	jim  = domain.Manager{ID: 2, Name: "Jim Jim", TeamName: "FC Jim"}
+	jane = domain.Manager{ID: 3, Name: "Jane Foo", TeamName: "Jane City"}
+	joel = domain.Manager{ID: 66, Name: "Joel Bar", TeamName: "Bar AFC"}
 )
 
 func TestManagerAdd(t *testing.T) {
@@ -24,8 +25,8 @@ func TestManagerAdd(t *testing.T) {
 
 	mr := managerRepository{
 		managers: map[int]domain.Manager{
-			john.FplID: john,
-			jim.FplID:  jim,
+			john.ID: john,
+			jim.ID:  jim,
 		},
 	}
 
@@ -35,8 +36,8 @@ func TestManagerAdd(t *testing.T) {
 			t.Errorf("error: for %v, got err '%v', want '%v'", test.manager, got, test.want)
 		}
 
-		if v, ok := mr.managers[test.manager.FplID]; ok {
-			if v != test.manager {
+		if v, ok := mr.managers[test.manager.ID]; ok {
+			if !reflect.DeepEqual(v, test.manager) {
 				t.Errorf("error: incorrect manager data in memory storage")
 			}
 		} else {
@@ -62,8 +63,8 @@ func TestManagerAddMany(t *testing.T) {
 
 	mr := managerRepository{
 		managers: map[int]domain.Manager{
-			john.FplID: john,
-			jim.FplID:  jim,
+			john.ID: john,
+			jim.ID:  jim,
 		},
 	}
 
@@ -74,8 +75,8 @@ func TestManagerAddMany(t *testing.T) {
 		}
 
 		for _, m := range test.managers {
-			if v, ok := mr.managers[m.FplID]; ok {
-				if v != m {
+			if v, ok := mr.managers[m.ID]; ok {
+				if !reflect.DeepEqual(v, m) {
 					t.Errorf("error: incorrect manager data in memory storage")
 				}
 			} else {
@@ -92,14 +93,14 @@ func TestManagerGetByFplID(t *testing.T) {
 		want    domain.Manager
 		wantErr error
 	}{
-		{john.FplID, john, nil},
-		{jane.FplID, domain.Manager{}, storage.ErrManagerNotFound},
+		{john.ID, john, nil},
+		{jane.ID, domain.Manager{}, storage.ErrManagerNotFound},
 	}
 
 	mr := managerRepository{
 		managers: map[int]domain.Manager{
-			john.FplID: john,
-			jim.FplID:  jim,
+			john.ID: john,
+			jim.ID:  jim,
 		},
 	}
 
@@ -108,7 +109,7 @@ func TestManagerGetByFplID(t *testing.T) {
 		if gotErr != test.wantErr {
 			t.Errorf("error: for %v, got err '%v', want err '%v'", test.fplID, gotErr, test.wantErr)
 		}
-		if got != test.want {
+		if !reflect.DeepEqual(got, test.want) {
 			t.Errorf("error: for %v, got '%v', want '%v'", test.fplID, got, test.want)
 		}
 	}

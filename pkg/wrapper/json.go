@@ -8,7 +8,25 @@ type Manager struct {
 }
 
 type Team struct {
-	// TODO
+	ActiveChip   string       `json:"active_chip"`
+	EntryHistory EntryHistory `json:"entry_history"`
+	Picks        []Pick       `json:"picks"`
+}
+
+type EntryHistory struct {
+	Points             int `json:"points"`
+	TotalPoints        int `json:"total_points"`
+	OverallRank        int `json:"overall_rank"`
+	EventTransfers     int `json:"event_transfers"`
+	EventTransfersCost int `json:"event_transfers_cost"`
+}
+
+type Pick struct {
+	ID            int  `json:"element"`
+	Position      int  `json:"position"`
+	Multiplier    int  `json:"multiplier"`
+	IsCaptain     bool `json:"is_captain"`
+	IsViceCaptain bool `json:"is_vice_captain"`
 }
 
 type Bootstrap struct {

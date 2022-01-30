@@ -174,8 +174,11 @@ func (ps *playerService) awardBonusPoints(allPlayersStats []domain.FixtureStatVa
 	}
 }
 
-func (ps *playerService) addBPS(playerID, points int) {
-	player, _ := ps.pr.GetByID(playerID) // TODO check error
+func (ps *playerService) addBPS(playerID, points int) { // TODO add error return
+	player, err := ps.pr.GetByID(playerID)
+	if err != nil {
+		log.Println("player service, failed to find player in storage:", err)
+	}
 	player.Stats.TotalPoints += points
 	log.Printf("playerID: %d name: %s bonus: %d", player.ID, player.Name, points)
 	ps.pr.UpdateStats(playerID, player.Stats)

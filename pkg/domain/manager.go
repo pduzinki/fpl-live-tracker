@@ -2,8 +2,8 @@ package domain
 
 // Manager represents a human being that plays Fantasy Premier League
 type Manager struct {
-	FplID    int
-	FullName string
+	ID       int
+	Name     string
 	TeamName string
 	Team     Team
 }
@@ -17,5 +17,22 @@ type ManagerRepository interface {
 
 //
 type Team struct {
-	// TODO
+	Picks []TeamPlayer
+	/*
+		gk:
+		defs:
+		mids:
+		fwds:
+		benchGk:
+		bench:
+	*/
+	TotalPoints int
+	// OverallRank int
+}
+
+//
+type TeamPlayer struct {
+	Player
+	IsCaptain     bool
+	IsViceCaptain bool
 }

@@ -28,12 +28,12 @@ type FixtureRepository interface {
 // FixtureStat represents particular fixture statistic (e.g. goals scored, assists, or bonus points)
 type FixtureStat struct {
 	Name             string
-	HomePlayersStats []FixtureStatValue
-	AwayPlayersStats []FixtureStatValue
+	HomePlayersStats []FixtureStatPair
+	AwayPlayersStats []FixtureStatPair
 }
 
-// FixtureStatValue represents particular instance of fixture statistic, and player responsible for it (e.g. number of goals scored by Harry Kane)
-type FixtureStatValue struct {
+// FixtureStatPair represents particular instance of fixture statistic, and player responsible for it (e.g. number of goals scored by Harry Kane)
+type FixtureStatPair struct {
 	PlayerID int
 	Value    int
 }

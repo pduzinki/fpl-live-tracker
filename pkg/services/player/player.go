@@ -26,6 +26,12 @@ type playerService struct {
 }
 
 //
+type bonusPlayer struct {
+	playerID    int
+	bonusPoints int
+}
+
+//
 func NewPlayerService(w wrapper.Wrapper, pr domain.PlayerRepository, cs club.ClubService,
 	fs fixture.FixtureService, gs gameweek.GameweekService) (PlayerService, error) {
 	ps := playerService{
@@ -99,29 +105,9 @@ func (ps *playerService) UpdateStats() error {
 		}
 	}
 
-	// add live bonus points
-	liveFixtures, err := ps.fs.GetLiveFixtures(gw.ID)
+	err = ps.updatePredictedBonusPoints()
 	if err != nil {
-		log.Println("player service:", err)
-	}
-
-	for _, f := range liveFixtures {
-		s, ok := f.Stats["bps"]
-		if !ok {
-			log.Println("player service: bps stats not found in live fixture")
-			continue
-		}
-
-		allPlayersStats := make([]domain.FixtureStatValue, len(s.AwayPlayersStats)+len(s.HomePlayersStats))
-		allPlayersStats = append(s.AwayPlayersStats, s.HomePlayersStats...)
-
-		// sort in descending order
-		sort.Slice(allPlayersStats, func(i, j int) bool {
-			return (allPlayersStats[i].Value > allPlayersStats[j].Value)
-		})
-
-		topBPS := ps.topBPS(allPlayersStats)
-		ps.awardBonusPoints(allPlayersStats, topBPS)
+		log.Println("player service: failed to update predicted bonus points", err)
 	}
 
 	return nil
@@ -137,51 +123,6 @@ func (ps *playerService) GetByID(ID int) (domain.Player, error) {
 	}
 
 	return ps.pr.GetByID(ID)
-}
-
-func (ps *playerService) topBPS(bpsPlayers []domain.FixtureStatValue) []int {
-	topBPS := make([]int, 0, 3)
-	topBPS = append(topBPS, bpsPlayers[0].Value)
-	for _, p := range bpsPlayers {
-		if len(topBPS) == 3 {
-			break
-		}
-		if p.Value == topBPS[len(topBPS)-1] {
-			continue
-		}
-		topBPS = append(topBPS, p.Value)
-	}
-
-	return topBPS
-}
-
-func (ps *playerService) awardBonusPoints(allPlayersStats []domain.FixtureStatValue, topBPS []int) {
-	log.Println("----")
-	bonus := 3
-	awardedPlayersCounts := 0
-	for i := 0; i < 3; i++ {
-		for _, p := range allPlayersStats {
-			if p.Value == topBPS[i] {
-				ps.addBPS(p.PlayerID, bonus)
-				log.Printf("playerID: %d, bps: %d, bonus %d", p.PlayerID, p.Value, bonus)
-				awardedPlayersCounts++
-			}
-		}
-		if awardedPlayersCounts >= 3 {
-			break
-		}
-		bonus--
-	}
-}
-
-func (ps *playerService) addBPS(playerID, points int) { // TODO add error return
-	player, err := ps.pr.GetByID(playerID)
-	if err != nil {
-		log.Println("player service, failed to find player in storage:", err)
-	}
-	player.Stats.TotalPoints += points
-	log.Printf("playerID: %d name: %s bonus: %d", player.ID, player.Name, points)
-	ps.pr.UpdateStats(playerID, player.Stats)
 }
 
 func (ps *playerService) convertToDomainPlayer(wp wrapper.Player) (domain.Player, error) {
@@ -204,4 +145,102 @@ func (ps *playerService) convertToDomainPlayerStats(ws wrapper.PlayerStats) doma
 		Minutes:     ws.Stats.Minutes,
 		TotalPoints: ws.Stats.TotalPoints,
 	}
+}
+
+//
+func (ps *playerService) updatePredictedBonusPoints() error {
+	gw, err := ps.gs.GetCurrentGameweek()
+	if err != nil {
+		return err
+	}
+
+	liveFixtures, err := ps.fs.GetLiveFixtures(gw.ID)
+	if err != nil {
+		log.Println("player service:", err)
+		return err
+	}
+
+	for _, f := range liveFixtures {
+		bpsStats, ok := f.Stats["bps"]
+		if !ok {
+			log.Println("player service: bps stats not found in live fixture")
+			continue
+		}
+
+		// merge stats of home and away players together, and sort them in descending order
+		allPlayersStats := make([]domain.FixtureStatPair, len(bpsStats.AwayPlayersStats)+len(bpsStats.HomePlayersStats))
+		allPlayersStats = append(bpsStats.AwayPlayersStats, bpsStats.HomePlayersStats...)
+		sort.Slice(allPlayersStats, func(i, j int) bool {
+			return (allPlayersStats[i].Value > allPlayersStats[j].Value)
+		})
+
+		topBPS := ps.findTopBPS(allPlayersStats)
+		bp := ps.findPlayersAndBonusPoints(allPlayersStats, topBPS)
+		ps.rewardBonusPoints(bp)
+	}
+
+	return nil
+}
+
+//
+func (ps *playerService) findTopBPS(playersStats []domain.FixtureStatPair) []int {
+	bpsToReward := make([]int, 0, 3)
+	bpsToReward = append(bpsToReward, playersStats[0].Value)
+	for _, p := range playersStats {
+		if len(bpsToReward) == 3 {
+			break
+		}
+		if p.Value == bpsToReward[len(bpsToReward)-1] {
+			continue
+		}
+		bpsToReward = append(bpsToReward, p.Value)
+	}
+
+	return bpsToReward
+}
+
+//
+func (ps *playerService) findPlayersAndBonusPoints(playersStats []domain.FixtureStatPair, bps []int) []bonusPlayer {
+	bp := make([]bonusPlayer, 0)
+
+	bonus := 3
+	awardedPlayersCounts := 0
+	for i := 0; i < 3; i++ {
+		for _, p := range playersStats {
+			if p.Value == bps[i] {
+				bp = append(bp, bonusPlayer{p.PlayerID, bonus})
+				awardedPlayersCounts++
+			}
+		}
+		if awardedPlayersCounts >= 3 {
+			break
+		}
+		bonus--
+	}
+
+	return bp
+}
+
+//
+func (ps *playerService) rewardBonusPoints(pairs []bonusPlayer) {
+	for _, pair := range pairs {
+		err := ps.addBonusPoints(pair.playerID, pair.bonusPoints)
+		if err != nil {
+			log.Println("player service: failed to add bonus points", err)
+		}
+	}
+}
+
+func (ps *playerService) addBonusPoints(playerID, points int) error {
+	player, err := ps.pr.GetByID(playerID)
+	if err != nil {
+		return err
+	}
+	player.Stats.TotalPoints += points
+	err = ps.pr.UpdateStats(playerID, player.Stats)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -125,18 +125,18 @@ func (fs *fixtureService) convertToDomainFixture(wf wrapper.Fixture) (domain.Fix
 
 	stats := make(map[string]domain.FixtureStat, len(wf.Stats))
 	for _, s := range wf.Stats {
-		homePlayersStats := make([]domain.FixtureStatValue, len(s.TeamH))
-		awayPlayersStats := make([]domain.FixtureStatValue, len(s.TeamA))
+		homePlayersStats := make([]domain.FixtureStatPair, len(s.TeamH))
+		awayPlayersStats := make([]domain.FixtureStatPair, len(s.TeamA))
 
 		for _, stat := range s.TeamH {
-			homePlayersStats = append(homePlayersStats, domain.FixtureStatValue{
+			homePlayersStats = append(homePlayersStats, domain.FixtureStatPair{
 				PlayerID: stat.Element,
 				Value:    stat.Value,
 			})
 		}
 
 		for _, stat := range s.TeamA {
-			awayPlayersStats = append(awayPlayersStats, domain.FixtureStatValue{
+			awayPlayersStats = append(awayPlayersStats, domain.FixtureStatPair{
 				PlayerID: stat.Element,
 				Value:    stat.Value,
 			})

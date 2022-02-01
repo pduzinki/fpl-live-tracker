@@ -174,16 +174,21 @@ func (ps *playerService) updatePredictedBonusPoints() error {
 			return (allPlayersStats[i].Value > allPlayersStats[j].Value)
 		})
 
-		topBPS := ps.findTopBPS(allPlayersStats)
-		bp := ps.findPlayersAndBonusPoints(allPlayersStats, topBPS)
-		ps.rewardBonusPoints(bp)
+		topBPS := findTopBPS(allPlayersStats)
+		bp := findPlayersAndBonusPoints(allPlayersStats, topBPS)
+		for _, pair := range bp {
+			err := ps.addBonusPoints(pair.playerID, pair.bonusPoints)
+			if err != nil {
+				log.Println("player service: failed to add bonus points", err)
+			}
+		}
 	}
 
 	return nil
 }
 
 //
-func (ps *playerService) findTopBPS(playersStats []domain.FixtureStatPair) []int {
+func findTopBPS(playersStats []domain.FixtureStatPair) []int {
 	bpsToReward := make([]int, 0, 3)
 	bpsToReward = append(bpsToReward, playersStats[0].Value)
 	for _, p := range playersStats {
@@ -200,14 +205,14 @@ func (ps *playerService) findTopBPS(playersStats []domain.FixtureStatPair) []int
 }
 
 //
-func (ps *playerService) findPlayersAndBonusPoints(playersStats []domain.FixtureStatPair, bps []int) []bonusPlayer {
+func findPlayersAndBonusPoints(playersStats []domain.FixtureStatPair, topBPS []int) []bonusPlayer {
 	bp := make([]bonusPlayer, 0)
 
 	bonus := 3
 	awardedPlayersCounts := 0
 	for i := 0; i < 3; i++ {
 		for _, p := range playersStats {
-			if p.Value == bps[i] {
+			if p.Value == topBPS[i] {
 				bp = append(bp, bonusPlayer{p.PlayerID, bonus})
 				awardedPlayersCounts++
 			}
@@ -222,15 +227,6 @@ func (ps *playerService) findPlayersAndBonusPoints(playersStats []domain.Fixture
 }
 
 //
-func (ps *playerService) rewardBonusPoints(pairs []bonusPlayer) {
-	for _, pair := range pairs {
-		err := ps.addBonusPoints(pair.playerID, pair.bonusPoints)
-		if err != nil {
-			log.Println("player service: failed to add bonus points", err)
-		}
-	}
-}
-
 func (ps *playerService) addBonusPoints(playerID, points int) error {
 	player, err := ps.pr.GetByID(playerID)
 	if err != nil {

@@ -44,7 +44,7 @@ func main() {
 	}
 
 	mr := memory.NewManagerRepository()
-	ms, err := manager.NewManagerService(mr, ps, wr)
+	ms, err := manager.NewManagerService(mr, ps, gs, wr)
 	if err != nil {
 		log.Fatalln("error: failed to init manager service")
 	}

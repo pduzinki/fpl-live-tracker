@@ -12,7 +12,9 @@ type Manager struct {
 type ManagerRepository interface {
 	Add(manager Manager) error
 	AddMany(managers []Manager) error
-	GetByFplID(id int) (Manager, error)
+	Update(manager Manager) error
+	UpdateTeam(managerID int, team Team) error
+	GetByID(id int) (Manager, error)
 }
 
 //

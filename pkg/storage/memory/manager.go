@@ -6,11 +6,6 @@ import (
 	"sync"
 )
 
-// type Manager struct {
-// 	FplID    int
-// 	FullName string
-// }
-
 //
 type managerRepository struct {
 	managers map[int]domain.Manager
@@ -51,7 +46,34 @@ func (mr *managerRepository) AddMany(managers []domain.Manager) error {
 }
 
 //
-func (mr *managerRepository) GetByFplID(id int) (domain.Manager, error) {
+func (mr *managerRepository) Update(manager domain.Manager) error {
+	mr.Lock()
+	defer mr.Unlock()
+	if m, ok := mr.managers[manager.ID]; ok {
+		m.Name = manager.Name
+		m.TeamName = manager.TeamName
+		mr.managers[manager.ID] = m
+		return nil
+	}
+
+	return storage.ErrManagerNotFound
+}
+
+//
+func (mr *managerRepository) UpdateTeam(managerID int, team domain.Team) error {
+	mr.Lock()
+	defer mr.Unlock()
+	if m, ok := mr.managers[managerID]; ok {
+		m.Team = team
+		mr.managers[managerID] = m
+		return nil
+	}
+
+	return storage.ErrManagerNotFound
+}
+
+//
+func (mr *managerRepository) GetByID(id int) (domain.Manager, error) {
 	if manager, ok := mr.managers[id]; ok {
 		return manager, nil
 	}

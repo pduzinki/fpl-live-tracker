@@ -87,7 +87,15 @@ func TestManagerAddMany(t *testing.T) {
 	}
 }
 
-func TestManagerGetByFplID(t *testing.T) {
+func TestManagerUpdate(t *testing.T) {
+	// TODO add test
+}
+
+func TestManagerUpdateTeam(t *testing.T) {
+	// TODO add test
+}
+
+func TestManagerGetByID(t *testing.T) {
 	testcases := []struct {
 		fplID   int
 		want    domain.Manager
@@ -105,7 +113,7 @@ func TestManagerGetByFplID(t *testing.T) {
 	}
 
 	for _, test := range testcases {
-		got, gotErr := mr.GetByFplID(test.fplID)
+		got, gotErr := mr.GetByID(test.fplID)
 		if gotErr != test.wantErr {
 			t.Errorf("error: for %v, got err '%v', want err '%v'", test.fplID, gotErr, test.wantErr)
 		}

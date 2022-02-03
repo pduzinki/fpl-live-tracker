@@ -22,6 +22,7 @@ type PlayerRepository interface {
 	Update(player Player) error
 	UpdateStats(playerID int, stats PlayerStats) error
 	GetByID(ID int) (Player, error)
+	GetAll() ([]Player, error)
 }
 
 // PlayerStats contains data about Player's performance during Gameweek

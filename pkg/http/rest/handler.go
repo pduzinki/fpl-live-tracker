@@ -3,16 +3,18 @@ package rest
 import (
 	"bytes"
 	"encoding/json"
+	"fpl-live-tracker/pkg/services/player"
 	"io"
 	"net/http"
 
 	"github.com/gorilla/mux"
 )
 
-func Handler() http.Handler {
+func Handler(ps player.PlayerService) http.Handler {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/", Homepage()).Methods("GET")
+	r.HandleFunc("/api/players", GetPlayers(ps)).Methods("GET")
 	r.HandleFunc("/api/manager/{id:[0-9]+}", GetManager()).Methods("GET")
 	r.HandleFunc("/api/league/{id:[0-9]+}", GetLeague()).Methods("GET")
 
@@ -31,6 +33,21 @@ func Homepage() func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		io.Copy(w, bytes.NewReader(j))
+	}
+}
+
+func GetPlayers(ps player.PlayerService) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		players, _ := ps.GetAll()
+
+		j, err := json.Marshal(players)
+		if err != nil {
+			http.Error(w, "failed to marshal data", http.StatusInternalServerError)
+			return
+		}
 		io.Copy(w, bytes.NewReader(j))
 	}
 }

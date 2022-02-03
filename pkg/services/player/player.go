@@ -15,6 +15,7 @@ type PlayerService interface {
 	Update() error
 	UpdateStats() error
 	GetByID(ID int) (domain.Player, error)
+	GetAll() ([]domain.Player, error) // TODO
 }
 
 type playerService struct {
@@ -123,6 +124,11 @@ func (ps *playerService) GetByID(ID int) (domain.Player, error) {
 	}
 
 	return ps.pr.GetByID(ID)
+}
+
+//
+func (ps *playerService) GetAll() ([]domain.Player, error) {
+	return ps.pr.GetAll()
 }
 
 func (ps *playerService) convertToDomainPlayer(wp wrapper.Player) (domain.Player, error) {

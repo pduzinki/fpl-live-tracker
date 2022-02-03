@@ -7,6 +7,7 @@ type PlayerRepository struct {
 	UpdateFn      func(player domain.Player) error
 	UpdateStatsFn func(playerID int, stats domain.PlayerStats) error
 	GetByIDFn     func(ID int) (domain.Player, error)
+	GetAllFn      func() ([]domain.Player, error)
 }
 
 func (pr *PlayerRepository) Add(player domain.Player) error {
@@ -23,4 +24,8 @@ func (pr *PlayerRepository) UpdateStats(playerID int, stats domain.PlayerStats) 
 
 func (pr *PlayerRepository) GetByID(ID int) (domain.Player, error) {
 	return pr.GetByIDFn(ID)
+}
+
+func (pr *PlayerRepository) GetAll() ([]domain.Player, error) {
+	return pr.GetAllFn()
 }

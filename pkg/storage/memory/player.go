@@ -3,6 +3,7 @@ package memory
 import (
 	"fpl-live-tracker/pkg/domain"
 	"fpl-live-tracker/pkg/storage"
+	"sort"
 	"sync"
 )
 
@@ -62,4 +63,20 @@ func (pr *playerRepository) GetByID(ID int) (domain.Player, error) {
 	}
 
 	return domain.Player{}, storage.ErrPlayerNotFound
+}
+
+func (pr *playerRepository) GetAll() ([]domain.Player, error) {
+	players := make([]domain.Player, 0, len(pr.players))
+
+	pr.Lock()
+	for _, p := range pr.players {
+		players = append(players, p)
+	}
+	pr.Unlock()
+
+	sort.Slice(players, func(i, j int) bool {
+		return players[i].ID < players[j].ID
+	})
+
+	return players, nil
 }

@@ -9,19 +9,21 @@ import (
 	"time"
 )
 
+// FixtureService is an interface responsible for interacting with fixtures
 type FixtureService interface {
 	Update() error
 	GetFixturesByGameweek(gameweekID int) ([]domain.Fixture, error)
 	GetLiveFixtures(gameweekID int) ([]domain.Fixture, error)
 }
 
+// fixtureService implements FixtureService interface
 type fixtureService struct {
 	fr      domain.FixtureRepository
 	cs      club.ClubService
 	wrapper wrapper.Wrapper
 }
 
-//
+// NewFixtureService returns new instance of FixtureService
 func NewFixtureService(fr domain.FixtureRepository, cs club.ClubService, w wrapper.Wrapper) (FixtureService, error) {
 	fs := fixtureService{
 		fr:      fr,
@@ -38,7 +40,7 @@ func NewFixtureService(fr domain.FixtureRepository, cs club.ClubService, w wrapp
 	return &fs, nil
 }
 
-//
+// Update queries FPL API and updates all fixture data in its underlying fixture storage
 func (fs *fixtureService) Update() error {
 	wrapperFixtures, err := fs.wrapper.GetFixtures()
 	if err != nil {
@@ -74,7 +76,7 @@ func (fs *fixtureService) Update() error {
 	return nil
 }
 
-//
+// GetFixturesByGameweek returns all fixtures that take place during gameweek with given ID, or returns error otherwise
 func (fs *fixtureService) GetFixturesByGameweek(gameweekID int) ([]domain.Fixture, error) {
 	fixture := domain.Fixture{GameweekID: gameweekID}
 
@@ -86,7 +88,7 @@ func (fs *fixtureService) GetFixturesByGameweek(gameweekID int) ([]domain.Fixtur
 	return fs.fr.GetByGameweek(gameweekID)
 }
 
-//
+// GetLiveFixtures returns all fixtures that are currently being played, during gameweek with given ID, or returns error otherwise
 func (fs *fixtureService) GetLiveFixtures(gameweekID int) ([]domain.Fixture, error) {
 	gwFixtures, err := fs.GetFixturesByGameweek(gameweekID)
 	if err != nil {
@@ -103,6 +105,7 @@ func (fs *fixtureService) GetLiveFixtures(gameweekID int) ([]domain.Fixture, err
 	return liveFixtures, nil
 }
 
+// convertToDomainFixture returns domain.Fixture object, consistent with given wrapper.Fixture object
 func (fs *fixtureService) convertToDomainFixture(wf wrapper.Fixture) (domain.Fixture, error) {
 	clubHome, err := fs.cs.GetClubByID(wf.TeamH)
 	if err != nil {

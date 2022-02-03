@@ -5,21 +5,23 @@ import (
 	"fpl-live-tracker/pkg/wrapper"
 )
 
+// ClubService is an interface responsible for interacting with clubs
 type ClubService interface {
-	// Add(domain.Club) is not needed, all clubs are added when service is created
 	GetClubByID(id int) (domain.Club, error)
 }
 
+// clubService implements ClubService interface
 type clubService struct {
 	clubs domain.ClubRepository
 }
 
+// NewClubService creates new instance of ClubService, and fills underlying storage with data from FPL API
 func NewClubService(clubRepo domain.ClubRepository, w wrapper.Wrapper) (ClubService, error) {
 	cs := &clubService{
 		clubs: clubRepo,
 	}
 
-	wrapperClubs, err := w.GetClubs() // TODO to add http retries would be nice
+	wrapperClubs, err := w.GetClubs()
 	if err != nil {
 		return nil, err
 	}
@@ -36,6 +38,7 @@ func NewClubService(clubRepo domain.ClubRepository, w wrapper.Wrapper) (ClubServ
 	return cs, nil
 }
 
+// GetClubByID returns domain.Club with given ID, or returns error otherwise
 func (cs *clubService) GetClubByID(id int) (domain.Club, error) {
 	club := domain.Club{ID: id}
 
@@ -47,6 +50,7 @@ func (cs *clubService) GetClubByID(id int) (domain.Club, error) {
 	return cs.clubs.GetByID(id)
 }
 
+// convertToDomainClub returns domain.Club object, consistent with given wrapper.Club object
 func (cs *clubService) convertToDomainClub(wc wrapper.Club) domain.Club {
 	return domain.Club{
 		ID:        wc.ID,

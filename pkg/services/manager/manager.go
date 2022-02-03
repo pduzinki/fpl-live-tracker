@@ -101,7 +101,35 @@ func (ms *managerService) UpdateTeams() error {
 
 //
 func (ms *managerService) UpdatePoints() error {
-	// TODO add impl
+	manager, err := ms.mr.GetByID(myID)
+	if err != nil {
+		return err
+	}
+
+	for i := 0; i < len(manager.Team.Picks); i++ {
+		tp := manager.Team.Picks[i]
+		p, err := ms.ps.GetByID(tp.ID)
+		if err != nil {
+			log.Println("manager service:", err)
+			continue
+		}
+		tp.Stats = p.Stats
+		manager.Team.Picks[i] = tp
+	}
+
+	var totalPoints int
+	for i := 0; i < 11; i++ {
+		if manager.Team.Picks[i].IsCaptain {
+			totalPoints += manager.Team.Picks[i].Stats.TotalPoints * 2
+		} else {
+			totalPoints += manager.Team.Picks[i].Stats.TotalPoints
+		}
+	}
+	manager.Team.TotalPoints = totalPoints
+	ms.mr.UpdateTeam(manager.ID, manager.Team)
+
+	log.Println(manager)
+
 	return nil
 }
 

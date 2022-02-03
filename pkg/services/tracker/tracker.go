@@ -115,6 +115,10 @@ func (t *Tracker) Track() {
 		log.Println("tracker service: failed to update player data:", err)
 	}
 
+	// TODO remove later
+	t.Ms.UpdateTeams()
+	t.Ms.UpdatePoints()
+
 	gw, err := t.Gs.GetCurrentGameweek()
 	if err != nil {
 		log.Println("tracker service: failed to get current gameweek", err)

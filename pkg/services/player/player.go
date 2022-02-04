@@ -11,13 +11,15 @@ import (
 	"sort"
 )
 
+// PlayerService is an interface for interacting with players
 type PlayerService interface {
 	Update() error
 	UpdateStats() error
 	GetByID(ID int) (domain.Player, error)
-	GetAll() ([]domain.Player, error) // TODO
+	GetAll() ([]domain.Player, error)
 }
 
+// playerService implements PlayerService interface
 type playerService struct {
 	wrapper wrapper.Wrapper
 	pr      domain.PlayerRepository
@@ -26,13 +28,14 @@ type playerService struct {
 	gs      gameweek.GameweekService
 }
 
-//
+// bonusPlayer is a helper struct used in process of calculating predicted bonus points
 type bonusPlayer struct {
 	playerID    int
 	bonusPoints int
 }
 
-//
+// NewPlayerService new instance of PlayerService, and fills
+// underlying data storage with data from FPL API
 func NewPlayerService(w wrapper.Wrapper, pr domain.PlayerRepository, cs club.ClubService,
 	fs fixture.FixtureService, gs gameweek.GameweekService) (PlayerService, error) {
 	ps := playerService{
@@ -51,7 +54,8 @@ func NewPlayerService(w wrapper.Wrapper, pr domain.PlayerRepository, cs club.Clu
 	return &ps, nil
 }
 
-//
+// Update queries FPL API and updates all players basic data
+// (i.e. name, position, club), in its underlying player storage
 func (ps *playerService) Update() error {
 	wrapperPlayers, err := ps.wrapper.GetPlayers()
 	if err != nil {
@@ -85,7 +89,8 @@ func (ps *playerService) Update() error {
 	return nil
 }
 
-//
+// UpdateStats queries FPL API and updates all players current gameweek
+// stats data in its underlying player storage
 func (ps *playerService) UpdateStats() error {
 	gw, err := ps.gs.GetCurrentGameweek()
 	if err != nil {
@@ -114,7 +119,7 @@ func (ps *playerService) UpdateStats() error {
 	return nil
 }
 
-//
+// GetByID returns player with given ID, or error otherwise
 func (ps *playerService) GetByID(ID int) (domain.Player, error) {
 	player := domain.Player{ID: ID}
 
@@ -126,11 +131,12 @@ func (ps *playerService) GetByID(ID int) (domain.Player, error) {
 	return ps.pr.GetByID(ID)
 }
 
-//
+// GetAll returns slice of all existing players
 func (ps *playerService) GetAll() ([]domain.Player, error) {
 	return ps.pr.GetAll()
 }
 
+//
 func (ps *playerService) convertToDomainPlayer(wp wrapper.Player) (domain.Player, error) {
 	club, err := ps.cs.GetClubByID(wp.Team)
 	if err != nil {
@@ -146,6 +152,7 @@ func (ps *playerService) convertToDomainPlayer(wp wrapper.Player) (domain.Player
 	}, nil
 }
 
+//
 func (ps *playerService) convertToDomainPlayerStats(ws wrapper.PlayerStats) domain.PlayerStats {
 	return domain.PlayerStats{
 		Minutes:     ws.Stats.Minutes,

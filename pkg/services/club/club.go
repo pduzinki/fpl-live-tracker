@@ -5,7 +5,7 @@ import (
 	"fpl-live-tracker/pkg/wrapper"
 )
 
-// ClubService is an interface responsible for interacting with clubs
+// ClubService is an interface for interacting with clubs
 type ClubService interface {
 	GetClubByID(id int) (domain.Club, error)
 }

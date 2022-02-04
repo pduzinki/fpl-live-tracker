@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-// FixtureService is an interface responsible for interacting with fixtures
+// FixtureService is an interface for interacting with fixtures
 type FixtureService interface {
 	Update() error
 	GetFixturesByGameweek(gameweekID int) ([]domain.Fixture, error)
@@ -23,7 +23,7 @@ type fixtureService struct {
 	wrapper wrapper.Wrapper
 }
 
-// NewFixtureService returns new instance of FixtureService
+// NewFixtureService returns new instance of FixtureService, and fills underlying storage with data from FPL API
 func NewFixtureService(fr domain.FixtureRepository, cs club.ClubService, w wrapper.Wrapper) (FixtureService, error) {
 	fs := fixtureService{
 		fr:      fr,
@@ -88,7 +88,8 @@ func (fs *fixtureService) GetFixturesByGameweek(gameweekID int) ([]domain.Fixtur
 	return fs.fr.GetByGameweek(gameweekID)
 }
 
-// GetLiveFixtures returns all fixtures that are currently being played, during gameweek with given ID, or returns error otherwise
+// GetLiveFixtures returns all fixtures with bonus points not yet confirmed,
+// from gameweek with given ID. Returns error on failure.
 func (fs *fixtureService) GetLiveFixtures(gameweekID int) ([]domain.Fixture, error) {
 	gwFixtures, err := fs.GetFixturesByGameweek(gameweekID)
 	if err != nil {
@@ -105,7 +106,8 @@ func (fs *fixtureService) GetLiveFixtures(gameweekID int) ([]domain.Fixture, err
 	return liveFixtures, nil
 }
 
-// convertToDomainFixture returns domain.Fixture object, consistent with given wrapper.Fixture object
+// convertToDomainFixture returns domain.Fixture object, consistent with given wrapper.Fixture object,
+// returns error if it fails to parse fixture's kickoff time
 func (fs *fixtureService) convertToDomainFixture(wf wrapper.Fixture) (domain.Fixture, error) {
 	clubHome, err := fs.cs.GetClubByID(wf.TeamH)
 	if err != nil {

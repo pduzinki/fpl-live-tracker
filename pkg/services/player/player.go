@@ -136,7 +136,7 @@ func (ps *playerService) GetAll() ([]domain.Player, error) {
 	return ps.pr.GetAll()
 }
 
-//
+// convertToDomainPlayer returns domain.Player, consistent with given wrapper.Player
 func (ps *playerService) convertToDomainPlayer(wp wrapper.Player) (domain.Player, error) {
 	club, err := ps.cs.GetClubByID(wp.Team)
 	if err != nil {
@@ -152,7 +152,8 @@ func (ps *playerService) convertToDomainPlayer(wp wrapper.Player) (domain.Player
 	}, nil
 }
 
-//
+// convertToDomainPlayerStats returns domain.PlayerStats,
+// consistent with given wrapper.PlayerStats
 func (ps *playerService) convertToDomainPlayerStats(ws wrapper.PlayerStats) domain.PlayerStats {
 	return domain.PlayerStats{
 		Minutes:     ws.Stats.Minutes,
@@ -160,7 +161,8 @@ func (ps *playerService) convertToDomainPlayerStats(ws wrapper.PlayerStats) doma
 	}
 }
 
-//
+// updatePredictedBonusPoints add predicted bonus points for players,
+// which bonus points weren't confirmed yet
 func (ps *playerService) updatePredictedBonusPoints() error {
 	gw, err := ps.gs.GetCurrentGameweek()
 	if err != nil {

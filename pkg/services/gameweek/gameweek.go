@@ -26,7 +26,8 @@ type gameweekService struct {
 	noNextGameweek  bool
 }
 
-// NewGameweekService creates new instance of GameweekService, and fills underlying storage with data from FPL API
+// NewGameweekService creates new instance of GameweekService, and fills
+// underlying storage with data from FPL API
 func NewGameweekService(w wrapper.Wrapper) (GameweekService, error) {
 	gs := gameweekService{
 		wr:             w,
@@ -81,7 +82,8 @@ func (gs *gameweekService) GetCurrentGameweek() (domain.Gameweek, error) {
 	return gs.CurrentGameweek, nil
 }
 
-// GetNextGameweek returns gameweek that will follow current gameweek, or error if there is no more gameweeks
+// GetNextGameweek returns gameweek that will follow current gameweek,
+// or error if there is no more gameweeks
 func (gs *gameweekService) GetNextGameweek() (domain.Gameweek, error) {
 	if gs.noNextGameweek {
 		return domain.Gameweek{}, ErrNoNextGameweek
@@ -89,7 +91,7 @@ func (gs *gameweekService) GetNextGameweek() (domain.Gameweek, error) {
 	return gs.NextGameweek, nil
 }
 
-// convertToDomainGameweek returns domain.Gameweek object, consistent with given wrapper.Gameweek object,
+// convertToDomainGameweek returns domain.Gameweek, consistent with given wrapper.Gameweek,
 // returns error if it fails to parse gameweek's deadline time
 func (gs *gameweekService) convertToDomainGameweek(gw wrapper.Gameweek) (domain.Gameweek, error) {
 	deadlineTime, err := time.Parse(time.RFC3339, gw.DeadlineTime)

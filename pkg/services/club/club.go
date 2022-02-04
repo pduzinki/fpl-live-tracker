@@ -15,7 +15,8 @@ type clubService struct {
 	clubs domain.ClubRepository
 }
 
-// NewClubService creates new instance of ClubService, and fills underlying storage with data from FPL API
+// NewClubService creates new instance of ClubService, and fills
+// underlying storage with data from FPL API
 func NewClubService(clubRepo domain.ClubRepository, w wrapper.Wrapper) (ClubService, error) {
 	cs := &clubService{
 		clubs: clubRepo,
@@ -50,7 +51,7 @@ func (cs *clubService) GetClubByID(id int) (domain.Club, error) {
 	return cs.clubs.GetByID(id)
 }
 
-// convertToDomainClub returns domain.Club object, consistent with given wrapper.Club object
+// convertToDomainClub returns domain.Club, consistent with given wrapper.Club
 func (cs *clubService) convertToDomainClub(wc wrapper.Club) domain.Club {
 	return domain.Club{
 		ID:        wc.ID,

@@ -21,12 +21,13 @@ type Wrapper interface {
 	GetManagersTeam(managerID, gameweekID int) (Team, error)
 }
 
+// wrapper implements Wrapper interface
 type wrapper struct {
 	client  *http.Client // TODO mayber later use fasthttp
 	baseURL string
 }
 
-// NewWrapper returns an instance of an FPL API wrapper.
+// NewWrapper returns new instance of Wrapper.
 func NewWrapper() Wrapper {
 	return &wrapper{
 		client: &http.Client{
@@ -36,7 +37,8 @@ func NewWrapper() Wrapper {
 	}
 }
 
-//
+// GetClubs queries https://fantasy.premierleague.com/api/bootstrap-static/
+// and returns slice of wrapper.Club, or error otherwise
 func (w *wrapper) GetClubs() ([]Club, error) {
 	url := fmt.Sprintf(w.baseURL + "/bootstrap-static/")
 	var bs Bootstrap
@@ -49,7 +51,8 @@ func (w *wrapper) GetClubs() ([]Club, error) {
 	return bs.Clubs, nil
 }
 
-//
+// GetFixtures queries https://fantasy.premierleague.com/api/fixtures/
+// and returns slice of wrapper.Fixture, or error otherwise
 func (w *wrapper) GetFixtures() ([]Fixture, error) {
 	url := fmt.Sprintf(w.baseURL + "/fixtures/")
 	fixtures := make([]Fixture, 380)
@@ -62,7 +65,8 @@ func (w *wrapper) GetFixtures() ([]Fixture, error) {
 	return fixtures, nil
 }
 
-//
+// GetGameweeks queries https://fantasy.premierleague.com/api/bootstrap-static/
+// and returns slice of wrapper.Gameweek, or error otherwise
 func (w *wrapper) GetGameweeks() ([]Gameweek, error) {
 	url := fmt.Sprintf(w.baseURL + "/bootstrap-static/")
 	var bs Bootstrap
@@ -75,7 +79,8 @@ func (w *wrapper) GetGameweeks() ([]Gameweek, error) {
 	return bs.Gameweeks, nil
 }
 
-//
+// GetPlayers queries https://fantasy.premierleague.com/api/bootstrap-static/
+// and returns slice of wrapper.Player, or error otherwise
 func (w *wrapper) GetPlayers() ([]Player, error) {
 	url := fmt.Sprintf(w.baseURL + "/bootstrap-static/")
 	var bs Bootstrap
@@ -88,7 +93,8 @@ func (w *wrapper) GetPlayers() ([]Player, error) {
 	return bs.Players, nil
 }
 
-//
+// GetPlayersStats queries https://fantasy.premierleague.com/api/event/{gameweekID}/live/
+// and returns slice of wrapper.PlayerStats, which represent live data for given gameweek
 func (w *wrapper) GetPlayersStats(gameweekID int) ([]PlayerStats, error) {
 	url := fmt.Sprintf(w.baseURL+"/event/%d/live/", gameweekID)
 	var elements Elements
@@ -101,7 +107,8 @@ func (w *wrapper) GetPlayersStats(gameweekID int) ([]PlayerStats, error) {
 	return elements.PlayersStats, nil
 }
 
-// GetManager returns data from FPL API "/api/entry/{managerID}/" endpoint
+// GetManager queries https://fantasy.premierleague.com/api/entry/{id}/
+// and returns wrapper.Manager, containing basic information on manager
 func (w *wrapper) GetManager(id int) (Manager, error) {
 	url := fmt.Sprintf(w.baseURL+"/entry/%d/", id)
 	var m Manager
@@ -114,7 +121,8 @@ func (w *wrapper) GetManager(id int) (Manager, error) {
 	return m, nil
 }
 
-//
+// GetManagersTeam queries https://fantasy.premierleague.com/api/entry/{managerID}/event/{gameweekID}/picks/
+// and returns wrapper.Team, consisting of manager team picks for given gameweekf
 func (w *wrapper) GetManagersTeam(managerID, gameweekID int) (Team, error) {
 	url := fmt.Sprintf(w.baseURL+"/entry/%d/event/%d/picks/", managerID, gameweekID)
 	var t Team
@@ -127,7 +135,8 @@ func (w *wrapper) GetManagersTeam(managerID, gameweekID int) (Team, error) {
 	return t, nil
 }
 
-//
+// fetchData is a helper method that forms and sends http request,
+// and unmarshals the response
 func (w *wrapper) fetchData(url string, data interface{}) error {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {

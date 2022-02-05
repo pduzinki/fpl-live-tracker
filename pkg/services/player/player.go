@@ -202,7 +202,7 @@ func (ps *playerService) updatePredictedBonusPoints() error {
 	return nil
 }
 
-//
+// findTopBPS returns slice of current top 3 bps values in playerStats
 func findTopBPS(playersStats []domain.FixtureStatPair) []int {
 	bpsToReward := make([]int, 0, 3)
 	bpsToReward = append(bpsToReward, playersStats[0].Value)
@@ -219,7 +219,8 @@ func findTopBPS(playersStats []domain.FixtureStatPair) []int {
 	return bpsToReward
 }
 
-//
+// findPlayersAndBonusPoints returns slice of bonusPlayer, which holds ID of player,
+// and amount of predicted bonus points to be added
 func findPlayersAndBonusPoints(playersStats []domain.FixtureStatPair, topBPS []int) []bonusPlayer {
 	bp := make([]bonusPlayer, 0)
 
@@ -241,7 +242,7 @@ func findPlayersAndBonusPoints(playersStats []domain.FixtureStatPair, topBPS []i
 	return bp
 }
 
-//
+// addBonusPoints adds predicted bonus points to player with given ID
 func (ps *playerService) addBonusPoints(playerID, points int) error {
 	player, err := ps.pr.GetByID(playerID)
 	if err != nil {

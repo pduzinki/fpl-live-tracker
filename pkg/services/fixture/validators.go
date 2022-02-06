@@ -20,7 +20,7 @@ func runFixtureValidations(fixture *domain.Fixture, fns ...fixtureValidatorFunc)
 }
 
 func gameweekIDBetween1and38(fixture *domain.Fixture) error {
-	if fixture.GameweekID <= 0 || fixture.GameweekID > 38 {
+	if fixture.Info.GameweekID <= 0 || fixture.Info.GameweekID > 38 {
 		return ErrGameweekIDInvalid
 	}
 

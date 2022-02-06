@@ -8,10 +8,10 @@ import (
 )
 
 var (
-	livche = domain.Fixture{GameweekID: 12, ID: 1}
-	mcitot = domain.Fixture{GameweekID: 13, ID: 2}
-	burlei = domain.Fixture{GameweekID: 13, ID: 3}
-	cheliv = domain.Fixture{GameweekID: 14, ID: 4}
+	livche = domain.Fixture{Info: domain.FixtureInfo{GameweekID: 12, ID: 1}}
+	mcitot = domain.Fixture{Info: domain.FixtureInfo{GameweekID: 13, ID: 2}}
+	burlei = domain.Fixture{Info: domain.FixtureInfo{GameweekID: 13, ID: 3}}
+	cheliv = domain.Fixture{Info: domain.FixtureInfo{GameweekID: 14, ID: 4}}
 )
 
 func TestFixtureAdd(t *testing.T) {
@@ -25,7 +25,7 @@ func TestFixtureAdd(t *testing.T) {
 
 	fr := fixtureRepository{
 		fixtures: map[int]domain.Fixture{
-			mcitot.ID: mcitot,
+			mcitot.Info.ID: mcitot,
 		},
 	}
 
@@ -35,7 +35,7 @@ func TestFixtureAdd(t *testing.T) {
 			t.Errorf("error: for %v, got err '%v', want '%v", test.fixture, got, test.want)
 		}
 
-		if v, ok := fr.fixtures[test.fixture.ID]; ok {
+		if v, ok := fr.fixtures[test.fixture.Info.ID]; ok {
 			if !reflect.DeepEqual(v, test.fixture) {
 				t.Errorf("error: incorrect fixture data in memory storage")
 			}
@@ -56,7 +56,7 @@ func TestFixtureAddMany(t *testing.T) {
 
 	fr := fixtureRepository{
 		fixtures: map[int]domain.Fixture{
-			mcitot.ID: mcitot,
+			mcitot.Info.ID: mcitot,
 		},
 	}
 
@@ -67,7 +67,7 @@ func TestFixtureAddMany(t *testing.T) {
 		}
 
 		for _, f := range test.fixtures {
-			if v, ok := fr.fixtures[f.ID]; ok {
+			if v, ok := fr.fixtures[f.Info.ID]; ok {
 				if !reflect.DeepEqual(v, f) {
 					t.Errorf("error: incorrect fixture data in memory storage")
 				}
@@ -95,10 +95,10 @@ func TestFixtureGetByGameweek(t *testing.T) {
 
 	fr := fixtureRepository{
 		fixtures: map[int]domain.Fixture{
-			livche.ID: livche,
-			mcitot.ID: mcitot,
-			burlei.ID: burlei,
-			cheliv.ID: cheliv,
+			livche.Info.ID: livche,
+			mcitot.Info.ID: mcitot,
+			burlei.Info.ID: burlei,
+			cheliv.Info.ID: cheliv,
 		},
 	}
 

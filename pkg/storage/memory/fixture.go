@@ -21,12 +21,12 @@ func NewFixtureRepository() domain.FixtureRepository {
 
 //
 func (fr *fixtureRepository) Add(fixture domain.Fixture) error {
-	if _, ok := fr.fixtures[fixture.ID]; ok {
+	if _, ok := fr.fixtures[fixture.Info.ID]; ok {
 		return storage.ErrFixtureAlreadyExists
 	}
 
 	fr.Lock()
-	fr.fixtures[fixture.ID] = fixture
+	fr.fixtures[fixture.Info.ID] = fixture
 	fr.Unlock()
 
 	return nil
@@ -45,8 +45,8 @@ func (fr *fixtureRepository) AddMany(fixtures []domain.Fixture) error {
 
 //
 func (fr *fixtureRepository) Update(fixture domain.Fixture) error {
-	if _, ok := fr.fixtures[fixture.ID]; ok {
-		fr.fixtures[fixture.ID] = fixture
+	if _, ok := fr.fixtures[fixture.Info.ID]; ok {
+		fr.fixtures[fixture.Info.ID] = fixture
 		return nil
 	}
 
@@ -58,7 +58,7 @@ func (fr *fixtureRepository) GetByGameweek(gameweekID int) ([]domain.Fixture, er
 	fixtures := make([]domain.Fixture, 0)
 
 	for _, f := range fr.fixtures {
-		if f.GameweekID == gameweekID {
+		if f.Info.GameweekID == gameweekID {
 			fixtures = append(fixtures, f)
 		}
 	}

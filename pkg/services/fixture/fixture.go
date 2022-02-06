@@ -81,7 +81,9 @@ func (fs *fixtureService) Update() error {
 // GetFixturesByGameweek returns all fixtures that take place during gameweek
 // with given ID, or returns error otherwise
 func (fs *fixtureService) GetFixturesByGameweek(gameweekID int) ([]domain.Fixture, error) {
-	fixture := domain.Fixture{GameweekID: gameweekID}
+	fixture := domain.Fixture{
+		Info: domain.FixtureInfo{GameweekID: gameweekID},
+	}
 
 	err := runFixtureValidations(&fixture, gameweekIDBetween1and38)
 	if err != nil {
@@ -101,7 +103,7 @@ func (fs *fixtureService) GetLiveFixtures(gameweekID int) ([]domain.Fixture, err
 
 	liveFixtures := make([]domain.Fixture, 0)
 	for _, f := range gwFixtures {
-		if f.Started && !f.Finished {
+		if f.Info.Started && !f.Info.Finished {
 			liveFixtures = append(liveFixtures, f)
 		}
 	}
@@ -160,15 +162,17 @@ func (fs *fixtureService) convertToDomainFixture(wf wrapper.Fixture) (domain.Fix
 	}
 
 	fixture := domain.Fixture{
-		GameweekID:          wf.Event,
-		ID:                  wf.ID,
-		ClubHome:            clubHome,
-		ClubAway:            clubAway,
-		Started:             wf.Started,
-		Finished:            wf.Finished,
-		FinishedProvisional: wf.FinishedProvisional,
-		KickoffTime:         kickoffTime,
-		Stats:               stats,
+		Info: domain.FixtureInfo{
+			GameweekID:          wf.Event,
+			ID:                  wf.ID,
+			ClubHome:            clubHome,
+			ClubAway:            clubAway,
+			Started:             wf.Started,
+			Finished:            wf.Finished,
+			FinishedProvisional: wf.FinishedProvisional,
+			KickoffTime:         kickoffTime,
+		},
+		Stats: stats,
 	}
 
 	return fixture, nil

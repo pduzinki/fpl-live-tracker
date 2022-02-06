@@ -23,6 +23,7 @@ type FixtureRepository interface {
 	AddMany(fixtures []Fixture) error
 	Update(fixture Fixture) error
 	GetByGameweek(gameweekID int) ([]Fixture, error)
+	GetByID(fixtureID int) (Fixture, error)
 }
 
 // FixtureStat represents particular fixture statistic (e.g. goals scored, assists, or bonus points)

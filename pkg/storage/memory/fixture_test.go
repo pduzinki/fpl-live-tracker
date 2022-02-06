@@ -113,3 +113,7 @@ func TestFixtureGetByGameweek(t *testing.T) {
 		}
 	}
 }
+
+func TestFixtureGetByID(t *testing.T) {
+	// TODO add test
+}

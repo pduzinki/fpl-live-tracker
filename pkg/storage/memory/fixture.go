@@ -69,3 +69,11 @@ func (fr *fixtureRepository) GetByGameweek(gameweekID int) ([]domain.Fixture, er
 
 	return fixtures, nil
 }
+
+//
+func (fr *fixtureRepository) GetByID(fixtureID int) (domain.Fixture, error) {
+	if fixture, ok := fr.fixtures[fixtureID]; ok {
+		return fixture, nil
+	}
+	return domain.Fixture{}, storage.ErrFixtureNotFound
+}

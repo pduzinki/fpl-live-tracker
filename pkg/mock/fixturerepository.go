@@ -7,6 +7,7 @@ type FixtureRepository struct {
 	AddManyFn       func(fixtures []domain.Fixture) error
 	UpdateFn        func(fixture domain.Fixture) error
 	GetByGameweekFn func(gameweekID int) ([]domain.Fixture, error)
+	GetByIDFn       func(fixtureID int) (domain.Fixture, error)
 }
 
 func (fr *FixtureRepository) Add(fixture domain.Fixture) error {
@@ -23,4 +24,8 @@ func (fr *FixtureRepository) Update(fixture domain.Fixture) error {
 
 func (fr *FixtureRepository) GetByGameweek(gameweekID int) ([]domain.Fixture, error) {
 	return fr.GetByGameweekFn(gameweekID)
+}
+
+func (fr *FixtureRepository) GetByID(fixtureID int) (domain.Fixture, error) {
+	return fr.GetByIDFn(fixtureID)
 }

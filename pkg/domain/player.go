@@ -27,6 +27,7 @@ type PlayerRepository interface {
 
 // PlayerStats contains data about Player's performance during Gameweek
 type PlayerStats struct {
-	Minutes     int
-	TotalPoints int
+	FixturesInfo []FixtureInfo
+	Minutes      int
+	TotalPoints  int
 }

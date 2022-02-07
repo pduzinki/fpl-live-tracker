@@ -55,7 +55,7 @@ func TestGetByID(t *testing.T) {
 		if err != test.err {
 			t.Errorf("error: want err %v, got %v", test.err, err)
 		}
-		if got != test.want {
+		if !reflect.DeepEqual(got, test.want) {
 			t.Errorf("error: want %v, got %v", test.want, got)
 		}
 	}

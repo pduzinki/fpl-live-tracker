@@ -14,6 +14,7 @@ type FixtureService interface {
 	Update() error
 	GetFixturesByGameweek(gameweekID int) ([]domain.Fixture, error)
 	GetLiveFixtures(gameweekID int) ([]domain.Fixture, error)
+	GetFixtureByID(fixtureID int) (domain.Fixture, error)
 }
 
 // fixtureService implements FixtureService interface
@@ -109,6 +110,12 @@ func (fs *fixtureService) GetLiveFixtures(gameweekID int) ([]domain.Fixture, err
 	}
 
 	return liveFixtures, nil
+}
+
+//
+func (fs *fixtureService) GetFixtureByID(fixtureID int) (domain.Fixture, error) {
+	// TODO add validations
+	return fs.fr.GetByID(fixtureID)
 }
 
 // convertToDomainFixture returns domain.Fixture, consistent with given

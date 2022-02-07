@@ -104,8 +104,11 @@ func (ps *playerService) UpdateStats() error {
 	}
 
 	for _, ws := range playersStats {
-		stats := ps.convertToDomainPlayerStats(ws)
-		err := ps.pr.UpdateStats(ws.ID, stats)
+		stats, err := ps.convertToDomainPlayerStats(ws)
+		if err != nil {
+			return err
+		}
+		err = ps.pr.UpdateStats(ws.ID, stats)
 		if err != nil {
 			log.Println("player service: failed to update player stats", err)
 		}
@@ -154,11 +157,22 @@ func (ps *playerService) convertToDomainPlayer(wp wrapper.Player) (domain.Player
 
 // convertToDomainPlayerStats returns domain.PlayerStats,
 // consistent with given wrapper.PlayerStats
-func (ps *playerService) convertToDomainPlayerStats(ws wrapper.PlayerStats) domain.PlayerStats {
-	return domain.PlayerStats{
-		Minutes:     ws.Stats.Minutes,
-		TotalPoints: ws.Stats.TotalPoints,
+func (ps *playerService) convertToDomainPlayerStats(ws wrapper.PlayerStats) (domain.PlayerStats, error) {
+	playerStats := domain.PlayerStats{
+		FixturesInfo: make([]domain.FixtureInfo, 0),
+		Minutes:      ws.Stats.Minutes,
+		TotalPoints:  ws.Stats.TotalPoints,
 	}
+
+	for _, wf := range ws.Explain {
+		f, err := ps.fs.GetFixtureByID(wf.Fixture)
+		if err != nil {
+			return domain.PlayerStats{}, err
+		}
+		playerStats.FixturesInfo = append(playerStats.FixturesInfo, f.Info)
+	}
+
+	return playerStats, nil
 }
 
 // updatePredictedBonusPoints add predicted bonus points for players,

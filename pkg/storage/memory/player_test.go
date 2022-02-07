@@ -56,7 +56,7 @@ func TestPlayerAdd(t *testing.T) {
 		}
 
 		if v, ok := pr.players[test.player.ID]; ok {
-			if v != test.player {
+			if !reflect.DeepEqual(v, test.player) {
 				t.Errorf("error: incorrect player data in memory storage")
 			}
 		} else {
@@ -106,7 +106,7 @@ func TestPlayerUpdate(t *testing.T) {
 
 		if got == nil {
 			if v, ok := pr.players[test.player.ID]; ok {
-				if v != test.player {
+				if !reflect.DeepEqual(v, test.player) {
 					t.Errorf("error: incorrect player data in memory storage")
 				}
 			} else {
@@ -151,7 +151,7 @@ func TestPlayerUpdateStats(t *testing.T) {
 
 		if got == nil {
 			if v, ok := pr.players[test.playerID]; ok {
-				if v.Stats != test.stats {
+				if !reflect.DeepEqual(v.Stats, test.stats) {
 					t.Errorf("error: incorrect player data in memory storage")
 				}
 			} else {

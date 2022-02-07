@@ -86,11 +86,17 @@ type Elements struct {
 }
 
 type PlayerStats struct {
-	ID    int   `json:"id"`
-	Stats Stats `json:"stats"`
+	ID      int       `json:"id"`
+	Stats   Stats     `json:"stats"`
+	Explain []Explain `json:"explain"`
 }
 
 type Stats struct {
 	Minutes     int `json:"minutes"`
 	TotalPoints int `json:"total_points"`
+}
+
+type Explain struct {
+	Fixture int `json:"fixture"`
+	// more fields not needed for
 }

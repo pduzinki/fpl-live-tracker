@@ -160,5 +160,36 @@ func TestFixtureGetByGameweek(t *testing.T) {
 }
 
 func TestFixtureGetByID(t *testing.T) {
-	// TODO add test
+	testcases := []struct {
+		ID   int
+		want domain.Fixture
+		err  error
+	}{
+		{
+			ID:   livche.Info.ID,
+			want: livche,
+			err:  nil,
+		},
+		{
+			ID:   mcitot.Info.ID,
+			want: domain.Fixture{},
+			err:  storage.ErrFixtureNotFound,
+		},
+	}
+
+	fr := fixtureRepository{
+		fixtures: map[int]domain.Fixture{
+			livche.Info.ID: livche,
+		},
+	}
+
+	for _, test := range testcases {
+		got, err := fr.GetByID(test.ID)
+		if err != test.err {
+			t.Errorf("error: for %v, got '%v', want '%v'", test.ID, got, test.want)
+		}
+		if err != test.err {
+			t.Errorf("error: for %v, got err '%v', want err '%v'", test.ID, err, test.err)
+		}
+	}
 }

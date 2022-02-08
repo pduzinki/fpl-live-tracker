@@ -5,13 +5,14 @@ import (
 	"fpl-live-tracker/pkg/storage"
 	"reflect"
 	"testing"
+	"time"
 )
 
 var (
-	livche = domain.Fixture{Info: domain.FixtureInfo{GameweekID: 12, ID: 1}}
-	mcitot = domain.Fixture{Info: domain.FixtureInfo{GameweekID: 13, ID: 2}}
-	burlei = domain.Fixture{Info: domain.FixtureInfo{GameweekID: 13, ID: 3}}
-	cheliv = domain.Fixture{Info: domain.FixtureInfo{GameweekID: 14, ID: 4}}
+	livche = domain.Fixture{Info: domain.FixtureInfo{GameweekID: 12, ID: 1, KickoffTime: time.Date(2022, 02, 02, 15, 00, 00, 00, time.UTC)}}
+	mcitot = domain.Fixture{Info: domain.FixtureInfo{GameweekID: 13, ID: 2, KickoffTime: time.Date(2022, 02, 02, 16, 00, 00, 00, time.UTC)}}
+	burlei = domain.Fixture{Info: domain.FixtureInfo{GameweekID: 13, ID: 3, KickoffTime: time.Date(2022, 02, 03, 15, 00, 00, 00, time.UTC)}}
+	cheliv = domain.Fixture{Info: domain.FixtureInfo{GameweekID: 14, ID: 4, KickoffTime: time.Date(2022, 02, 03, 20, 00, 00, 00, time.UTC)}}
 )
 
 func TestFixtureAdd(t *testing.T) {
@@ -79,7 +80,51 @@ func TestFixtureAddMany(t *testing.T) {
 }
 
 func TestFixtureUpdate(t *testing.T) {
-	// TODO add test
+	testcases := []struct {
+		fixture domain.Fixture
+		want    error
+	}{
+		{
+			fixture: domain.Fixture{
+				Info: domain.FixtureInfo{
+					GameweekID:  22,
+					ID:          mcitot.Info.ID,
+					KickoffTime: mcitot.Info.KickoffTime,
+				},
+			},
+			want: nil,
+		},
+		{
+			fixture: domain.Fixture{},
+			want:    storage.ErrFixtureNotFound,
+		},
+	}
+
+	fr := fixtureRepository{
+		fixtures: map[int]domain.Fixture{
+			livche.Info.ID: livche,
+			mcitot.Info.ID: mcitot,
+			burlei.Info.ID: burlei,
+			cheliv.Info.ID: cheliv,
+		},
+	}
+
+	for _, test := range testcases {
+		got := fr.Update(test.fixture)
+		if got != test.want {
+			t.Errorf("error: got err '%v', want '%v'", got, test.want)
+		}
+
+		if got == nil {
+			if v, ok := fr.fixtures[test.fixture.Info.ID]; ok {
+				if !reflect.DeepEqual(v, test.fixture) {
+					t.Errorf("error: incorrect fixture data in memory storage")
+				}
+			} else {
+				t.Errorf("error: fixture not found in memory storage")
+			}
+		}
+	}
 }
 
 func TestFixtureGetByGameweek(t *testing.T) {

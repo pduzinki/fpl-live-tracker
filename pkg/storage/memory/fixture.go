@@ -3,6 +3,7 @@ package memory
 import (
 	"fpl-live-tracker/pkg/domain"
 	"fpl-live-tracker/pkg/storage"
+	"sort"
 	"sync"
 )
 
@@ -66,6 +67,10 @@ func (fr *fixtureRepository) GetByGameweek(gameweekID int) ([]domain.Fixture, er
 	if len(fixtures) == 0 {
 		return nil, storage.ErrFixtureNotFound
 	}
+
+	sort.Slice(fixtures, func(i, j int) bool {
+		return fixtures[i].Info.KickoffTime.Before(fixtures[j].Info.KickoffTime)
+	})
 
 	return fixtures, nil
 }

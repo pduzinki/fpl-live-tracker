@@ -60,7 +60,7 @@ func main() {
 	}
 	go tracker.Track()
 
-	router := rest.Handler(ps)
+	router := rest.Handler(ps, ms)
 
 	log.Println("fpl-live-tracker now listening on port 3000")
 	log.Fatal(http.ListenAndServe(":3000", router))

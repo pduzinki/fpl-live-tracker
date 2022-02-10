@@ -128,7 +128,7 @@ func (ms *managerService) UpdatePoints() error {
 	manager.Team.TotalPoints = totalPoints
 	ms.mr.UpdateTeam(manager.ID, manager.Team)
 
-	log.Println(manager)
+	// log.Println(manager)
 
 	return nil
 }

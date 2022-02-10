@@ -7,20 +7,20 @@ import (
 	"sync"
 )
 
-//
+// fixtureRepository implements domain.FixtureRepository interface
 type fixtureRepository struct {
 	fixtures map[int]domain.Fixture
 	sync.Mutex
 }
 
-//
+// NewFixtureRepository returns new instance of fixtureRepository
 func NewFixtureRepository() domain.FixtureRepository {
 	return &fixtureRepository{
 		fixtures: make(map[int]domain.Fixture),
 	}
 }
 
-//
+// Add saves given fixture into memory storage, returns error on failure
 func (fr *fixtureRepository) Add(fixture domain.Fixture) error {
 	if _, ok := fr.fixtures[fixture.Info.ID]; ok {
 		return storage.ErrFixtureAlreadyExists
@@ -33,7 +33,7 @@ func (fr *fixtureRepository) Add(fixture domain.Fixture) error {
 	return nil
 }
 
-//
+// AddMany saves given fixtures into memory storage, returns error on failure
 func (fr *fixtureRepository) AddMany(fixtures []domain.Fixture) error {
 	for _, fixture := range fixtures {
 		err := fr.Add(fixture)
@@ -44,7 +44,7 @@ func (fr *fixtureRepository) AddMany(fixtures []domain.Fixture) error {
 	return nil
 }
 
-//
+// Update updates fixture with matching ID in memory storage, or returns error on failure
 func (fr *fixtureRepository) Update(fixture domain.Fixture) error {
 	if _, ok := fr.fixtures[fixture.Info.ID]; ok {
 		fr.fixtures[fixture.Info.ID] = fixture
@@ -54,7 +54,8 @@ func (fr *fixtureRepository) Update(fixture domain.Fixture) error {
 	return storage.ErrFixtureNotFound
 }
 
-//
+// GetByGameweek returns all fixtures with given gameweekID, or error otherwise.
+// Returned fixtures will be sorted by kick-off time
 func (fr *fixtureRepository) GetByGameweek(gameweekID int) ([]domain.Fixture, error) {
 	fixtures := make([]domain.Fixture, 0)
 
@@ -75,7 +76,7 @@ func (fr *fixtureRepository) GetByGameweek(gameweekID int) ([]domain.Fixture, er
 	return fixtures, nil
 }
 
-//
+// GetById returns fixtures with given ID, or returns error otherwise
 func (fr *fixtureRepository) GetByID(fixtureID int) (domain.Fixture, error) {
 	if fixture, ok := fr.fixtures[fixtureID]; ok {
 		return fixture, nil

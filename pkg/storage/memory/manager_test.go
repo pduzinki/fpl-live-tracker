@@ -8,10 +8,10 @@ import (
 )
 
 var (
-	john = domain.Manager{ID: 1, Name: "John Doe", TeamName: "FC John"}
-	jim  = domain.Manager{ID: 2, Name: "Jim Jim", TeamName: "FC Jim"}
-	jane = domain.Manager{ID: 3, Name: "Jane Foo", TeamName: "Jane City"}
-	joel = domain.Manager{ID: 66, Name: "Joel Bar", TeamName: "Bar AFC"}
+	john = domain.Manager{ID: 1, Info: domain.ManagerInfo{Name: "John Doe", TeamName: "FC John"}}
+	jim  = domain.Manager{ID: 2, Info: domain.ManagerInfo{Name: "Jim Jim", TeamName: "FC Jim"}}
+	jane = domain.Manager{ID: 3, Info: domain.ManagerInfo{Name: "Jane Foo", TeamName: "Jane City"}}
+	joel = domain.Manager{ID: 66, Info: domain.ManagerInfo{Name: "Joel Bar", TeamName: "Bar AFC"}}
 
 	johnsTeam = domain.Team{
 		Picks: []domain.TeamPlayer{
@@ -94,22 +94,24 @@ func TestManagerAddMany(t *testing.T) {
 	}
 }
 
-func TestManagerUpdate(t *testing.T) {
+func TestManagerUpdateInfo(t *testing.T) {
 	testcases := []struct {
-		manager domain.Manager
-		want    error
+		managerID   int
+		managerInfo domain.ManagerInfo
+		want        error
 	}{
 		{
-			manager: domain.Manager{
-				ID:       john.ID,
-				Name:     john.Name,
+			managerID: john.ID,
+			managerInfo: domain.ManagerInfo{
+				Name:     john.Info.Name,
 				TeamName: "John United",
 			},
 			want: nil,
 		},
 		{
-			manager: domain.Manager{},
-			want:    storage.ErrManagerNotFound,
+			managerID:   0,
+			managerInfo: domain.ManagerInfo{},
+			want:        storage.ErrManagerNotFound,
 		},
 	}
 
@@ -120,14 +122,14 @@ func TestManagerUpdate(t *testing.T) {
 	}
 
 	for _, test := range testcases {
-		got := mr.Update(test.manager)
+		got := mr.UpdateInfo(test.managerID, test.managerInfo)
 		if got != test.want {
 			t.Errorf("error: got err '%v', want '%v'", got, test.want)
 		}
 
 		if got == nil {
-			if v, ok := mr.managers[test.manager.ID]; ok {
-				if !reflect.DeepEqual(v, test.manager) {
+			if v, ok := mr.managers[test.managerID]; ok {
+				if !reflect.DeepEqual(v.Info, test.managerInfo) {
 					t.Errorf("error: incorrect manager data in memory storage")
 				}
 			} else {
@@ -158,10 +160,9 @@ func TestManagerUpdateTeam(t *testing.T) {
 	mr := managerRepository{
 		managers: map[int]domain.Manager{
 			john.ID: {
-				ID:       john.ID,
-				Name:     john.Name,
-				TeamName: john.TeamName,
-				Team:     domain.Team{},
+				ID:   john.ID,
+				Info: john.Info,
+				Team: domain.Team{},
 			},
 		},
 	}

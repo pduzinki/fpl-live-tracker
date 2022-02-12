@@ -14,7 +14,7 @@ import (
 var myID = 1239
 
 type ManagerService interface {
-	Update() error
+	UpdateInfos() error
 	UpdateTeams() error
 	UpdatePoints() error
 	GetByID(id int) (domain.Manager, error)
@@ -37,7 +37,7 @@ func NewManagerService(mr domain.ManagerRepository, ps player.PlayerService,
 		wr: wr,
 	}
 
-	err := ms.Update()
+	err := ms.UpdateInfos()
 	if err != nil {
 		log.Println("manager service: failed to init data", err)
 		return nil, err
@@ -47,7 +47,7 @@ func NewManagerService(mr domain.ManagerRepository, ps player.PlayerService,
 }
 
 //
-func (ms *managerService) Update() error {
+func (ms *managerService) UpdateInfos() error {
 	wrapperManager, err := ms.wr.GetManager(myID)
 	if err != nil {
 		log.Println("manager service:", err)
@@ -55,7 +55,7 @@ func (ms *managerService) Update() error {
 	}
 
 	manager := ms.convertToDomainManager(wrapperManager)
-	err = ms.mr.Update(manager)
+	err = ms.mr.UpdateInfo(manager.ID, manager.Info)
 	if err == storage.ErrManagerNotFound {
 		err = ms.mr.Add(manager)
 		if err != nil {
@@ -139,14 +139,18 @@ func (ms *managerService) GetByID(id int) (domain.Manager, error) {
 	return ms.mr.GetByID(id)
 }
 
+//
 func (ms *managerService) convertToDomainManager(wm wrapper.Manager) domain.Manager {
 	return domain.Manager{
-		ID:       wm.ID,
-		Name:     fmt.Sprintf("%s %s", wm.FirstName, wm.LastName),
-		TeamName: wm.Name,
+		ID: wm.ID,
+		Info: domain.ManagerInfo{
+			Name:     fmt.Sprintf("%s %s", wm.FirstName, wm.LastName),
+			TeamName: wm.Name,
+		},
 	}
 }
 
+//
 func (ms *managerService) convertToDomainTeam(wt wrapper.Team) (domain.Team, error) {
 	team := domain.Team{
 		Picks: make([]domain.TeamPlayer, 0, 15),

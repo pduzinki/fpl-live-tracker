@@ -92,6 +92,10 @@ func TestFindTopBPS(t *testing.T) {
 				{PlayerID: 5, Value: 5}, {PlayerID: 6, Value: 5}},
 			want: []int{5},
 		},
+		{
+			data: []domain.FixtureStatPair{},
+			want: []int{},
+		},
 	}
 
 	for _, test := range testcases {

@@ -26,8 +26,8 @@ type FixtureInfo struct {
 	ClubHome            Club
 	ClubAway            Club
 	Started             bool
-	Finished            bool
 	FinishedProvisional bool
+	Finished            bool
 	KickoffTime         time.Time
 }
 

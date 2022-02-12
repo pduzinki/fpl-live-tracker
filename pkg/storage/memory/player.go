@@ -34,11 +34,13 @@ func (pr *playerRepository) Add(player domain.Player) error {
 }
 
 // Update updates player with matching ID in memory storage, or returns error on failure
-func (pr *playerRepository) Update(player domain.Player) error {
-	if _, ok := pr.players[player.ID]; ok {
-		pr.Lock()
-		pr.players[player.ID] = player
-		pr.Unlock()
+func (pr *playerRepository) UpdateInfo(playerID int, info domain.PlayerInfo) error {
+	pr.Lock()
+	defer pr.Unlock()
+
+	if player, ok := pr.players[playerID]; ok {
+		player.Info = info
+		pr.players[playerID] = player
 		return nil
 	}
 

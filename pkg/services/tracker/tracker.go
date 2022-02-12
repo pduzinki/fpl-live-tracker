@@ -105,7 +105,7 @@ func (t *Tracker) Track() {
 		log.Println("tracker service: failed to update fixture data:", err)
 	}
 
-	err = t.Ps.Update()
+	err = t.Ps.UpdateInfos()
 	if err != nil {
 		log.Println("tracker service: failed to update player data:", err)
 	}

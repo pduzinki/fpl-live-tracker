@@ -8,9 +8,11 @@ import (
 )
 
 var ronaldo = domain.Player{
-	ID:       123,
-	Name:     "Ronaldo",
-	Position: "FWD",
+	ID: 123,
+	Info: domain.PlayerInfo{
+		Name:     "Ronaldo",
+		Position: "FWD",
+	},
 }
 
 func TestUpdate(t *testing.T) {

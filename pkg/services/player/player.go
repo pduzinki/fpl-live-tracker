@@ -13,7 +13,7 @@ import (
 
 // PlayerService is an interface for interacting with players
 type PlayerService interface {
-	Update() error
+	UpdateInfos() error
 	UpdateStats() error
 	GetByID(ID int) (domain.Player, error)
 	GetAll() ([]domain.Player, error)
@@ -46,7 +46,7 @@ func NewPlayerService(w wrapper.Wrapper, pr domain.PlayerRepository, cs club.Clu
 		gs:      gs,
 	}
 
-	err := ps.Update()
+	err := ps.UpdateInfos()
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func NewPlayerService(w wrapper.Wrapper, pr domain.PlayerRepository, cs club.Clu
 
 // Update queries FPL API and updates all players basic data
 // (i.e. name, position, club), in its underlying player storage
-func (ps *playerService) Update() error {
+func (ps *playerService) UpdateInfos() error {
 	wrapperPlayers, err := ps.wrapper.GetPlayers()
 	if err != nil {
 		return err
@@ -73,7 +73,7 @@ func (ps *playerService) Update() error {
 	}
 
 	for _, p := range players {
-		err := ps.pr.Update(p)
+		err := ps.pr.UpdateInfo(p.ID, p.Info)
 		if err == storage.ErrPlayerNotFound {
 			err = ps.pr.Add(p)
 			if err != nil {
@@ -148,10 +148,12 @@ func (ps *playerService) convertToDomainPlayer(wp wrapper.Player) (domain.Player
 	}
 
 	return domain.Player{
-		ID:       wp.ID,
-		Name:     wp.WebName,
-		Position: domain.PlayerPosition[wp.Position],
-		Club:     club,
+		ID: wp.ID,
+		Info: domain.PlayerInfo{
+			Name:     wp.WebName,
+			Position: domain.PlayerPosition[wp.Position],
+			Club:     club,
+		},
 	}, nil
 }
 

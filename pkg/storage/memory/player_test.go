@@ -9,28 +9,36 @@ import (
 
 var (
 	ramsdale = domain.Player{
-		ID:       1,
-		Name:     "Ramsdale",
-		Position: "GKP",
-		Club:     domain.Club{ID: 1, Name: "Arsenal", Shortname: "ARS"},
+		ID: 1,
+		Info: domain.PlayerInfo{
+			Name:     "Ramsdale",
+			Position: "GKP",
+			Club:     domain.Club{ID: 1, Name: "Arsenal", Shortname: "ARS"},
+		},
 	}
 	cancelo = domain.Player{
-		ID:       2,
-		Name:     "Cancelo",
-		Position: "DEF",
-		Club:     domain.Club{ID: 2, Name: "Manchester City", Shortname: "MCI"},
+		ID: 2,
+		Info: domain.PlayerInfo{
+			Name:     "Cancelo",
+			Position: "DEF",
+			Club:     domain.Club{ID: 2, Name: "Manchester City", Shortname: "MCI"},
+		},
 	}
 	salah = domain.Player{
-		ID:       3,
-		Name:     "Salah",
-		Position: "MID",
-		Club:     domain.Club{ID: 3, Name: "Liverpool", Shortname: "LIV"},
+		ID: 3,
+		Info: domain.PlayerInfo{
+			Name:     "Salah",
+			Position: "MID",
+			Club:     domain.Club{ID: 3, Name: "Liverpool", Shortname: "LIV"},
+		},
 	}
 	kane = domain.Player{
-		ID:       4,
-		Name:     "Kane",
-		Position: "FWD",
-		Club:     domain.Club{ID: 4, Name: "Spurs", Shortname: "TOT"},
+		ID: 4,
+		Info: domain.PlayerInfo{
+			Name:     "Kane",
+			Position: "FWD",
+			Club:     domain.Club{ID: 4, Name: "Spurs", Shortname: "TOT"},
+		},
 	}
 )
 
@@ -65,23 +73,24 @@ func TestPlayerAdd(t *testing.T) {
 	}
 }
 
-func TestPlayerUpdate(t *testing.T) {
+func TestPlayerUpdateInfo(t *testing.T) {
 	testcases := []struct {
-		player domain.Player
-		want   error
+		playerID   int
+		playerInfo domain.PlayerInfo
+		want       error
 	}{
 		{
-			player: domain.Player{
-				ID:       kane.ID,
-				Name:     kane.Name,
+			playerID: kane.ID,
+			playerInfo: domain.PlayerInfo{
+				Name:     kane.Info.Name,
 				Position: "MID",
-				Club:     kane.Club,
+				Club:     kane.Info.Club,
 			},
 			want: nil,
 		},
 		{
-			player: domain.Player{
-				ID:       123,
+			playerID: 123,
+			playerInfo: domain.PlayerInfo{
 				Name:     "Doe",
 				Position: "MID",
 			},
@@ -99,14 +108,14 @@ func TestPlayerUpdate(t *testing.T) {
 	}
 
 	for _, test := range testcases {
-		got := pr.Update(test.player)
+		got := pr.UpdateInfo(test.playerID, test.playerInfo)
 		if got != test.want {
 			t.Errorf("error: got err '%v', want '%v'", got, test.want)
 		}
 
 		if got == nil {
-			if v, ok := pr.players[test.player.ID]; ok {
-				if !reflect.DeepEqual(v, test.player) {
+			if v, ok := pr.players[test.playerID]; ok {
+				if !reflect.DeepEqual(v.Info, test.playerInfo) {
 					t.Errorf("error: incorrect player data in memory storage")
 				}
 			} else {

@@ -15,7 +15,7 @@ var (
 
 	johnsTeam = domain.Team{
 		Picks: []domain.TeamPlayer{
-			{Player: domain.Player{ID: 1, Name: "Lukaku"}, IsCaptain: true, IsViceCaptain: false},
+			{Player: domain.Player{ID: 1, Info: domain.PlayerInfo{Name: "Lukaku"}}, IsCaptain: true, IsViceCaptain: false},
 		},
 		TotalPoints: 123,
 	}

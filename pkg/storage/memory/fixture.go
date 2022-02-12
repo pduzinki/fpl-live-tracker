@@ -13,7 +13,7 @@ type fixtureRepository struct {
 	sync.Mutex
 }
 
-// NewFixtureRepository returns new instance of fixtureRepository
+// NewFixtureRepository returns new instance of domain.FixtureRepository
 func NewFixtureRepository() domain.FixtureRepository {
 	return &fixtureRepository{
 		fixtures: make(map[int]domain.Fixture),

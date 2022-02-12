@@ -6,13 +6,13 @@ import (
 	"sync"
 )
 
-//
+// managerRepository implements domain.ManagerRepository interface
 type managerRepository struct {
 	managers map[int]domain.Manager
 	sync.Mutex
 }
 
-// NewManagerRepository creates new repository for managers
+// NewManagerRepository returns new instance of domain.ManagerRepository
 func NewManagerRepository() domain.ManagerRepository {
 	mr := managerRepository{
 		managers: make(map[int]domain.Manager),
@@ -21,7 +21,7 @@ func NewManagerRepository() domain.ManagerRepository {
 	return &mr
 }
 
-//
+// Add saves given manager into memory storage, or returns error on failure
 func (mr *managerRepository) Add(manager domain.Manager) error {
 	if _, ok := mr.managers[manager.ID]; ok {
 		return storage.ErrManagerAlreadyExists
@@ -34,7 +34,7 @@ func (mr *managerRepository) Add(manager domain.Manager) error {
 	return nil
 }
 
-//
+// AddMany saves all given managers into memory storage, or returns error on failure
 func (mr *managerRepository) AddMany(managers []domain.Manager) error {
 	for _, manager := range managers {
 		err := mr.Add(manager)
@@ -45,7 +45,7 @@ func (mr *managerRepository) AddMany(managers []domain.Manager) error {
 	return nil
 }
 
-//
+// Update updates manager with matching ID in memory storage, or returns error on failure
 func (mr *managerRepository) Update(manager domain.Manager) error {
 	mr.Lock()
 	defer mr.Unlock()
@@ -59,7 +59,7 @@ func (mr *managerRepository) Update(manager domain.Manager) error {
 	return storage.ErrManagerNotFound
 }
 
-//
+// UpdateTeam updates team of manager with given ID, or returns error on failure
 func (mr *managerRepository) UpdateTeam(managerID int, team domain.Team) error {
 	mr.Lock()
 	defer mr.Unlock()
@@ -72,7 +72,7 @@ func (mr *managerRepository) UpdateTeam(managerID int, team domain.Team) error {
 	return storage.ErrManagerNotFound
 }
 
-//
+// GetById returns manager with given ID, or returns error on failure
 func (mr *managerRepository) GetByID(id int) (domain.Manager, error) {
 	if manager, ok := mr.managers[id]; ok {
 		return manager, nil

@@ -7,19 +7,20 @@ import (
 	"sync"
 )
 
-//
+// playerRepository implements domain.PlayerRepository interface
 type playerRepository struct {
 	players map[int]domain.Player
 	sync.Mutex
 }
 
-//
+// NewPlayerRepository returns new instance of domain.PlayerRepository
 func NewPlayerRepository() domain.PlayerRepository {
 	return &playerRepository{
 		players: make(map[int]domain.Player),
 	}
 }
 
+// Add saves given player into memory storage, returns error on failure
 func (pr *playerRepository) Add(player domain.Player) error {
 	if _, ok := pr.players[player.ID]; ok {
 		return storage.ErrPlayerAlreadyExists
@@ -32,6 +33,7 @@ func (pr *playerRepository) Add(player domain.Player) error {
 	return nil
 }
 
+// Update updates player with matching ID in memory storage, or returns error on failure
 func (pr *playerRepository) Update(player domain.Player) error {
 	if _, ok := pr.players[player.ID]; ok {
 		pr.Lock()
@@ -43,6 +45,7 @@ func (pr *playerRepository) Update(player domain.Player) error {
 	return storage.ErrPlayerNotFound
 }
 
+// UpdateStats updates stats of player with given playerID, or returns error on failure
 func (pr *playerRepository) UpdateStats(playerID int, stats domain.PlayerStats) error {
 	if player, ok := pr.players[playerID]; ok {
 		player.Stats = stats
@@ -55,6 +58,7 @@ func (pr *playerRepository) UpdateStats(playerID int, stats domain.PlayerStats) 
 	return storage.ErrPlayerNotFound
 }
 
+// GetByID returns player with given ID, or returns error on failure
 func (pr *playerRepository) GetByID(ID int) (domain.Player, error) {
 	pr.Lock()
 	defer pr.Unlock()
@@ -65,6 +69,7 @@ func (pr *playerRepository) GetByID(ID int) (domain.Player, error) {
 	return domain.Player{}, storage.ErrPlayerNotFound
 }
 
+// GetAll returns slice of all players, or error on failure
 func (pr *playerRepository) GetAll() ([]domain.Player, error) {
 	players := make([]domain.Player, 0, len(pr.players))
 

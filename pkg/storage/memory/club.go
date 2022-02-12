@@ -12,7 +12,7 @@ type clubRepository struct {
 	sync.Mutex
 }
 
-// NewClubRepository returns new instance of clubRepository
+// NewClubRepository returns new instance of domain.ClubRepository
 func NewClubRepository() domain.ClubRepository {
 	return &clubRepository{
 		clubs: make(map[int]domain.Club),

@@ -128,14 +128,18 @@ func (ms *managerService) UpdatePoints() error {
 	manager.Team.TotalPoints = totalPoints
 	ms.mr.UpdateTeam(manager.ID, manager.Team)
 
-	// log.Println(manager)
-
 	return nil
 }
 
 //
 func (ms *managerService) GetByID(id int) (domain.Manager, error) {
-	// TODO add validation
+	manager := domain.Manager{ID: id}
+
+	err := runManagerValidations(&manager, idHigherThanZero)
+	if err != nil {
+		return domain.Manager{}, err
+	}
+
 	return ms.mr.GetByID(id)
 }
 

@@ -105,28 +105,23 @@ func (ms *managerService) UpdatePoints() error {
 	if err != nil {
 		return err
 	}
+	team := manager.Team
 
-	for i := 0; i < len(manager.Team.Picks); i++ {
-		tp := manager.Team.Picks[i]
-		p, err := ms.ps.GetByID(tp.ID)
-		if err != nil {
-			log.Println("manager service:", err)
-			continue
-		}
-		tp.Stats = p.Stats
-		manager.Team.Picks[i] = tp
+	err = ms.updateTeamStats(&team)
+	if err != nil {
+		return err
 	}
 
-	var totalPoints int
-	for i := 0; i < 11; i++ {
-		if manager.Team.Picks[i].IsCaptain {
-			totalPoints += manager.Team.Picks[i].Stats.TotalPoints * 2
-		} else {
-			totalPoints += manager.Team.Picks[i].Stats.TotalPoints
-		}
+	calculateTotalPoints(&team)
+	calculateTotalPointsAfterSubs(&team)
+
+	err = ms.mr.UpdateTeam(manager.ID, team)
+	if err != nil {
+		return err
 	}
-	manager.Team.TotalPoints = totalPoints
-	ms.mr.UpdateTeam(manager.ID, manager.Team)
+
+	log.Println(team.TotalPoints)
+	log.Println(team.TotalPointsAfterSubs)
 
 	return nil
 }
@@ -177,4 +172,131 @@ func (ms *managerService) convertToDomainTeam(wt wrapper.Team) (domain.Team, err
 	}
 
 	return team, nil
+}
+
+//
+func (ms *managerService) updateTeamStats(team *domain.Team) error {
+	for i := 0; i < len(team.Picks); i++ {
+		tp := team.Picks[i]
+		p, err := ms.ps.GetByID(tp.ID)
+		if err != nil {
+			log.Println("manager service: failed to update manager's team stats", err)
+			return err
+		}
+		tp.Stats = p.Stats
+		team.Picks[i] = tp
+	}
+
+	return nil
+}
+
+//
+func calculateTotalPoints(team *domain.Team) {
+	var totalPoints int
+	for i := 0; i < 11; i++ {
+		if team.Picks[i].IsCaptain {
+			totalPoints += team.Picks[i].Stats.TotalPoints * 2
+		} else {
+			totalPoints += team.Picks[i].Stats.TotalPoints
+		}
+	}
+	team.TotalPoints = totalPoints
+}
+
+//
+func calculateTotalPointsAfterSubs(team *domain.Team) {
+	totalPointsAfterSubs := team.TotalPoints
+
+	// get formation
+	// formation := getFormation(team)
+	// log.Println(formation)
+
+	// get formation with taking into account the missing players
+	realFormation, players := getSubFormationAndSubPlayers(team)
+	// log.Println(realFormation, players)
+
+	subs := getSubs(team, realFormation, players)
+
+	for _, s := range subs {
+		totalPointsAfterSubs += s.Stats.TotalPoints
+	}
+
+	team.TotalPointsAfterSubs = totalPointsAfterSubs
+}
+
+//
+func getSubFormationAndSubPlayers(team *domain.Team) ([4]int, []domain.TeamPlayer) {
+	var gkps, defs, mids, fwds int
+	toBeSubbed := make([]domain.TeamPlayer, 0)
+
+	for i := 0; i < 11; i++ {
+		player := &team.Picks[i]
+
+		if needsSubstitution(player) {
+			toBeSubbed = append(toBeSubbed, *player)
+		} else {
+			if player.Info.Position == "GKP" {
+				gkps++
+			} else if player.Info.Position == "DEF" {
+				defs++
+			} else if player.Info.Position == "MID" {
+				mids++
+			} else if player.Info.Position == "FWD" {
+				fwds++
+			}
+		}
+	}
+
+	return [4]int{gkps, defs, mids, fwds}, toBeSubbed
+}
+
+//
+func needsSubstitution(player *domain.TeamPlayer) bool {
+	stats := player.Stats
+
+	var atLeastOneFixtureStarted bool
+	for _, f := range stats.FixturesInfo {
+		if f.Started {
+			atLeastOneFixtureStarted = true
+			break
+		}
+	}
+
+	if stats.Minutes == 0 && atLeastOneFixtureStarted {
+		return true
+	}
+	return false
+}
+
+func getSubs(team *domain.Team, formation [4]int, players []domain.TeamPlayer) []domain.TeamPlayer {
+	subs := make([]domain.TeamPlayer, 0)
+
+	for _, p := range players {
+		_ = p
+		if formation[0] == 0 {
+			// goalkeeper sub
+			subs = append(subs, team.Picks[11])
+		}
+
+		if formation[1] < 3 {
+			// need a defender first
+			for _, pp := range team.Picks[11:] {
+				if pp.Info.Position == "DEF" {
+					subs = append(subs, pp)
+					formation[1]++
+				}
+			}
+		}
+
+		if formation[3] < 1 {
+			// need a forward first
+			for _, pp := range team.Picks[11:] {
+				if pp.Info.Position == "FWD" {
+					subs = append(subs, pp)
+					formation[1]++
+				}
+			}
+		}
+	}
+	return subs
 }

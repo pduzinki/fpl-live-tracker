@@ -15,16 +15,9 @@ type ManagerInfo struct {
 
 //
 type Team struct {
-	Picks []TeamPlayer
-	/*
-		gk:
-		defs:
-		mids:
-		fwds:
-		benchGk:
-		bench:
-	*/
-	TotalPoints int
+	Picks                []TeamPlayer
+	TotalPoints          int
+	TotalPointsAfterSubs int
 	// OverallRank int
 }
 

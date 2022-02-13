@@ -15,7 +15,7 @@ var ronaldo = domain.Player{
 	},
 }
 
-func TestUpdate(t *testing.T) {
+func TestUpdateInfos(t *testing.T) {
 	// TODO add test
 }
 
@@ -110,6 +110,87 @@ func TestFindTopBPS(t *testing.T) {
 
 func TestFindPlayersAndBonusPoints(t *testing.T) {
 	// TODO add test
+	testcases := []struct {
+		stats []domain.FixtureStatPair
+		bps   []int
+		want  []bonusPlayer
+	}{
+		{
+			stats: []domain.FixtureStatPair{
+				{PlayerID: 1, Value: 44},
+				{PlayerID: 2, Value: 33},
+				{PlayerID: 3, Value: 22}},
+			bps:  []int{},
+			want: []bonusPlayer{},
+		},
+		{
+			stats: []domain.FixtureStatPair{},
+			bps:   []int{44, 33, 22},
+			want:  []bonusPlayer{},
+		},
+		{
+			stats: []domain.FixtureStatPair{
+				{PlayerID: 1, Value: 44},
+				{PlayerID: 2, Value: 33},
+				{PlayerID: 3, Value: 22}},
+			bps: []int{44, 33, 22},
+			want: []bonusPlayer{
+				{playerID: 1, bonusPoints: 3},
+				{playerID: 2, bonusPoints: 2},
+				{playerID: 3, bonusPoints: 1},
+			},
+		},
+		{
+			stats: []domain.FixtureStatPair{
+				{PlayerID: 1, Value: 44},
+				{PlayerID: 2, Value: 44},
+				{PlayerID: 3, Value: 44},
+				{PlayerID: 4, Value: 33},
+				{PlayerID: 5, Value: 22}},
+			bps: []int{44, 33, 22},
+			want: []bonusPlayer{
+				{playerID: 1, bonusPoints: 3},
+				{playerID: 2, bonusPoints: 3},
+				{playerID: 3, bonusPoints: 3},
+			},
+		},
+		{
+			stats: []domain.FixtureStatPair{
+				{PlayerID: 1, Value: 44},
+				{PlayerID: 2, Value: 33},
+				{PlayerID: 3, Value: 33},
+				{PlayerID: 4, Value: 33},
+				{PlayerID: 5, Value: 22}},
+			bps: []int{44, 33, 22},
+			want: []bonusPlayer{
+				{playerID: 1, bonusPoints: 3},
+				{playerID: 2, bonusPoints: 2},
+				{playerID: 3, bonusPoints: 2},
+				{playerID: 4, bonusPoints: 2},
+			},
+		},
+		{
+			stats: []domain.FixtureStatPair{
+				{PlayerID: 1, Value: 44},
+				{PlayerID: 2, Value: 33},
+				{PlayerID: 3, Value: 22},
+				{PlayerID: 4, Value: 22}},
+			bps: []int{44, 33, 22},
+			want: []bonusPlayer{
+				{playerID: 1, bonusPoints: 3},
+				{playerID: 2, bonusPoints: 2},
+				{playerID: 3, bonusPoints: 1},
+				{playerID: 4, bonusPoints: 1},
+			},
+		},
+	}
+
+	for _, test := range testcases {
+		got := findPlayersAndBonusPoints(test.stats, test.bps)
+		if !reflect.DeepEqual(got, test.want) {
+			t.Errorf("error: want %v, got %v", test.want, got)
+		}
+	}
 }
 
 func TestAddBonusPoints(t *testing.T) {

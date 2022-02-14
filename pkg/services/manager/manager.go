@@ -205,19 +205,64 @@ func calculateTotalPoints(team *domain.Team) {
 
 //
 func calculateTotalPointsAfterSubs(team *domain.Team) {
+	/*
+		(legit formation == 1 gkp, at least 3 defs, and at least 1 fwd)
+		get live formation
+
+		for p in range bench
+			if too few defs, sub only if p is def
+			if too few fwds, sub only if p is fwd
+			else sub p
+	*/
+
 	totalPointsAfterSubs := team.TotalPoints
 
-	// get formation
-	// formation := getFormation(team)
-	// log.Println(formation)
+	lf := getLiveFormation(team)
+	benchGk := team.Picks[11]
+	bench := team.Picks[12:]
 
-	// get formation with taking into account the missing players
-	realFormation, players := getSubFormationAndSubPlayers(team)
-	// log.Println(realFormation, players)
+	if lf[0] == 0 { // goalkeeper needs a sub
+		if needsSub(&benchGk) {
+			totalPointsAfterSubs += benchGk.Stats.TotalPoints
+			log.Println("IN:", benchGk.Info.Name)
+		}
+	}
 
-	subs := getSubs(team, realFormation, players)
+	subsNeeded := 10 - lf[1] - lf[2] - lf[3]
+	subsIn := make([]domain.TeamPlayer, 0)
 
-	for _, s := range subs {
+	for _, b := range bench {
+		if subsNeeded == 0 {
+			break
+		}
+		pos := b.Info.Position
+
+		if lf[1] < 3 { // too few defs, add only if b is def
+			if pos == "DEF" && !needsSub(&b) {
+				subsIn = append(subsIn, b)
+				lf[1]++
+				subsNeeded--
+			}
+			continue
+		}
+
+		if lf[3] < 1 { // too few fwds, add only if b is fwd
+			if pos == "FWD" && !needsSub(&b) {
+				subsIn = append(subsIn, b)
+				lf[3]++
+				subsNeeded--
+			}
+			continue
+		}
+
+		if !needsSub(&b) {
+			subsNeeded--
+			subsIn = append(subsIn, b)
+		}
+	}
+
+	for _, s := range subsIn {
+		log.Println("IN:", s.Info.Name)
 		totalPointsAfterSubs += s.Stats.TotalPoints
 	}
 
@@ -225,78 +270,39 @@ func calculateTotalPointsAfterSubs(team *domain.Team) {
 }
 
 //
-func getSubFormationAndSubPlayers(team *domain.Team) ([4]int, []domain.TeamPlayer) {
+func getLiveFormation(team *domain.Team) [4]int {
 	var gkps, defs, mids, fwds int
-	toBeSubbed := make([]domain.TeamPlayer, 0)
 
-	for i := 0; i < 11; i++ {
-		player := &team.Picks[i]
-
-		if needsSubstitution(player) {
-			toBeSubbed = append(toBeSubbed, *player)
-		} else {
-			if player.Info.Position == "GKP" {
-				gkps++
-			} else if player.Info.Position == "DEF" {
-				defs++
-			} else if player.Info.Position == "MID" {
-				mids++
-			} else if player.Info.Position == "FWD" {
-				fwds++
-			}
+	for _, p := range team.Picks[:11] {
+		pos := p.Info.Position
+		if pos == "GKP" && !needsSub(&p) {
+			gkps++
+		} else if pos == "DEF" && !needsSub(&p) {
+			defs++
+		} else if pos == "MID" && !needsSub(&p) {
+			mids++
+		} else if pos == "FWD" && !needsSub(&p) {
+			fwds++
 		}
 	}
 
-	return [4]int{gkps, defs, mids, fwds}, toBeSubbed
+	return [4]int{gkps, defs, mids, fwds}
 }
 
 //
-func needsSubstitution(player *domain.TeamPlayer) bool {
+func needsSub(player *domain.TeamPlayer) bool {
 	stats := player.Stats
 
-	var atLeastOneFixtureStarted bool
-	for _, f := range stats.FixturesInfo {
-		if f.Started {
-			atLeastOneFixtureStarted = true
+	var fixtureStarted bool
+	for _, fixture := range stats.FixturesInfo {
+		if fixture.Started {
+			fixtureStarted = true
 			break
 		}
 	}
 
-	if stats.Minutes == 0 && atLeastOneFixtureStarted {
+	if stats.Minutes == 0 && fixtureStarted {
 		return true
 	}
 	return false
-}
-
-func getSubs(team *domain.Team, formation [4]int, players []domain.TeamPlayer) []domain.TeamPlayer {
-	subs := make([]domain.TeamPlayer, 0)
-
-	for _, p := range players {
-		_ = p
-		if formation[0] == 0 {
-			// goalkeeper sub
-			subs = append(subs, team.Picks[11])
-		}
-
-		if formation[1] < 3 {
-			// need a defender first
-			for _, pp := range team.Picks[11:] {
-				if pp.Info.Position == "DEF" {
-					subs = append(subs, pp)
-					formation[1]++
-				}
-			}
-		}
-
-		if formation[3] < 1 {
-			// need a forward first
-			for _, pp := range team.Picks[11:] {
-				if pp.Info.Position == "FWD" {
-					subs = append(subs, pp)
-					formation[1]++
-				}
-			}
-		}
-	}
-	return subs
 }

@@ -9,7 +9,7 @@ import (
 // clubRepository implements domain.ClubRepository interface
 type clubRepository struct {
 	clubs map[int]domain.Club
-	sync.Mutex
+	sync.RWMutex
 }
 
 // NewClubRepository returns new instance of domain.ClubRepository
@@ -21,13 +21,13 @@ func NewClubRepository() domain.ClubRepository {
 
 // Add saves given club into memory storage, returns error on failure
 func (cr *clubRepository) Add(club domain.Club) error {
+	cr.Lock()
+	defer cr.Unlock()
+
 	if _, ok := cr.clubs[club.ID]; ok {
 		return storage.ErrClubAlreadyExists
 	}
-
-	cr.Lock()
 	cr.clubs[club.ID] = club
-	cr.Unlock()
 
 	return nil
 }
@@ -45,6 +45,9 @@ func (cr *clubRepository) AddMany(clubs []domain.Club) error {
 
 // GetByID returns club with given id, or error otherwise
 func (cr *clubRepository) GetByID(id int) (domain.Club, error) {
+	cr.RLock()
+	defer cr.RUnlock()
+
 	if club, ok := cr.clubs[id]; ok {
 		return club, nil
 	}

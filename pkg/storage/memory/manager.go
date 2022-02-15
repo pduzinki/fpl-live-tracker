@@ -9,7 +9,7 @@ import (
 // managerRepository implements domain.ManagerRepository interface
 type managerRepository struct {
 	managers map[int]domain.Manager
-	sync.Mutex
+	sync.RWMutex
 }
 
 // NewManagerRepository returns new instance of domain.ManagerRepository
@@ -23,13 +23,13 @@ func NewManagerRepository() domain.ManagerRepository {
 
 // Add saves given manager into memory storage, or returns error on failure
 func (mr *managerRepository) Add(manager domain.Manager) error {
+	mr.Lock()
+	defer mr.Unlock()
+
 	if _, ok := mr.managers[manager.ID]; ok {
 		return storage.ErrManagerAlreadyExists
 	}
-
-	mr.Lock()
 	mr.managers[manager.ID] = manager
-	mr.Unlock()
 
 	return nil
 }
@@ -49,6 +49,7 @@ func (mr *managerRepository) AddMany(managers []domain.Manager) error {
 func (mr *managerRepository) UpdateInfo(managerID int, info domain.ManagerInfo) error {
 	mr.Lock()
 	defer mr.Unlock()
+
 	if m, ok := mr.managers[managerID]; ok {
 		m.Info = info
 		mr.managers[managerID] = m
@@ -62,6 +63,7 @@ func (mr *managerRepository) UpdateInfo(managerID int, info domain.ManagerInfo) 
 func (mr *managerRepository) UpdateTeam(managerID int, team domain.Team) error {
 	mr.Lock()
 	defer mr.Unlock()
+
 	if m, ok := mr.managers[managerID]; ok {
 		m.Team = team
 		mr.managers[managerID] = m
@@ -73,6 +75,9 @@ func (mr *managerRepository) UpdateTeam(managerID int, team domain.Team) error {
 
 // GetById returns manager with given ID, or returns error on failure
 func (mr *managerRepository) GetByID(id int) (domain.Manager, error) {
+	mr.RLock()
+	defer mr.RUnlock()
+
 	if manager, ok := mr.managers[id]; ok {
 		return manager, nil
 	}

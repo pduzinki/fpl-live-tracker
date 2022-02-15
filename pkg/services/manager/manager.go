@@ -217,18 +217,20 @@ func calculateTotalPointsAfterSubs(team *domain.Team) {
 
 	totalPointsAfterSubs := team.TotalPoints
 
-	lf := getLiveFormation(team)
-	benchGk := team.Picks[11]
+	liveFormation := getLiveFormation(team)
 	bench := team.Picks[12:]
 
-	if lf[0] == 0 { // goalkeeper needs a sub
-		if needsSub(&benchGk) {
+	// check if goalkeeper needs a substitution
+	if liveFormation[0] == 0 {
+		benchGk := &team.Picks[11]
+		if played(benchGk) {
 			totalPointsAfterSubs += benchGk.Stats.TotalPoints
 			log.Println("IN:", benchGk.Info.Name)
 		}
 	}
 
-	subsNeeded := 10 - lf[1] - lf[2] - lf[3]
+	// check if outfield players need substitutions
+	subsNeeded := 10 - (liveFormation[1] + liveFormation[2] + liveFormation[3])
 	subsIn := make([]domain.TeamPlayer, 0)
 
 	for _, b := range bench {
@@ -237,25 +239,25 @@ func calculateTotalPointsAfterSubs(team *domain.Team) {
 		}
 		pos := b.Info.Position
 
-		if lf[1] < 3 { // too few defs, add only if b is def
-			if pos == "DEF" && !needsSub(&b) {
+		if liveFormation[1] < 3 { // too few defs, add only if b is def
+			if pos == "DEF" && played(&b) {
 				subsIn = append(subsIn, b)
-				lf[1]++
+				liveFormation[1]++
 				subsNeeded--
 			}
 			continue
 		}
 
-		if lf[3] < 1 { // too few fwds, add only if b is fwd
-			if pos == "FWD" && !needsSub(&b) {
+		if liveFormation[3] < 1 { // too few fwds, add only if b is fwd
+			if pos == "FWD" && played(&b) {
 				subsIn = append(subsIn, b)
-				lf[3]++
+				liveFormation[3]++
 				subsNeeded--
 			}
 			continue
 		}
 
-		if !needsSub(&b) {
+		if played(&b) {
 			subsNeeded--
 			subsIn = append(subsIn, b)
 		}
@@ -275,13 +277,13 @@ func getLiveFormation(team *domain.Team) [4]int {
 
 	for _, p := range team.Picks[:11] {
 		pos := p.Info.Position
-		if pos == "GKP" && !needsSub(&p) {
+		if pos == "GKP" && played(&p) {
 			gkps++
-		} else if pos == "DEF" && !needsSub(&p) {
+		} else if pos == "DEF" && played(&p) {
 			defs++
-		} else if pos == "MID" && !needsSub(&p) {
+		} else if pos == "MID" && played(&p) {
 			mids++
-		} else if pos == "FWD" && !needsSub(&p) {
+		} else if pos == "FWD" && played(&p) {
 			fwds++
 		}
 	}
@@ -289,8 +291,9 @@ func getLiveFormation(team *domain.Team) [4]int {
 	return [4]int{gkps, defs, mids, fwds}
 }
 
-//
-func needsSub(player *domain.TeamPlayer) bool {
+// played returns boolean value, indicating if given player
+// had played some minutes in his fixtures
+func played(player *domain.TeamPlayer) bool {
 	stats := player.Stats
 
 	var fixtureStarted bool
@@ -302,7 +305,7 @@ func needsSub(player *domain.TeamPlayer) bool {
 	}
 
 	if stats.Minutes == 0 && fixtureStarted {
-		return true
+		return false
 	}
-	return false
+	return true
 }

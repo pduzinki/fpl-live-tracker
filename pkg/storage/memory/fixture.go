@@ -25,10 +25,10 @@ func (fr *fixtureRepository) Add(fixture domain.Fixture) error {
 	fr.Lock()
 	defer fr.Unlock()
 
-	if _, ok := fr.fixtures[fixture.Info.ID]; ok {
+	if _, ok := fr.fixtures[fixture.ID]; ok {
 		return storage.ErrFixtureAlreadyExists
 	}
-	fr.fixtures[fixture.Info.ID] = fixture
+	fr.fixtures[fixture.ID] = fixture
 
 	return nil
 }
@@ -49,8 +49,8 @@ func (fr *fixtureRepository) Update(fixture domain.Fixture) error {
 	fr.Lock()
 	defer fr.Unlock()
 
-	if _, ok := fr.fixtures[fixture.Info.ID]; ok {
-		fr.fixtures[fixture.Info.ID] = fixture
+	if _, ok := fr.fixtures[fixture.ID]; ok {
+		fr.fixtures[fixture.ID] = fixture
 		return nil
 	}
 

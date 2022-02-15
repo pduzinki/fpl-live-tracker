@@ -43,11 +43,11 @@ var wrapperFixtures = []wrapper.Fixture{
 }
 
 var gw8Fixtures = []domain.Fixture{
-	{Info: domain.FixtureInfo{GameweekID: 8, ID: 123, Started: true, FinishedProvisional: true, Finished: true}},
-	{Info: domain.FixtureInfo{GameweekID: 8, ID: 124, Started: true, FinishedProvisional: true, Finished: false}},
-	{Info: domain.FixtureInfo{GameweekID: 8, ID: 125, Started: true, FinishedProvisional: false, Finished: false}},
-	{Info: domain.FixtureInfo{GameweekID: 8, ID: 126, Started: false, FinishedProvisional: false, Finished: false}},
-	{Info: domain.FixtureInfo{GameweekID: 8, ID: 127, Started: false, FinishedProvisional: false, Finished: false}},
+	{ID: 123, Info: domain.FixtureInfo{GameweekID: 8, Started: true, FinishedProvisional: true, Finished: true}},
+	{ID: 124, Info: domain.FixtureInfo{GameweekID: 8, Started: true, FinishedProvisional: true, Finished: false}},
+	{ID: 125, Info: domain.FixtureInfo{GameweekID: 8, Started: true, FinishedProvisional: false, Finished: false}},
+	{ID: 126, Info: domain.FixtureInfo{GameweekID: 8, Started: false, FinishedProvisional: false, Finished: false}},
+	{ID: 127, Info: domain.FixtureInfo{GameweekID: 8, Started: false, FinishedProvisional: false, Finished: false}},
 }
 
 func TestUpdate(t *testing.T) {

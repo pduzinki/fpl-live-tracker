@@ -169,9 +169,9 @@ func (fs *fixtureService) convertToDomainFixture(wf wrapper.Fixture) (domain.Fix
 	}
 
 	fixture := domain.Fixture{
+		ID: wf.ID,
 		Info: domain.FixtureInfo{
 			GameweekID:          wf.Event,
-			ID:                  wf.ID,
 			ClubHome:            clubHome,
 			ClubAway:            clubAway,
 			Started:             wf.Started,

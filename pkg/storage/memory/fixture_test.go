@@ -9,10 +9,10 @@ import (
 )
 
 var (
-	livche = domain.Fixture{Info: domain.FixtureInfo{GameweekID: 12, ID: 1, KickoffTime: time.Date(2022, 02, 02, 15, 00, 00, 00, time.UTC)}}
-	mcitot = domain.Fixture{Info: domain.FixtureInfo{GameweekID: 13, ID: 2, KickoffTime: time.Date(2022, 02, 02, 16, 00, 00, 00, time.UTC)}}
-	burlei = domain.Fixture{Info: domain.FixtureInfo{GameweekID: 13, ID: 3, KickoffTime: time.Date(2022, 02, 03, 15, 00, 00, 00, time.UTC)}}
-	cheliv = domain.Fixture{Info: domain.FixtureInfo{GameweekID: 14, ID: 4, KickoffTime: time.Date(2022, 02, 03, 20, 00, 00, 00, time.UTC)}}
+	livche = domain.Fixture{ID: 1, Info: domain.FixtureInfo{GameweekID: 12, KickoffTime: time.Date(2022, 02, 02, 15, 00, 00, 00, time.UTC)}}
+	mcitot = domain.Fixture{ID: 2, Info: domain.FixtureInfo{GameweekID: 13, KickoffTime: time.Date(2022, 02, 02, 16, 00, 00, 00, time.UTC)}}
+	burlei = domain.Fixture{ID: 3, Info: domain.FixtureInfo{GameweekID: 13, KickoffTime: time.Date(2022, 02, 03, 15, 00, 00, 00, time.UTC)}}
+	cheliv = domain.Fixture{ID: 4, Info: domain.FixtureInfo{GameweekID: 14, KickoffTime: time.Date(2022, 02, 03, 20, 00, 00, 00, time.UTC)}}
 )
 
 func TestFixtureAdd(t *testing.T) {
@@ -26,7 +26,7 @@ func TestFixtureAdd(t *testing.T) {
 
 	fr := fixtureRepository{
 		fixtures: map[int]domain.Fixture{
-			mcitot.Info.ID: mcitot,
+			mcitot.ID: mcitot,
 		},
 	}
 
@@ -36,7 +36,7 @@ func TestFixtureAdd(t *testing.T) {
 			t.Errorf("error: for %v, got err '%v', want '%v", test.fixture, got, test.want)
 		}
 
-		if v, ok := fr.fixtures[test.fixture.Info.ID]; ok {
+		if v, ok := fr.fixtures[test.fixture.ID]; ok {
 			if !reflect.DeepEqual(v, test.fixture) {
 				t.Errorf("error: incorrect fixture data in memory storage")
 			}
@@ -57,7 +57,7 @@ func TestFixtureAddMany(t *testing.T) {
 
 	fr := fixtureRepository{
 		fixtures: map[int]domain.Fixture{
-			mcitot.Info.ID: mcitot,
+			mcitot.ID: mcitot,
 		},
 	}
 
@@ -68,7 +68,7 @@ func TestFixtureAddMany(t *testing.T) {
 		}
 
 		for _, f := range test.fixtures {
-			if v, ok := fr.fixtures[f.Info.ID]; ok {
+			if v, ok := fr.fixtures[f.ID]; ok {
 				if !reflect.DeepEqual(v, f) {
 					t.Errorf("error: incorrect fixture data in memory storage")
 				}
@@ -86,9 +86,9 @@ func TestFixtureUpdate(t *testing.T) {
 	}{
 		{
 			fixture: domain.Fixture{
+				ID: mcitot.ID,
 				Info: domain.FixtureInfo{
 					GameweekID:  22,
-					ID:          mcitot.Info.ID,
 					KickoffTime: mcitot.Info.KickoffTime,
 				},
 			},
@@ -102,10 +102,10 @@ func TestFixtureUpdate(t *testing.T) {
 
 	fr := fixtureRepository{
 		fixtures: map[int]domain.Fixture{
-			livche.Info.ID: livche,
-			mcitot.Info.ID: mcitot,
-			burlei.Info.ID: burlei,
-			cheliv.Info.ID: cheliv,
+			livche.ID: livche,
+			mcitot.ID: mcitot,
+			burlei.ID: burlei,
+			cheliv.ID: cheliv,
 		},
 	}
 
@@ -116,7 +116,7 @@ func TestFixtureUpdate(t *testing.T) {
 		}
 
 		if got == nil {
-			if v, ok := fr.fixtures[test.fixture.Info.ID]; ok {
+			if v, ok := fr.fixtures[test.fixture.ID]; ok {
 				if !reflect.DeepEqual(v, test.fixture) {
 					t.Errorf("error: incorrect fixture data in memory storage")
 				}
@@ -140,10 +140,10 @@ func TestFixtureGetByGameweek(t *testing.T) {
 
 	fr := fixtureRepository{
 		fixtures: map[int]domain.Fixture{
-			livche.Info.ID: livche,
-			mcitot.Info.ID: mcitot,
-			burlei.Info.ID: burlei,
-			cheliv.Info.ID: cheliv,
+			livche.ID: livche,
+			mcitot.ID: mcitot,
+			burlei.ID: burlei,
+			cheliv.ID: cheliv,
 		},
 	}
 
@@ -166,12 +166,12 @@ func TestFixtureGetByID(t *testing.T) {
 		err  error
 	}{
 		{
-			ID:   livche.Info.ID,
+			ID:   livche.ID,
 			want: livche,
 			err:  nil,
 		},
 		{
-			ID:   mcitot.Info.ID,
+			ID:   mcitot.ID,
 			want: domain.Fixture{},
 			err:  storage.ErrFixtureNotFound,
 		},
@@ -179,7 +179,7 @@ func TestFixtureGetByID(t *testing.T) {
 
 	fr := fixtureRepository{
 		fixtures: map[int]domain.Fixture{
-			livche.Info.ID: livche,
+			livche.ID: livche,
 		},
 	}
 

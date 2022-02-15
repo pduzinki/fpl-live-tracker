@@ -7,6 +7,7 @@ import (
 
 // Fixture represents a single match of football between two clubs in the Premier League
 type Fixture struct {
+	ID    int
 	Info  FixtureInfo
 	Stats map[string]FixtureStat
 }
@@ -22,7 +23,6 @@ type FixtureRepository interface {
 //
 type FixtureInfo struct {
 	GameweekID          int
-	ID                  int
 	ClubHome            Club
 	ClubAway            Club
 	Started             bool

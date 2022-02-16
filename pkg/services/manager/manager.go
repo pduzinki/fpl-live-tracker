@@ -152,7 +152,8 @@ func (ms *managerService) convertToDomainManager(wm wrapper.Manager) domain.Mana
 //
 func (ms *managerService) convertToDomainTeam(wt wrapper.Team) (domain.Team, error) {
 	team := domain.Team{
-		Picks: make([]domain.TeamPlayer, 0, 15),
+		Picks:      make([]domain.TeamPlayer, 0, 15),
+		ActiveChip: wt.ActiveChip,
 	}
 
 	for _, pick := range wt.Picks {
@@ -192,14 +193,35 @@ func (ms *managerService) updateTeamStats(team *domain.Team) error {
 
 //
 func calculateTotalPoints(team *domain.Team) {
+	captainMultiplier := 2
+	playersCount := 11
+
+	if team.ActiveChip == "3xc" { // triple captain
+		captainMultiplier = 3
+	} else if team.ActiveChip == "bboost" { // bench boost
+		playersCount = 15
+	}
+
+	var didCaptainPlay bool
+
 	var totalPoints int
-	for i := 0; i < 11; i++ {
+	for i := 0; i < playersCount; i++ {
 		if team.Picks[i].IsCaptain {
-			totalPoints += team.Picks[i].Stats.TotalPoints * 2
+			totalPoints += team.Picks[i].Stats.TotalPoints * captainMultiplier
+			didCaptainPlay = played(&team.Picks[i])
 		} else {
 			totalPoints += team.Picks[i].Stats.TotalPoints
 		}
 	}
+
+	if !didCaptainPlay {
+		for i := 0; i < playersCount; i++ {
+			if team.Picks[i].IsViceCaptain {
+				totalPoints += team.Picks[i].Stats.TotalPoints * (captainMultiplier - 1)
+			}
+		}
+	}
+
 	team.TotalPoints = totalPoints
 }
 
@@ -214,6 +236,9 @@ func calculateTotalPointsAfterSubs(team *domain.Team) {
 			if too few fwds, sub only if p is fwd
 			else sub p
 	*/
+	if team.ActiveChip == "bboost" {
+		return
+	}
 
 	totalPointsAfterSubs := team.TotalPoints
 

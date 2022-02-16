@@ -207,6 +207,10 @@ func TestGetLiveFixtures(t *testing.T) {
 	}
 }
 
+func TestGetByID(t *testing.T) {
+	// TODO add test
+}
+
 func TestConvertToDomainFixture(t *testing.T) {
 	// TODO add test
 }

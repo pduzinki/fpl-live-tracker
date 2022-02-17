@@ -6,6 +6,7 @@ import (
 )
 
 var ErrGameweekIDInvalid = errors.New("invalid gameweek ID")
+var ErrFixtureIDInvalid = errors.New("invalid fixture ID")
 
 type fixtureValidatorFunc func(*domain.Fixture) error
 
@@ -22,6 +23,14 @@ func runFixtureValidations(fixture *domain.Fixture, fns ...fixtureValidatorFunc)
 func gameweekIDBetween1and38(fixture *domain.Fixture) error {
 	if fixture.Info.GameweekID <= 0 || fixture.Info.GameweekID > 38 {
 		return ErrGameweekIDInvalid
+	}
+
+	return nil
+}
+
+func fixtureIDHigherThanZero(fixture *domain.Fixture) error {
+	if fixture.ID <= 0 {
+		return ErrFixtureIDInvalid
 	}
 
 	return nil

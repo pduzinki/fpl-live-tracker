@@ -34,7 +34,7 @@ func Build() error {
 
 // Test runs all tests inside /pkg
 func Test() error {
-	_, err := sh.Exec(nil, os.Stdout, os.Stderr, "go", "test", "./pkg/...", "-v")
+	_, err := sh.Exec(nil, os.Stdout, os.Stderr, "go", "test", "./pkg/...", "-v", "-cover")
 	return err
 }
 

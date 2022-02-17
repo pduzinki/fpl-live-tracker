@@ -8,6 +8,7 @@ import (
 	"fpl-live-tracker/pkg/wrapper"
 	"reflect"
 	"testing"
+	"time"
 )
 
 var (
@@ -49,6 +50,8 @@ var gw8Fixtures = []domain.Fixture{
 	{ID: 126, Info: domain.FixtureInfo{GameweekID: 8, Started: false, FinishedProvisional: false, Finished: false}},
 	{ID: 127, Info: domain.FixtureInfo{GameweekID: 8, Started: false, FinishedProvisional: false, Finished: false}},
 }
+
+var livche = domain.Fixture{ID: 1, Info: domain.FixtureInfo{GameweekID: 12, KickoffTime: time.Date(2022, 02, 02, 15, 00, 00, 00, time.UTC)}}
 
 func TestUpdate(t *testing.T) {
 	testcases := []struct {
@@ -208,7 +211,50 @@ func TestGetLiveFixtures(t *testing.T) {
 }
 
 func TestGetByID(t *testing.T) {
-	// TODO add test
+	testcases := []struct {
+		ID   int
+		want domain.Fixture
+		err  error
+	}{
+		{
+			ID:   0,
+			want: domain.Fixture{},
+			err:  ErrFixtureIDInvalid,
+		},
+		{
+			ID:   livche.ID,
+			want: livche,
+			err:  nil,
+		},
+		{
+			ID:   123,
+			want: domain.Fixture{},
+			err:  storage.ErrFixtureNotFound,
+		},
+	}
+
+	fr := mock.FixtureRepository{
+		GetByIDFn: func(id int) (domain.Fixture, error) {
+			if id == livche.ID {
+				return livche, nil
+			}
+			return domain.Fixture{}, storage.ErrFixtureNotFound
+		},
+	}
+	fs := fixtureService{
+		fr: &fr,
+	}
+
+	for _, test := range testcases {
+		got, err := fs.GetFixtureByID(test.ID)
+		if err != test.err {
+			t.Errorf("error: want err %v, got %v", test.err, err)
+		}
+
+		if !reflect.DeepEqual(got, test.want) {
+			t.Errorf("error: want %v, got %v", test.want, got)
+		}
+	}
 }
 
 func TestConvertToDomainFixture(t *testing.T) {

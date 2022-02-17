@@ -114,7 +114,13 @@ func (fs *fixtureService) GetLiveFixtures(gameweekID int) ([]domain.Fixture, err
 
 //
 func (fs *fixtureService) GetFixtureByID(fixtureID int) (domain.Fixture, error) {
-	// TODO add validations
+	fixture := domain.Fixture{ID: fixtureID}
+
+	err := runFixtureValidations(&fixture, fixtureIDHigherThanZero)
+	if err != nil {
+		return domain.Fixture{}, err
+	}
+
 	return fs.fr.GetByID(fixtureID)
 }
 

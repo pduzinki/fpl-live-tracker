@@ -107,18 +107,22 @@ func (ms *managerService) UpdatePoints() error {
 	}
 	team := manager.Team
 
-	err = ms.updateTeamStats(&team)
+	err = ms.updateTeamPlayersStats(&team)
 	if err != nil {
 		return err
 	}
 
-	calculateTotalPoints(&team)
-	calculateTotalPointsAfterSubs(&team)
+	// TODO those two methods should returns ints
+	totalPoints := calculateTotalPoints(&team)
+	subPoints := calculateTotalPointsAfterSubs(&team)
 
 	err = ms.mr.UpdateTeam(manager.ID, team)
 	if err != nil {
 		return err
 	}
+
+	team.TotalPoints = totalPoints
+	team.TotalPointsAfterSubs = totalPoints + subPoints
 
 	log.Println(team.TotalPoints)
 	log.Println(team.TotalPointsAfterSubs)
@@ -176,7 +180,7 @@ func (ms *managerService) convertToDomainTeam(wt wrapper.Team) (domain.Team, err
 }
 
 //
-func (ms *managerService) updateTeamStats(team *domain.Team) error {
+func (ms *managerService) updateTeamPlayersStats(team *domain.Team) error {
 	for i := 0; i < len(team.Picks); i++ {
 		tp := team.Picks[i]
 		p, err := ms.ps.GetByID(tp.ID)
@@ -192,7 +196,7 @@ func (ms *managerService) updateTeamStats(team *domain.Team) error {
 }
 
 //
-func calculateTotalPoints(team *domain.Team) {
+func calculateTotalPoints(team *domain.Team) int {
 	captainMultiplier := 2
 	playersCount := 11
 
@@ -202,31 +206,21 @@ func calculateTotalPoints(team *domain.Team) {
 		playersCount = 15
 	}
 
-	var didCaptainPlay bool
-
 	var totalPoints int
 	for i := 0; i < playersCount; i++ {
 		if team.Picks[i].IsCaptain {
 			totalPoints += team.Picks[i].Stats.TotalPoints * captainMultiplier
-			didCaptainPlay = played(&team.Picks[i])
 		} else {
 			totalPoints += team.Picks[i].Stats.TotalPoints
 		}
 	}
 
-	if !didCaptainPlay {
-		for i := 0; i < playersCount; i++ {
-			if team.Picks[i].IsViceCaptain {
-				totalPoints += team.Picks[i].Stats.TotalPoints * (captainMultiplier - 1)
-			}
-		}
-	}
-
-	team.TotalPoints = totalPoints
+	// team.TotalPoints = totalPoints
+	return totalPoints
 }
 
 //
-func calculateTotalPointsAfterSubs(team *domain.Team) {
+func calculateTotalPointsAfterSubs(team *domain.Team) int {
 	/*
 		(legit formation == 1 gkp, at least 3 defs, and at least 1 fwd)
 		get live formation
@@ -236,11 +230,14 @@ func calculateTotalPointsAfterSubs(team *domain.Team) {
 			if too few fwds, sub only if p is fwd
 			else sub p
 	*/
+
+	subPoints := 0
+
 	if team.ActiveChip == "bboost" {
-		return
+		return subPoints
 	}
 
-	totalPointsAfterSubs := team.TotalPoints
+	// totalPointsAfterSubs := team.TotalPoints
 
 	liveFormation := getLiveFormation(team)
 	bench := team.Picks[12:]
@@ -249,7 +246,7 @@ func calculateTotalPointsAfterSubs(team *domain.Team) {
 	if liveFormation[0] == 0 {
 		benchGk := &team.Picks[11]
 		if played(benchGk) {
-			totalPointsAfterSubs += benchGk.Stats.TotalPoints
+			subPoints += benchGk.Stats.TotalPoints
 			log.Println("IN:", benchGk.Info.Name)
 		}
 	}
@@ -288,12 +285,25 @@ func calculateTotalPointsAfterSubs(team *domain.Team) {
 		}
 	}
 
-	for _, s := range subsIn {
-		log.Println("IN:", s.Info.Name)
-		totalPointsAfterSubs += s.Stats.TotalPoints
+	if !captainPlayed(team) {
+		for i := 0; i < 11; i++ {
+			if team.Picks[i].IsViceCaptain {
+				if team.ActiveChip == "3xc" {
+					subPoints += team.Picks[i].Stats.TotalPoints * 2
+				} else {
+					subPoints += team.Picks[i].Stats.TotalPoints
+				}
+			}
+		}
 	}
 
-	team.TotalPointsAfterSubs = totalPointsAfterSubs
+	for _, s := range subsIn {
+		log.Println("IN:", s.Info.Name)
+		subPoints += s.Stats.TotalPoints
+	}
+
+	// team.TotalPointsAfterSubs = totalPointsAfterSubs
+	return subPoints
 }
 
 //
@@ -333,4 +343,14 @@ func played(player *domain.TeamPlayer) bool {
 		return false
 	}
 	return true
+}
+
+//
+func captainPlayed(team *domain.Team) bool {
+	for _, p := range team.Picks {
+		if p.IsCaptain {
+			return played(&p)
+		}
+	}
+	return false
 }

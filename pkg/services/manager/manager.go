@@ -10,6 +10,9 @@ import (
 	"log"
 )
 
+var tripleCaptainActive = "3xc"
+var benchBoostActive = "bboost"
+
 // TODO remove later, and add support for handling more than one manager
 var myID = 1239
 
@@ -112,9 +115,8 @@ func (ms *managerService) UpdatePoints() error {
 		return err
 	}
 
-	// TODO those two methods should returns ints
 	totalPoints := calculateTotalPoints(&team)
-	subPoints := calculateTotalPointsAfterSubs(&team)
+	subPoints := calculateSubPoints(&team)
 
 	err = ms.mr.UpdateTeam(manager.ID, team)
 	if err != nil {
@@ -200,9 +202,9 @@ func calculateTotalPoints(team *domain.Team) int {
 	captainMultiplier := 2
 	playersCount := 11
 
-	if team.ActiveChip == "3xc" { // triple captain
+	if team.ActiveChip == tripleCaptainActive {
 		captainMultiplier = 3
-	} else if team.ActiveChip == "bboost" { // bench boost
+	} else if team.ActiveChip == benchBoostActive {
 		playersCount = 15
 	}
 
@@ -215,12 +217,11 @@ func calculateTotalPoints(team *domain.Team) int {
 		}
 	}
 
-	// team.TotalPoints = totalPoints
 	return totalPoints
 }
 
 //
-func calculateTotalPointsAfterSubs(team *domain.Team) int {
+func calculateSubPoints(team *domain.Team) int {
 	/*
 		(legit formation == 1 gkp, at least 3 defs, and at least 1 fwd)
 		get live formation
@@ -236,8 +237,6 @@ func calculateTotalPointsAfterSubs(team *domain.Team) int {
 	if team.ActiveChip == "bboost" {
 		return subPoints
 	}
-
-	// totalPointsAfterSubs := team.TotalPoints
 
 	liveFormation := getLiveFormation(team)
 	bench := team.Picks[12:]
@@ -288,7 +287,7 @@ func calculateTotalPointsAfterSubs(team *domain.Team) int {
 	if !captainPlayed(team) {
 		for i := 0; i < 11; i++ {
 			if team.Picks[i].IsViceCaptain {
-				if team.ActiveChip == "3xc" {
+				if team.ActiveChip == tripleCaptainActive {
 					subPoints += team.Picks[i].Stats.TotalPoints * 2
 				} else {
 					subPoints += team.Picks[i].Stats.TotalPoints
@@ -302,7 +301,6 @@ func calculateTotalPointsAfterSubs(team *domain.Team) int {
 		subPoints += s.Stats.TotalPoints
 	}
 
-	// team.TotalPointsAfterSubs = totalPointsAfterSubs
 	return subPoints
 }
 

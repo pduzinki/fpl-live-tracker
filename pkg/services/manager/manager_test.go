@@ -79,3 +79,27 @@ func TestManagerServiceConvertToDomainManager(t *testing.T) {
 func TestManagerServiceConvertToDomainTeam(t *testing.T) {
 	// TODO add test
 }
+
+func TestUpdateTeamPlayersStats(t *testing.T) {
+	// TODO add test
+}
+
+func TestCalculateTotalPoints(t *testing.T) {
+	// TODO add test
+}
+
+func TestCalculateSubPoints(t *testing.T) {
+	// TODO add test
+}
+
+func TestGetLiveFormation(t *testing.T) {
+	// TODO add test
+}
+
+func TestPlayed(t *testing.T) {
+	// TODO add test
+}
+
+func TestCaptainPlayed(t *testing.T) {
+	// TODO add test
+}

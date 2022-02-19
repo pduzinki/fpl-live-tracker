@@ -21,11 +21,11 @@ type PlayerService interface {
 
 // playerService implements PlayerService interface
 type playerService struct {
-	wrapper wrapper.Wrapper
-	pr      domain.PlayerRepository
-	cs      club.ClubService
-	fs      fixture.FixtureService
-	gs      gameweek.GameweekService
+	wr wrapper.Wrapper
+	pr domain.PlayerRepository
+	cs club.ClubService
+	fs fixture.FixtureService
+	gs gameweek.GameweekService
 }
 
 // bonusPlayer is a helper struct used in process of calculating predicted bonus points
@@ -36,14 +36,14 @@ type bonusPlayer struct {
 
 // NewPlayerService new instance of PlayerService, and fills
 // underlying data storage with data from FPL API
-func NewPlayerService(w wrapper.Wrapper, pr domain.PlayerRepository, cs club.ClubService,
+func NewPlayerService(wr wrapper.Wrapper, pr domain.PlayerRepository, cs club.ClubService,
 	fs fixture.FixtureService, gs gameweek.GameweekService) (PlayerService, error) {
 	ps := playerService{
-		wrapper: w,
-		pr:      pr,
-		cs:      cs,
-		fs:      fs,
-		gs:      gs,
+		wr: wr,
+		pr: pr,
+		cs: cs,
+		fs: fs,
+		gs: gs,
 	}
 
 	err := ps.UpdateInfos()
@@ -57,7 +57,7 @@ func NewPlayerService(w wrapper.Wrapper, pr domain.PlayerRepository, cs club.Clu
 // Update queries FPL API and updates all players basic data
 // (i.e. name, position, club), in its underlying player storage
 func (ps *playerService) UpdateInfos() error {
-	wrapperPlayers, err := ps.wrapper.GetPlayers()
+	wrapperPlayers, err := ps.wr.GetPlayers()
 	if err != nil {
 		return err
 	}
@@ -97,7 +97,7 @@ func (ps *playerService) UpdateStats() error {
 		return err
 	}
 
-	playersStats, err := ps.wrapper.GetPlayersStats(gw.ID)
+	playersStats, err := ps.wr.GetPlayersStats(gw.ID)
 	if err != nil {
 		log.Println(err)
 		return err

@@ -10,8 +10,8 @@ import (
 	"log"
 )
 
-var tripleCaptainActive = "3xc"
-var benchBoostActive = "bboost"
+const tripleCaptainActive = "3xc"
+const benchBoostActive = "bboost"
 
 // TODO remove later, and add support for handling more than one manager
 var myID = 1239
@@ -199,6 +199,11 @@ func (ms *managerService) updateTeamPlayersStats(team *domain.Team) error {
 
 //
 func calculateTotalPoints(team *domain.Team) int {
+	if len(team.Picks) == 0 {
+		log.Println("calculateTotalPoints: team has no players!")
+		return 0
+	}
+
 	captainMultiplier := 2
 	playersCount := 11
 
@@ -231,6 +236,11 @@ func calculateSubPoints(team *domain.Team) int {
 			if too few fwds, sub only if p is fwd
 			else sub p
 	*/
+
+	if len(team.Picks) == 0 {
+		log.Println("calculateSubPoints: team has no players!")
+		return 0
+	}
 
 	subPoints := 0
 

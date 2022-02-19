@@ -8,8 +8,6 @@ import (
 	"testing"
 )
 
-var john = domain.Manager{ID: 1, Info: domain.ManagerInfo{Name: "John", TeamName: "John FC"}}
-
 func TestManagerServiceUpdateInfos(t *testing.T) {
 	// TODO add test
 }
@@ -85,7 +83,39 @@ func TestUpdateTeamPlayersStats(t *testing.T) {
 }
 
 func TestCalculateTotalPoints(t *testing.T) {
-	// TODO add test
+	testcases := []struct {
+		name string
+		team domain.Team
+		want int
+	}{
+		{
+			name: "empty team passed",
+			team: domain.Team{},
+			want: 0,
+		},
+		{
+			name: "no chip played",
+			team: noChipTeam,
+			want: 66,
+		},
+		{
+			name: "triple captain played",
+			team: tripleCaptainTeam,
+			want: 81,
+		},
+		{
+			name: "bench boost played",
+			team: benchBoostTeam,
+			want: 83,
+		},
+	}
+
+	for _, test := range testcases {
+		got := calculateTotalPoints(&test.team)
+		if got != test.want {
+			t.Errorf("error: for test %s: want %v, got %v", test.name, test.want, got)
+		}
+	}
 }
 
 func TestCalculateSubPoints(t *testing.T) {

@@ -1,11 +1,36 @@
 package player
 
 import (
+	"errors"
 	"fpl-live-tracker/pkg/domain"
 	"fpl-live-tracker/pkg/mock"
+	"fpl-live-tracker/pkg/storage"
+	"fpl-live-tracker/pkg/wrapper"
 	"reflect"
 	"testing"
 )
+
+var (
+	errWrapperFail        = errors.New("wrapper fail")
+	errGetClubFail        = errors.New("get club fail")
+	errRepoUpdateInfoFail = errors.New("update info fail")
+	errAddFail            = errors.New("add player fail")
+)
+
+var wrapperPlayers = []wrapper.Player{
+	{
+		ID:       1,
+		Team:     1,
+		Position: 1,
+		WebName:  "Ramsdale",
+	},
+	{
+		ID:       2,
+		Team:     2,
+		Position: 3,
+		WebName:  "Coutinho",
+	},
+}
 
 var ronaldo = domain.Player{
 	ID: 123,
@@ -16,7 +41,80 @@ var ronaldo = domain.Player{
 }
 
 func TestUpdateInfos(t *testing.T) {
-	// TODO add test
+	testcases := []struct {
+		name string
+		err  error
+	}{
+		{
+			name: "wrapper fail",
+			err:  errWrapperFail,
+		},
+		{
+			name: "get club fail",
+			err:  errGetClubFail,
+		},
+		{
+			name: "update info fail",
+			err:  errRepoUpdateInfoFail,
+		},
+		{
+			name: "update info player not found fail",
+			err:  errAddFail,
+		},
+		{
+			name: "sunny scenario",
+			err:  nil,
+		},
+	}
+
+	for _, test := range testcases {
+		wr := mock.Wrapper{
+			GetPlayersFn: func() ([]wrapper.Player, error) {
+				if test.name == "wrapper fail" {
+					return []wrapper.Player{}, errWrapperFail
+				}
+				return wrapperPlayers, nil
+			},
+		}
+
+		cs := mock.ClubService{
+			GetClubByIDFn: func(id int) (domain.Club, error) {
+				if test.name == "get club fail" {
+					return domain.Club{}, errGetClubFail
+				}
+				return domain.Club{}, nil
+			},
+		}
+
+		pr := mock.PlayerRepository{
+			AddFn: func(player domain.Player) error {
+				if test.name == "update info player not found fail" {
+					return errAddFail
+				}
+				return nil
+			},
+
+			UpdateInfoFn: func(playerID int, info domain.PlayerInfo) error {
+				if test.name == "update info fail" {
+					return errRepoUpdateInfoFail
+				} else if test.name == "update info player not found fail" {
+					return storage.ErrPlayerNotFound
+				}
+				return nil
+			},
+		}
+
+		ps := playerService{
+			wr: &wr,
+			cs: &cs,
+			pr: &pr,
+		}
+
+		err := ps.UpdateInfos()
+		if err != test.err {
+			t.Errorf("error: want err %v, got %v", test.err, err)
+		}
+	}
 }
 
 func TestUpdateStats(t *testing.T) {
@@ -109,7 +207,6 @@ func TestFindTopBPS(t *testing.T) {
 }
 
 func TestFindPlayersAndBonusPoints(t *testing.T) {
-	// TODO add test
 	testcases := []struct {
 		stats []domain.FixtureStatPair
 		bps   []int

@@ -139,12 +139,11 @@ func TestCalculateSubPoints(t *testing.T) {
 			team: teamB,
 			want: 16,
 		},
-		// TODO fix bug, all bench should be subbed in
-		// {
-		// 	name: "all subs needed",
-		// 	team: teamD,
-		// 	want: 17,
-		// },
+		{
+			name: "all subs needed",
+			team: teamD,
+			want: 18,
+		},
 		{
 			name: "def subs needed",
 			team: teamE,

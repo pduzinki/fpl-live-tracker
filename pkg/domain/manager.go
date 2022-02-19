@@ -27,6 +27,8 @@ type TeamPlayer struct {
 	Player
 	IsCaptain     bool
 	IsViceCaptain bool
+	SubIn         bool
+	// SubOut        bool
 }
 
 // ManagerRepository is an interface for interacting with Manager storage

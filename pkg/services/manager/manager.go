@@ -118,16 +118,16 @@ func (ms *managerService) UpdatePoints() error {
 	totalPoints := calculateTotalPoints(&team)
 	subPoints := calculateSubPoints(&team)
 
-	err = ms.mr.UpdateTeam(manager.ID, team)
-	if err != nil {
-		return err
-	}
-
 	team.TotalPoints = totalPoints
 	team.TotalPointsAfterSubs = totalPoints + subPoints
 
 	log.Println(team.TotalPoints)
 	log.Println(team.TotalPointsAfterSubs)
+
+	err = ms.mr.UpdateTeam(manager.ID, team)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -255,6 +255,7 @@ func calculateSubPoints(team *domain.Team) int {
 		benchGk := &team.Picks[11]
 		if played(benchGk) {
 			subPoints += benchGk.Stats.TotalPoints
+			benchGk.SubIn = true
 			log.Println("IN:", benchGk.Info.Name)
 		}
 	}
@@ -264,33 +265,43 @@ func calculateSubPoints(team *domain.Team) int {
 	subsNeeded := 10 - (liveFormation[1] + liveFormation[2] + liveFormation[3])
 	subsIn := make([]domain.TeamPlayer, 0)
 
-	for _, b := range bench {
-		if subsNeeded == 0 {
-			break
-		}
-		pos := b.Info.Position
-
-		if liveFormation[1] < 3 { // too few defs, add only if b is def
-			if pos == "DEF" && played(&b) {
-				subsIn = append(subsIn, b)
-				liveFormation[1]++
-				subsNeeded--
+	for i := 0; i < subsNeeded; i++ {
+		for j := 0; j < len(bench); j++ {
+			b := &bench[j]
+			if b.SubIn {
+				continue
 			}
-			continue
-		}
 
-		if liveFormation[3] < 1 { // too few fwds, add only if b is fwd
-			if pos == "FWD" && played(&b) {
-				subsIn = append(subsIn, b)
-				liveFormation[3]++
-				subsNeeded--
+			pos := b.Info.Position
+
+			if liveFormation[1] < 3 { // too few defs, add only if b is def
+				if pos == "DEF" && played(b) {
+					subsIn = append(subsIn, *b)
+					b.SubIn = true
+					liveFormation[1]++
+					// subsNeeded--
+					break
+				}
+				continue
 			}
-			continue
-		}
 
-		if played(&b) {
-			subsNeeded--
-			subsIn = append(subsIn, b)
+			if liveFormation[3] < 1 { // too few fwds, add only if b is fwd
+				if pos == "FWD" && played(b) {
+					subsIn = append(subsIn, *b)
+					b.SubIn = true
+					liveFormation[3]++
+					// subsNeeded--
+					break
+				}
+				continue
+			}
+
+			if played(b) {
+				// subsNeeded--
+				subsIn = append(subsIn, *b)
+				b.SubIn = true
+				break
+			}
 		}
 	}
 

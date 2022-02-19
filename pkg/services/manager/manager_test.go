@@ -95,31 +95,99 @@ func TestCalculateTotalPoints(t *testing.T) {
 		},
 		{
 			name: "no chip played",
-			team: noChipTeam,
+			team: teamA,
 			want: 66,
 		},
 		{
 			name: "triple captain played",
-			team: tripleCaptainTeam,
+			team: chipTripleCpt(teamA),
 			want: 81,
 		},
 		{
 			name: "bench boost played",
-			team: benchBoostTeam,
-			want: 83,
+			team: chipBenchBoost(teamA),
+			want: 84,
 		},
 	}
 
 	for _, test := range testcases {
 		got := calculateTotalPoints(&test.team)
 		if got != test.want {
-			t.Errorf("error: for test %s: want %v, got %v", test.name, test.want, got)
+			t.Errorf("error: for test '%s': want %v, got %v", test.name, test.want, got)
 		}
 	}
 }
 
 func TestCalculateSubPoints(t *testing.T) {
-	// TODO add test
+	testcases := []struct {
+		name string
+		team domain.Team
+		want int
+	}{
+		{
+			name: "empty team passed",
+			team: domain.Team{},
+			want: 0,
+		},
+		{
+			name: "no subs",
+			team: teamA,
+			want: 0,
+		},
+		{
+			name: "two subs",
+			team: teamB,
+			want: 16,
+		},
+		// TODO fix bug, all bench should be subbed in
+		// {
+		// 	name: "all subs needed",
+		// 	team: teamD,
+		// 	want: 17,
+		// },
+		{
+			name: "def subs needed",
+			team: teamE,
+			want: 2,
+		},
+		{
+			name: "fwd sub needed",
+			team: teamF,
+			want: 1,
+		},
+		{
+			name: "bench boost played",
+			team: chipBenchBoost(teamA),
+			want: 0,
+		},
+		{
+			name: "captain sub",
+			team: teamC,
+			want: 8,
+		},
+		{
+			name: "triple captain sub",
+			team: chipTripleCpt(teamC),
+			want: 15,
+		},
+		{
+			name: "too few defs, formation not broken",
+			team: teamG,
+			want: 0,
+		},
+		{
+			name: "too few fwds, formation not broken",
+			team: teamH,
+			want: 0,
+		},
+	}
+
+	for _, test := range testcases {
+		got := calculateSubPoints(&test.team)
+		if got != test.want {
+			t.Errorf("error: for test '%s': want %v, got %v", test.name, test.want, got)
+		}
+	}
 }
 
 func TestGetLiveFormation(t *testing.T) {

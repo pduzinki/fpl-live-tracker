@@ -249,7 +249,6 @@ func calculateSubPoints(team *domain.Team) int {
 	}
 
 	liveFormation := getLiveFormation(team)
-	bench := team.Picks[12:]
 
 	// check if goalkeeper needs a substitution
 	if liveFormation[0] == 0 {
@@ -261,6 +260,7 @@ func calculateSubPoints(team *domain.Team) int {
 	}
 
 	// check if outfield players need substitutions
+	bench := team.Picks[12:]
 	subsNeeded := 10 - (liveFormation[1] + liveFormation[2] + liveFormation[3])
 	subsIn := make([]domain.TeamPlayer, 0)
 

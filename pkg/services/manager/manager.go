@@ -118,8 +118,8 @@ func (ms *managerService) UpdatePoints() error {
 	totalPoints := calculateTotalPoints(&team)
 	subPoints := calculateSubPoints(&team)
 
-	team.TotalPoints = totalPoints
-	team.TotalPointsAfterSubs = totalPoints + subPoints
+	team.TotalPoints = totalPoints - team.HitPoints
+	team.TotalPointsAfterSubs = totalPoints + subPoints - team.HitPoints
 
 	log.Println(team.TotalPoints)
 	log.Println(team.TotalPointsAfterSubs)
@@ -160,6 +160,7 @@ func (ms *managerService) convertToDomainTeam(wt wrapper.Team) (domain.Team, err
 	team := domain.Team{
 		Picks:      make([]domain.TeamPlayer, 0, 15),
 		ActiveChip: wt.ActiveChip,
+		HitPoints:  wt.EntryHistory.EventTransfersCost,
 	}
 
 	for _, pick := range wt.Picks {
@@ -227,43 +228,31 @@ func calculateTotalPoints(team *domain.Team) int {
 
 //
 func calculateSubPoints(team *domain.Team) int {
-	/*
-		(legit formation == 1 gkp, at least 3 defs, and at least 1 fwd)
-		get live formation
-
-		for p in range bench
-			if too few defs, sub only if p is def
-			if too few fwds, sub only if p is fwd
-			else sub p
-	*/
+	subPoints := 0
 
 	if len(team.Picks) == 0 {
 		log.Println("calculateSubPoints: team has no players!")
-		return 0
+		return subPoints
 	}
-
-	subPoints := 0
-
 	if team.ActiveChip == "bboost" {
 		return subPoints
 	}
 
 	liveFormation := getLiveFormation(team)
+	subsIn := make([]domain.TeamPlayer, 0, 4)
 
 	// check if goalkeeper needs a substitution
 	if liveFormation[0] == 0 {
 		benchGk := &team.Picks[11]
 		if played(benchGk) {
-			subPoints += benchGk.Stats.TotalPoints
 			benchGk.SubIn = true
-			log.Println("IN:", benchGk.Info.Name)
+			subsIn = append(subsIn, *benchGk)
 		}
 	}
 
 	// check if outfield players need substitutions
 	bench := team.Picks[12:]
 	subsNeeded := 10 - (liveFormation[1] + liveFormation[2] + liveFormation[3])
-	subsIn := make([]domain.TeamPlayer, 0)
 
 	for i := 0; i < subsNeeded; i++ {
 		for j := 0; j < len(bench); j++ {
@@ -276,10 +265,9 @@ func calculateSubPoints(team *domain.Team) int {
 
 			if liveFormation[1] < 3 { // too few defs, add only if b is def
 				if pos == "DEF" && played(b) {
-					subsIn = append(subsIn, *b)
 					b.SubIn = true
+					subsIn = append(subsIn, *b)
 					liveFormation[1]++
-					// subsNeeded--
 					break
 				}
 				continue
@@ -287,19 +275,17 @@ func calculateSubPoints(team *domain.Team) int {
 
 			if liveFormation[3] < 1 { // too few fwds, add only if b is fwd
 				if pos == "FWD" && played(b) {
-					subsIn = append(subsIn, *b)
 					b.SubIn = true
+					subsIn = append(subsIn, *b)
 					liveFormation[3]++
-					// subsNeeded--
 					break
 				}
 				continue
 			}
 
 			if played(b) {
-				// subsNeeded--
-				subsIn = append(subsIn, *b)
 				b.SubIn = true
+				subsIn = append(subsIn, *b)
 				break
 			}
 		}
@@ -318,7 +304,6 @@ func calculateSubPoints(team *domain.Team) int {
 	}
 
 	for _, s := range subsIn {
-		log.Println("IN:", s.Info.Name)
 		subPoints += s.Stats.TotalPoints
 	}
 
@@ -350,15 +335,15 @@ func getLiveFormation(team *domain.Team) [4]int {
 func played(player *domain.TeamPlayer) bool {
 	stats := player.Stats
 
-	var fixtureStarted bool
-	for _, fixture := range stats.FixturesInfo {
-		if fixture.Started {
-			fixtureStarted = true
+	var allFixturesStarted bool = true
+	for _, f := range stats.FixturesInfo {
+		if !f.Started {
+			allFixturesStarted = false
 			break
 		}
 	}
 
-	if stats.Minutes == 0 && fixtureStarted {
+	if stats.Minutes == 0 && allFixturesStarted {
 		return false
 	}
 	return true

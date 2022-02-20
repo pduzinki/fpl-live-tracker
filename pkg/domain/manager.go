@@ -17,6 +17,7 @@ type ManagerInfo struct {
 type Team struct {
 	Picks                []TeamPlayer
 	ActiveChip           string
+	HitPoints            int
 	TotalPoints          int
 	TotalPointsAfterSubs int
 	// OverallRank int

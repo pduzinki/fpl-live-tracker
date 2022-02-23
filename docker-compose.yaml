@@ -1,7 +1,14 @@
 version: "2.1"
 
 services:
-  app:
-    image: fpl-live-tracker
+  # app:
+  #   image: fpl-live-tracker
+  #   ports:
+  #     - 3000:3000
+  mongo:
+    image: mongo
     ports:
-      - 3000:3000
+      - 27017:27017
+    expose:
+     - 27017
+

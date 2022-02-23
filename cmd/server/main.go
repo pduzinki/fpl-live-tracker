@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"fpl-live-tracker/pkg/config"
 	"fpl-live-tracker/pkg/http/rest"
 	"fpl-live-tracker/pkg/services/club"
 	"fpl-live-tracker/pkg/services/fixture"
@@ -17,6 +18,9 @@ import (
 
 func main() {
 	log.Println("fpl-live-tracker started")
+
+	cfg := config.Load()
+	_ = cfg
 
 	wr := wrapper.NewWrapper()
 
@@ -43,7 +47,12 @@ func main() {
 		log.Fatalln("error: failed to init player service")
 	}
 
+	// mr, err := mongo.NewManagerRepository(cfg.MongoConfig)
+	// if err != nil {
+	// 	log.Fatalln("error: failed to init manager repository")
+	// }
 	mr := memory.NewManagerRepository()
+
 	ms, err := manager.NewManagerService(mr, ps, gs, wr)
 	if err != nil {
 		log.Fatalln("error: failed to init manager service")

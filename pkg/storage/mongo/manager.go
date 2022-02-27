@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"context"
+	"fmt"
 	"fpl-live-tracker/pkg/config"
 	"fpl-live-tracker/pkg/domain"
 	"fpl-live-tracker/pkg/storage"
@@ -9,11 +10,8 @@ import (
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"gopkg.in/mgo.v2/bson"
 )
-
-const uri = "mongodb://localhost:27017"
 
 //
 type managerRepository struct {
@@ -22,27 +20,16 @@ type managerRepository struct {
 }
 
 //
-type mongoManager struct {
-	ID       int    `bson:"id"`
-	Name     string `bson:"name"`
-	TeamName string `bson:"teamname"`
-}
-
-//
 func NewManagerRepository(config config.MongoConfig) (domain.ManagerRepository, error) {
-	// TODO use passed config
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
+	client, err := mongo.Connect(context.Background(),
+		options.Client().ApplyURI(fmt.Sprintf("mongodb://%s:27017", config.Host)))
 	if err != nil {
 		return nil, err
 	}
 	// defer client.Disconnect(context.TODO())
 
-	db := client.Database("fpl-live-tracker")
+	db := client.Database(config.Database)
 	managers := db.Collection("managers")
-
-	if err := client.Ping(context.TODO(), readpref.Primary()); err != nil {
-		return nil, err
-	}
 
 	return &managerRepository{
 		db:       db,
@@ -55,28 +42,35 @@ func (mr *managerRepository) Add(manager domain.Manager) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	m := mongoManager{
-		ID:       manager.ID,
-		Name:     manager.Info.Name,
-		TeamName: manager.Info.TeamName,
-	}
-
-	_, err := mr.managers.InsertOne(ctx, m)
+	_, err := mr.managers.InsertOne(ctx, manager)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
 //
 func (mr *managerRepository) AddMany(managers []domain.Manager) error {
-	return nil // fmt.Errorf("not implemented")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	mgrs := make([]interface{}, 0, len(managers))
+	for _, m := range managers {
+		mgrs = append(mgrs, m)
+	}
+
+	_, err := mr.managers.InsertMany(ctx, mgrs)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 //
 func (mr *managerRepository) UpdateInfo(managerID int, info domain.ManagerInfo) error {
 	return storage.ErrManagerNotFound
-	// return nil // fmt.Errorf("not implemented")
 }
 
 //
@@ -89,19 +83,13 @@ func (mr *managerRepository) GetByID(id int) (domain.Manager, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	result := mr.managers.FindOne(ctx, bson.M{"id": id})
+	result := mr.managers.FindOne(ctx, bson.M{"_id": id})
 
-	var m mongoManager
-	err := result.Decode(&m)
+	var manager domain.Manager
+	err := result.Decode(&manager)
 	if err != nil {
 		return domain.Manager{}, err
 	}
 
-	return domain.Manager{
-		ID: m.ID,
-		Info: domain.ManagerInfo{
-			Name:     m.Name,
-			TeamName: m.TeamName,
-		},
-	}, nil
+	return manager, nil
 }

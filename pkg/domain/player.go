@@ -10,23 +10,23 @@ var PlayerPosition = map[int]string{
 
 // Player represents a human being that plays in one of Premier League clubs (e.g. Harry Kane, Mohamed Salah)
 type Player struct {
-	ID    int
-	Info  PlayerInfo
-	Stats PlayerStats
+	ID    int         `bson:"ID"`
+	Info  PlayerInfo  `bson:"PlayerInfo"`
+	Stats PlayerStats `bson:"PlayerStats"`
 }
 
 //
 type PlayerInfo struct {
-	Name     string
-	Position string
-	Club     Club
+	Name     string `bson:"Name"`
+	Position string `bson:"Position"`
+	Club     Club   `bson:"Club"`
 }
 
 // PlayerStats contains data about Player's performance during Gameweek
 type PlayerStats struct {
-	FixturesInfo []FixtureInfo
-	Minutes      int
-	TotalPoints  int
+	FixturesInfo []FixtureInfo `bson:"FixtureInfo"`
+	Minutes      int           `bson:"Minutes"`
+	TotalPoints  int           `bson:"TotalPoints"`
 }
 
 type PlayerRepository interface {

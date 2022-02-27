@@ -2,33 +2,33 @@ package domain
 
 // Manager represents a human being that plays Fantasy Premier League
 type Manager struct {
-	ID   int
-	Info ManagerInfo
-	Team Team
+	ID   int         `bson:"_id"`
+	Info ManagerInfo `bson:"ManagerInfo"`
+	Team Team        `bson:"Team"`
 }
 
 //
 type ManagerInfo struct {
-	Name     string
-	TeamName string
+	Name     string `bson:"Name"`
+	TeamName string `bson:"TeamName"`
 }
 
 //
 type Team struct {
-	Picks                []TeamPlayer
-	ActiveChip           string
-	HitPoints            int
-	TotalPoints          int
-	TotalPointsAfterSubs int
+	Picks                []TeamPlayer `bson:"Picks"`
+	ActiveChip           string       `bson:"ActiveChip"`
+	HitPoints            int          `bson:"HitPoints"`
+	TotalPoints          int          `bson:"TotalPoints"`
+	TotalPointsAfterSubs int          `bson:"TotalPointsAfterSubs"`
 	// OverallRank int
 }
 
 //
 type TeamPlayer struct {
-	Player
-	IsCaptain     bool
-	IsViceCaptain bool
-	SubIn         bool
+	Player        `bson:"Player"`
+	IsCaptain     bool `bson:"IsCaptain"`
+	IsViceCaptain bool `bson:"IsViceCaptain"`
+	SubIn         bool `bson:"SubIn"`
 	// SubOut        bool
 }
 

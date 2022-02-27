@@ -2,9 +2,9 @@ package domain
 
 // Club represents a football club that plays in the Premier League (e.g. Liverpool, Manchester City, Chelsea)
 type Club struct {
-	ID        int
-	Name      string
-	Shortname string
+	ID        int    `bson:"ID"`
+	Name      string `bson:"Name"`
+	Shortname string `bson:"Shortname"`
 }
 
 type ClubRepository interface {

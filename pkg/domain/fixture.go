@@ -7,9 +7,9 @@ import (
 
 // Fixture represents a single match of football between two clubs in the Premier League
 type Fixture struct {
-	ID    int
-	Info  FixtureInfo
-	Stats map[string]FixtureStat
+	ID    int                    `bson:"ID"`
+	Info  FixtureInfo            `bson:"FixtureInfo"`
+	Stats map[string]FixtureStat `bson:"FixtureStat"`
 }
 
 type FixtureRepository interface {
@@ -22,13 +22,13 @@ type FixtureRepository interface {
 
 //
 type FixtureInfo struct {
-	GameweekID          int
-	ClubHome            Club
-	ClubAway            Club
-	Started             bool
-	FinishedProvisional bool
-	Finished            bool
-	KickoffTime         time.Time
+	GameweekID          int       `bson:"GameweekID"`
+	ClubHome            Club      `bson:"ClubHome"`
+	ClubAway            Club      `bson:"ClubAway"`
+	Started             bool      `bson:"Started"`
+	FinishedProvisional bool      `bson:"FinishedProvisional"`
+	Finished            bool      `bson:"Finished"`
+	KickoffTime         time.Time `bson:"KickoffTime"`
 }
 
 // FixtureStat represents particular fixture statistic (e.g. goals scored, assists, or bonus points)
@@ -40,8 +40,8 @@ type FixtureStat struct {
 
 // FixtureStatPair represents particular instance of fixture statistic, and player responsible for it (e.g. number of goals scored by Harry Kane)
 type FixtureStatPair struct {
-	PlayerID int
-	Value    int
+	PlayerID int `bson:"PlayerID"`
+	Value    int `bson:"Value"`
 }
 
 func (f Fixture) String() string {

@@ -13,6 +13,8 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+const timeout = 10 * time.Second
+
 //
 type managerRepository struct {
 	db       *mongo.Database
@@ -39,7 +41,7 @@ func NewManagerRepository(config config.MongoConfig) (domain.ManagerRepository, 
 
 //
 func (mr *managerRepository) Add(manager domain.Manager) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
 	_, err := mr.managers.InsertOne(ctx, manager)
@@ -52,7 +54,7 @@ func (mr *managerRepository) Add(manager domain.Manager) error {
 
 //
 func (mr *managerRepository) AddMany(managers []domain.Manager) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
 	mgrs := make([]interface{}, 0, len(managers))
@@ -70,17 +72,55 @@ func (mr *managerRepository) AddMany(managers []domain.Manager) error {
 
 //
 func (mr *managerRepository) UpdateInfo(managerID int, info domain.ManagerInfo) error {
-	return storage.ErrManagerNotFound
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	filter := bson.M{"_id": managerID}
+	update := bson.M{
+		"$set": bson.M{
+			"ManagerInfo": info,
+		},
+	}
+
+	result, err := mr.managers.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+
+	if result.MatchedCount == 0 {
+		return storage.ErrManagerNotFound
+	}
+
+	return nil
 }
 
 //
 func (mr *managerRepository) UpdateTeam(managerID int, team domain.Team) error {
-	return nil // fmt.Errorf("not implemented")
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	filter := bson.M{"_id": managerID}
+	update := bson.M{
+		"$set": bson.M{
+			"Team": team,
+		},
+	}
+
+	result, err := mr.managers.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+
+	if result.MatchedCount == 0 {
+		return storage.ErrManagerNotFound
+	}
+
+	return nil
 }
 
 //
 func (mr *managerRepository) GetByID(id int) (domain.Manager, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
 	result := mr.managers.FindOne(ctx, bson.M{"_id": id})

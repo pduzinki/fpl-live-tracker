@@ -30,10 +30,10 @@ type Pick struct {
 }
 
 type Bootstrap struct {
-	// Count int        `json:"total_players"`
-	Gameweeks []Gameweek `json:"events"`
-	Clubs     []Club     `json:"teams"`
-	Players   []Player   `json:"elements"`
+	ManagersCount int        `json:"total_players"`
+	Gameweeks     []Gameweek `json:"events"`
+	Clubs         []Club     `json:"teams"`
+	Players       []Player   `json:"elements"`
 }
 
 type Gameweek struct {

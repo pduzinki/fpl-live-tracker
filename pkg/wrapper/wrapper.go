@@ -17,6 +17,7 @@ type Wrapper interface {
 	GetGameweeks() ([]Gameweek, error)
 	GetPlayers() ([]Player, error)
 	GetPlayersStats(gameweekID int) ([]PlayerStats, error)
+	GetManagersCount() (int, error)
 	GetManager(id int) (Manager, error)
 	GetManagersTeam(managerID, gameweekID int) (Team, error)
 }
@@ -105,6 +106,19 @@ func (w *wrapper) GetPlayersStats(gameweekID int) ([]PlayerStats, error) {
 	}
 
 	return elements.PlayersStats, nil
+}
+
+//
+func (w *wrapper) GetManagersCount() (int, error) {
+	url := fmt.Sprintf(w.baseURL + "/bootstrap-static/")
+	var bs Bootstrap
+
+	err := w.fetchData(url, &bs)
+	if err != nil {
+		return 0, err
+	}
+
+	return bs.ManagersCount, nil
 }
 
 // GetManager queries https://fantasy.premierleague.com/api/entry/{id}/

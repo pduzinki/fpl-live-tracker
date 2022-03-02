@@ -18,6 +18,7 @@ mage test
 
 ## Running
 ```sh
+docker-compose up -d
 ./app
 ```
 

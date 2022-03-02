@@ -24,7 +24,7 @@ type managerRepository struct {
 //
 func NewManagerRepository(config config.MongoConfig) (domain.ManagerRepository, error) {
 	client, err := mongo.Connect(context.Background(),
-		options.Client().ApplyURI(fmt.Sprintf("mongodb://%s:27017", config.Host)))
+		options.Client().ApplyURI(fmt.Sprintf("mongodb://%s:%d", config.Host, config.Port)))
 	if err != nil {
 		return nil, err
 	}

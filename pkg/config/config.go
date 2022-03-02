@@ -6,6 +6,7 @@ type Config struct {
 
 type MongoConfig struct {
 	Host     string
+	Port     int
 	Database string
 }
 
@@ -19,6 +20,7 @@ func loadDefault() Config {
 	cfg := Config{
 		MongoConfig: MongoConfig{
 			Host:     "localhost",
+			Port:     27017,
 			Database: "fpl-live-tracker",
 		},
 	}

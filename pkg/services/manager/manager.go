@@ -121,8 +121,8 @@ func (ms *managerService) UpdatePoints() error {
 	team.TotalPoints = totalPoints - team.HitPoints
 	team.TotalPointsAfterSubs = totalPoints + subPoints - team.HitPoints
 
-	log.Println(team.TotalPoints)
-	log.Println(team.TotalPointsAfterSubs)
+	// log.Println(team.TotalPoints)
+	// log.Println(team.TotalPointsAfterSubs)
 
 	err = ms.mr.UpdateTeam(manager.ID, team)
 	if err != nil {

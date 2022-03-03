@@ -2,13 +2,13 @@ package tracker
 
 import (
 	"errors"
-	"fpl-live-tracker/pkg/domain"
 	"fpl-live-tracker/pkg/services/club"
 	"fpl-live-tracker/pkg/services/fixture"
 	"fpl-live-tracker/pkg/services/gameweek"
 	"fpl-live-tracker/pkg/services/manager"
 	"fpl-live-tracker/pkg/services/player"
 	"log"
+	"time"
 )
 
 type TrackerConfigFunc func(t *Tracker) error
@@ -93,60 +93,34 @@ func WithManagerService(ms manager.ManagerService) TrackerConfigFunc {
 // Track is responsible for keeping all the data from FPL up-to-date.
 // Should be run as a goroutine.
 func (t *Tracker) Track() {
-	log.Println("hello from Track()")
+	for {
+		log.Println("tracker service: updating data from FPL API in progress...")
 
-	err := t.Gs.Update()
-	if err != nil {
-		log.Println("tracker service: failed to update gameweek data:", err)
-	}
-
-	err = t.Fs.Update()
-	if err != nil {
-		log.Println("tracker service: failed to update fixture data:", err)
-	}
-
-	err = t.Ps.UpdateInfos()
-	if err != nil {
-		log.Println("tracker service: failed to update player data:", err)
-	}
-
-	err = t.Ps.UpdateStats()
-	if err != nil {
-		log.Println("tracker service: failed to update player data:", err)
-	}
-
-	// TODO remove later
-	t.Ms.UpdateTeams()
-	t.Ms.UpdatePoints()
-
-	gw, err := t.Gs.GetCurrentGameweek()
-	if err != nil {
-		log.Println("tracker service: failed to get current gameweek", err)
-	}
-
-	ngw, err := t.Gs.GetNextGameweek()
-	if err != nil {
-		log.Println("tracker service: failed to get next gameweek", err)
-	}
-
-	var fixtures []domain.Fixture
-	if !gw.Finished {
-		log.Println("current gameweek:", gw)
-		fixtures, err = t.Fs.GetFixturesByGameweek(gw.ID)
+		err := t.Gs.Update()
 		if err != nil {
-			log.Println(err)
+			log.Println("tracker service: failed to update gameweek data:", err)
 		}
-	} else {
-		log.Println("next gameweek:", ngw)
-		fixtures, err = t.Fs.GetFixturesByGameweek(ngw.ID)
+
+		err = t.Fs.Update()
 		if err != nil {
-			log.Println(err)
+			log.Println("tracker service: failed to update fixture data:", err)
 		}
-	}
 
-	for _, f := range fixtures {
-		log.Println(f)
-	}
+		err = t.Ps.UpdateInfos()
+		if err != nil {
+			log.Println("tracker service: failed to update player data:", err)
+		}
 
-	log.Println("goodbye from Track()")
+		err = t.Ps.UpdateStats()
+		if err != nil {
+			log.Println("tracker service: failed to update player data:", err)
+		}
+
+		// TODO remove later
+		t.Ms.UpdateTeams()
+		t.Ms.UpdatePoints()
+
+		log.Println("tracker service: updating data from FPL API done.")
+		time.Sleep(1 * time.Minute)
+	}
 }

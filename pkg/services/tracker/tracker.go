@@ -2,6 +2,7 @@ package tracker
 
 import (
 	"errors"
+	"fpl-live-tracker/pkg/domain"
 	"fpl-live-tracker/pkg/services/club"
 	"fpl-live-tracker/pkg/services/fixture"
 	"fpl-live-tracker/pkg/services/gameweek"
@@ -93,12 +94,23 @@ func WithManagerService(ms manager.ManagerService) TrackerConfigFunc {
 // Track is responsible for keeping all the data from FPL up-to-date.
 // Should be run as a goroutine.
 func (t *Tracker) Track() {
-	for {
-		log.Println("tracker service: updating data from FPL API in progress...")
+	var gw domain.Gameweek
+	var timeToUpdateManagers bool
 
+	for {
 		err := t.Gs.Update()
 		if err != nil {
 			log.Println("tracker service: failed to update gameweek data:", err)
+		}
+
+		currentGw, err := t.Gs.GetCurrentGameweek()
+		if err != nil {
+			log.Println("tracker service: failed to update gameweek data:", err)
+		}
+
+		if gw != currentGw {
+			gw = currentGw
+			timeToUpdateManagers = true
 		}
 
 		err = t.Fs.Update()
@@ -116,11 +128,27 @@ func (t *Tracker) Track() {
 			log.Println("tracker service: failed to update player data:", err)
 		}
 
-		// TODO remove later
-		t.Ms.UpdateTeams()
-		t.Ms.UpdatePoints()
+		if timeToUpdateManagers {
+			err = t.Ms.UpdateInfos()
+			if err != nil {
+				log.Println("")
+			}
 
-		log.Println("tracker service: updating data from FPL API done.")
+			err = t.Ms.UpdateTeams()
+			if err != nil {
+				log.Println("")
+			}
+
+			log.Println("tracker service: manager's teams updated")
+			timeToUpdateManagers = false
+		}
+
+		err = t.Ms.UpdatePoints()
+		if err != nil {
+			log.Println("")
+		}
+
+		log.Println("tracker service: FPL API data updated")
 		time.Sleep(1 * time.Minute)
 	}
 }

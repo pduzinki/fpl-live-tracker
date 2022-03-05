@@ -212,3 +212,7 @@ func TestManagerGetByID(t *testing.T) {
 		}
 	}
 }
+
+func TestManagerGetCount(t *testing.T) {
+	// TODO add test
+}

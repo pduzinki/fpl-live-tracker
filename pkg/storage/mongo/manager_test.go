@@ -29,3 +29,7 @@ func TestManagerUpdateTeam(t *testing.T) {
 func TestManagerGetByID(t *testing.T) {
 	// TODO add test
 }
+
+func TestManagerGetCount(t *testing.T) {
+	// TODO add test
+}

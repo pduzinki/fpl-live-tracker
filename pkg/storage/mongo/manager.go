@@ -133,3 +133,16 @@ func (mr *managerRepository) GetByID(id int) (domain.Manager, error) {
 
 	return manager, nil
 }
+
+//
+func (mr *managerRepository) GetCount() (int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	count, err := mr.managers.CountDocuments(ctx, bson.M{})
+	if err != nil {
+		return 0, err
+	}
+
+	return int(count), nil
+}

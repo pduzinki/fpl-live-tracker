@@ -8,6 +8,7 @@ type ManagerRepository struct {
 	UpdateInfoFn func(managerID int, info domain.ManagerInfo) error
 	UpdateTeamFn func(managerID int, team domain.Team) error
 	GetByIDFn    func(id int) (domain.Manager, error)
+	GetCountFn   func() (int, error)
 }
 
 func (mr *ManagerRepository) Add(manager domain.Manager) error {
@@ -28,4 +29,8 @@ func (mr *ManagerRepository) UpdateTeam(managerID int, team domain.Team) error {
 
 func (mr *ManagerRepository) GetByID(id int) (domain.Manager, error) {
 	return mr.GetByIDFn(id)
+}
+
+func (mr *ManagerRepository) GetCount() (int, error) {
+	return mr.GetCountFn()
 }

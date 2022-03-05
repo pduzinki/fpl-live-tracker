@@ -84,3 +84,11 @@ func (mr *managerRepository) GetByID(id int) (domain.Manager, error) {
 
 	return domain.Manager{}, storage.ErrManagerNotFound
 }
+
+//
+func (mr *managerRepository) GetCount() (int, error) {
+	mr.RLock()
+	defer mr.RUnlock()
+
+	return len(mr.managers), nil
+}

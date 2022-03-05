@@ -39,4 +39,5 @@ type ManagerRepository interface {
 	UpdateInfo(managerID int, info ManagerInfo) error
 	UpdateTeam(managerID int, team Team) error
 	GetByID(id int) (Manager, error)
+	GetCount() (int, error)
 }

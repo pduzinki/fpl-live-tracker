@@ -163,9 +163,16 @@ func (t *Tracker) Track() {
 			timeToUpdateManagers = false
 		}
 
-		err = t.Ms.UpdatePoints()
+		liveFixtures, err := t.Fs.GetLiveFixtures(currentGw.ID)
 		if err != nil {
-			log.Println("tracker service: failed to update manager's points:", err)
+			log.Println("tracker service: failed to get live fixtures:", err)
+		}
+
+		if len(liveFixtures) > 0 {
+			err = t.Ms.UpdatePoints()
+			if err != nil {
+				log.Println("tracker service: failed to update manager's points:", err)
+			}
 		}
 
 		log.Println("tracker service: FPL API data updated")

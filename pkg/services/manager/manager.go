@@ -13,10 +13,12 @@ import (
 const tripleCaptainActive = "3xc"
 const benchBoostActive = "bboost"
 
-// TODO remove later, and add support for handling more than one manager
+// TODO remove later, and add support for handling more than a few managers
+// var IDs []int = []int{1239, 445331, 1056968, 2037831}
 var myID = 1239
 
 type ManagerService interface {
+	AddNew() error
 	UpdateInfos() error
 	UpdateTeams() error
 	UpdatePoints() error
@@ -47,6 +49,26 @@ func NewManagerService(mr domain.ManagerRepository, ps player.PlayerService,
 	}
 
 	return &ms, nil
+}
+
+//
+func (ms *managerService) AddNew() error {
+	fplManagers, err := ms.wr.GetManagersCount()
+	if err != nil {
+		return err
+	}
+
+	storageManagers, err := ms.mr.GetCount()
+	if err != nil {
+		return err
+	}
+
+	if fplManagers > storageManagers {
+		log.Println("manager service: adding new managers...")
+		// TODO
+	}
+
+	return fmt.Errorf("not implemented")
 }
 
 //

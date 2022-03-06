@@ -108,9 +108,29 @@ func (t *Tracker) Track() {
 			log.Println("tracker service: failed to update gameweek data:", err)
 		}
 
-		if gw != currentGw {
+		if gw != currentGw || time.Now().Before(currentGw.DeadlineTime) {
 			gw = currentGw
 			timeToUpdateManagers = true
+		}
+
+		if currentGw.Finished {
+			// after gameweek is finished, it's time to update manager's information
+			err = t.Ms.UpdateInfos()
+			if err != nil {
+				log.Println("tracker service: failed to update manager's information:", err)
+			}
+
+			nextGw, err := t.Gs.GetNextGameweek()
+			if err == gameweek.ErrNoNextGameweek {
+				log.Println("tracker service: game ended, tracking stopped")
+				return
+			} else if err != nil {
+				log.Println("tracker service: failed to get next gameweek:", err)
+				continue
+			}
+
+			time.Sleep(time.Until(nextGw.DeadlineTime))
+			continue
 		}
 
 		err = t.Fs.Update()
@@ -129,14 +149,14 @@ func (t *Tracker) Track() {
 		}
 
 		if timeToUpdateManagers {
-			err = t.Ms.UpdateInfos()
+			err = t.Ms.AddNew()
 			if err != nil {
-				log.Println("")
+				log.Println("tracker service: failed to add new manager's data:", err)
 			}
 
 			err = t.Ms.UpdateTeams()
 			if err != nil {
-				log.Println("")
+				log.Println("tracker service: failed to update manager's teams:", err)
 			}
 
 			log.Println("tracker service: manager's teams updated")
@@ -145,7 +165,7 @@ func (t *Tracker) Track() {
 
 		err = t.Ms.UpdatePoints()
 		if err != nil {
-			log.Println("")
+			log.Println("tracker service: failed to update manager's points:", err)
 		}
 
 		log.Println("tracker service: FPL API data updated")

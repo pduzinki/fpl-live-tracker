@@ -8,8 +8,10 @@ import (
 	"time"
 )
 
-var ErrGameweekNotUpdated = errors.New("gameweek service: gameweek data hasn't been updated")
-var ErrNoNextGameweek = errors.New("gameweek service: no noxt gameweek found")
+var (
+	ErrGameNotStarted = errors.New("gameweek service: game hasn't started yet")
+	ErrNoNextGameweek = errors.New("gameweek service: no noxt gameweek found")
+)
 
 // GameweekService is an interface for interacting with gameweeks
 type GameweekService interface {
@@ -20,10 +22,11 @@ type GameweekService interface {
 
 // gameweekService implements GameweekService interface
 type gameweekService struct {
-	CurrentGameweek domain.Gameweek
-	NextGameweek    domain.Gameweek
-	wr              wrapper.Wrapper
-	noNextGameweek  bool
+	CurrentGameweek   domain.Gameweek
+	NextGameweek      domain.Gameweek
+	wr                wrapper.Wrapper
+	noCurrentGameweek bool
+	noNextGameweek    bool
 }
 
 // NewGameweekService creates new instance of GameweekService, and fills
@@ -51,6 +54,7 @@ func (gs *gameweekService) Update() error {
 		return err
 	}
 
+	currentGameweekFound := false
 	nextGameweekFound := false
 	for _, gw := range wrapperGameweeks {
 		if gw.IsCurrent {
@@ -59,6 +63,7 @@ func (gs *gameweekService) Update() error {
 				return err
 			}
 			gs.CurrentGameweek = currentGameweek
+			currentGameweekFound = true
 		}
 
 		if gw.IsNext {
@@ -74,11 +79,19 @@ func (gs *gameweekService) Update() error {
 	if !nextGameweekFound {
 		gs.noNextGameweek = true
 	}
+	if !currentGameweekFound {
+		gs.noCurrentGameweek = true
+	}
+
 	return nil
 }
 
 // GetCurrentGameweek returns gameweek that is currently in progress
 func (gs *gameweekService) GetCurrentGameweek() (domain.Gameweek, error) {
+	if gs.noCurrentGameweek {
+		return domain.Gameweek{}, ErrGameNotStarted
+	}
+
 	return gs.CurrentGameweek, nil
 }
 

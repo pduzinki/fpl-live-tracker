@@ -2,7 +2,6 @@ package tracker
 
 import (
 	"errors"
-	"fpl-live-tracker/pkg/domain"
 	"fpl-live-tracker/pkg/services/club"
 	"fpl-live-tracker/pkg/services/fixture"
 	"fpl-live-tracker/pkg/services/gameweek"
@@ -94,88 +93,124 @@ func WithManagerService(ms manager.ManagerService) TrackerConfigFunc {
 // Track is responsible for keeping all the data from FPL up-to-date.
 // Should be run as a goroutine.
 func (t *Tracker) Track() {
-	var gw domain.Gameweek
-	var timeToUpdateManagers bool
+	/*
+		schedule
+		update gameweeks data on loop
+
+		before gameweek starts:
+			update managers info data on loop
+		gameweek is live:
+			update managers teams data once
+
+			update fixtures data on loop
+
+			if there are live fixtures:
+				update players data on loop
+				update managers points data on loop
+	*/
+
+	// initial updates, in case the app had to be restarted during the gameweek
+	err := t.Gs.Update()
+	if err != nil {
+		log.Println("tracker:", err)
+	}
+
+	err = t.Fs.Update()
+	if err != nil {
+		log.Println("tracker:", err)
+	}
+
+	err = t.Ps.UpdateInfos()
+	if err != nil {
+		log.Println("tracker:", err)
+	}
+
+	err = t.Ps.UpdateStats()
+	if err != nil {
+		log.Println("tracker:", err)
+	}
+
+	err = t.Ms.UpdateInfos()
+	if err != nil {
+		log.Println("tracker:", err)
+	}
+
+	err = t.Ms.UpdateTeams()
+	if err != nil {
+		log.Println("tracker:", err)
+	}
+
+	err = t.Ms.UpdatePoints()
+	if err != nil {
+		log.Println("tracker:", err)
+	}
+
+	var timeToUpdateManagersInfos bool
+	var timeToUpdateManagersTeams bool
 
 	for {
-		err := t.Gs.Update()
+		err = t.Gs.Update()
 		if err != nil {
-			log.Println("tracker service: failed to update gameweek data:", err)
+			log.Println("tracker:", err)
 		}
-
 		currentGw, err := t.Gs.GetCurrentGameweek()
 		if err != nil {
-			log.Println("tracker service: failed to update gameweek data:", err)
+			log.Println("tracker:", err)
 		}
 
-		if gw != currentGw || time.Now().Before(currentGw.DeadlineTime) {
-			gw = currentGw
-			timeToUpdateManagers = true
-		}
-
-		if currentGw.Finished {
-			// after gameweek is finished, it's time to update manager's information
-			err = t.Ms.UpdateInfos()
+		if currentGw.Finished { // before gameweek starts / after gameweek is finished
+			timeToUpdateManagersTeams = true
+			if timeToUpdateManagersInfos {
+				err = t.Ms.UpdateInfos() // once per gameweek
+				if err != nil {
+					log.Println("tracker:", err)
+				}
+				timeToUpdateManagersInfos = false
+			}
+			err = t.Ms.AddNew() // many times between gameweeks
 			if err != nil {
-				log.Println("tracker service: failed to update manager's information:", err)
+				log.Println("tracker:", err)
+			}
+			err = t.Ps.UpdateInfos() // many times between gameweeks
+			if err != nil {
+				log.Println("tracker:", err)
 			}
 
-			nextGw, err := t.Gs.GetNextGameweek()
-			if err == gameweek.ErrNoNextGameweek {
-				log.Println("tracker service: game ended, tracking stopped")
-				return
-			} else if err != nil {
-				log.Println("tracker service: failed to get next gameweek:", err)
+			time.Sleep(1 * time.Hour)
+		} else { // gameweek is live
+			timeToUpdateManagersInfos = true
+			if timeToUpdateManagersTeams {
+				err = t.Ms.UpdateTeams() // once per gameweek
+				if err != nil {
+					log.Println("tracker:", err)
+				}
+				timeToUpdateManagersTeams = false
+			}
+			err = t.Fs.Update() //many times between gameweeks
+			if err != nil {
+				log.Println("tracker:", err)
+			}
+
+			fixtures, err := t.Fs.GetLiveFixtures(currentGw.ID)
+			if err != nil {
+				log.Println("tracker:", err)
+			}
+
+			if len(fixtures) > 0 {
+				err = t.Ps.UpdateStats()
+				if err != nil {
+					log.Println("tracker:", err)
+				}
+				err = t.Ms.UpdatePoints()
+				if err != nil {
+					log.Println("tracker:", err)
+				}
+				time.Sleep(1 * time.Minute)
+				continue
+			} else {
+				time.Sleep(5 * time.Minute)
 				continue
 			}
-
-			time.Sleep(time.Until(nextGw.DeadlineTime))
-			continue
 		}
-
-		err = t.Fs.Update()
-		if err != nil {
-			log.Println("tracker service: failed to update fixture data:", err)
-		}
-
-		err = t.Ps.UpdateInfos()
-		if err != nil {
-			log.Println("tracker service: failed to update player data:", err)
-		}
-
-		err = t.Ps.UpdateStats()
-		if err != nil {
-			log.Println("tracker service: failed to update player data:", err)
-		}
-
-		if timeToUpdateManagers {
-			err = t.Ms.AddNew()
-			if err != nil {
-				log.Println("tracker service: failed to add new manager's data:", err)
-			}
-
-			err = t.Ms.UpdateTeams()
-			if err != nil {
-				log.Println("tracker service: failed to update manager's teams:", err)
-			}
-
-			log.Println("tracker service: manager's teams updated")
-			timeToUpdateManagers = false
-		}
-
-		liveFixtures, err := t.Fs.GetLiveFixtures(currentGw.ID)
-		if err != nil {
-			log.Println("tracker service: failed to get live fixtures:", err)
-		}
-
-		if len(liveFixtures) > 0 {
-			err = t.Ms.UpdatePoints()
-			if err != nil {
-				log.Println("tracker service: failed to update manager's points:", err)
-			}
-		}
-
-		log.Println("tracker service: FPL API data updated")
-		time.Sleep(1 * time.Minute)
 	}
 }

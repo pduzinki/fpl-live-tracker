@@ -15,6 +15,7 @@ type ManagerInfo struct {
 
 //
 type Team struct {
+	GameweekID           int          `bson:"GameweekID"`
 	Picks                []TeamPlayer `bson:"Picks"`
 	ActiveChip           string       `bson:"ActiveChip"`
 	HitPoints            int          `bson:"HitPoints"`

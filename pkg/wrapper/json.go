@@ -14,6 +14,7 @@ type Team struct {
 }
 
 type EntryHistory struct {
+	GameweekID         int `json:"event"`
 	Points             int `json:"points"`
 	TotalPoints        int `json:"total_points"`
 	OverallRank        int `json:"overall_rank"`

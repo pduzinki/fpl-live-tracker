@@ -103,6 +103,16 @@ func (ms *managerService) UpdateTeams() error {
 		return err
 	}
 
+	manager, err := ms.GetByID(myID)
+	if err != nil {
+		log.Println("manager service:", err)
+	}
+
+	if manager.Team.GameweekID == gameweek.ID {
+		// log.Println("manager service: team already up-to-date")
+		return nil
+	}
+
 	wrapperTeam, err := ms.wr.GetManagersTeam(myID, gameweek.ID)
 	if err != nil {
 		log.Println("manager service:", err)
@@ -180,6 +190,7 @@ func (ms *managerService) convertToDomainManager(wm wrapper.Manager) domain.Mana
 //
 func (ms *managerService) convertToDomainTeam(wt wrapper.Team) (domain.Team, error) {
 	team := domain.Team{
+		GameweekID: wt.EntryHistory.GameweekID,
 		Picks:      make([]domain.TeamPlayer, 0, 15),
 		ActiveChip: wt.ActiveChip,
 		HitPoints:  wt.EntryHistory.EventTransfersCost,

@@ -130,10 +130,15 @@ func (t *Tracker) Track() {
 		log.Println("tracker:", err)
 	}
 
-	err = t.Ms.UpdateInfos()
+	err = t.Ms.AddNew()
 	if err != nil {
 		log.Println("tracker:", err)
 	}
+
+	// err = t.Ms.UpdateInfos()
+	// if err != nil {
+	// 	log.Println("tracker:", err)
+	// }
 
 	err = t.Ms.UpdateTeams()
 	if err != nil {
@@ -159,8 +164,10 @@ func (t *Tracker) Track() {
 		}
 
 		if currentGw.Finished { // before gameweek starts / after gameweek is finished
+			log.Println("tracker: gameweek finished")
 			timeToUpdateManagersTeams = true
 			if timeToUpdateManagersInfos {
+				log.Println("tracker: gameweek finished, time to update infos")
 				err = t.Ms.UpdateInfos() // once per gameweek
 				if err != nil {
 					log.Println("tracker:", err)
@@ -178,8 +185,10 @@ func (t *Tracker) Track() {
 
 			time.Sleep(1 * time.Hour)
 		} else { // gameweek is live
+			log.Println("tracker: gameweek is live")
 			timeToUpdateManagersInfos = true
 			if timeToUpdateManagersTeams {
+				log.Println("tracker: gameweek is live, time to update teams")
 				err = t.Ms.UpdateTeams() // once per gameweek
 				if err != nil {
 					log.Println("tracker:", err)
@@ -197,6 +206,7 @@ func (t *Tracker) Track() {
 			}
 
 			if len(fixtures) > 0 {
+				log.Println("tracker: gameweek is live, fixtures are live")
 				err = t.Ps.UpdateStats()
 				if err != nil {
 					log.Println("tracker:", err)
@@ -208,6 +218,7 @@ func (t *Tracker) Track() {
 				time.Sleep(1 * time.Minute)
 				continue
 			} else {
+				log.Println("sleep 5 minutes")
 				time.Sleep(5 * time.Minute)
 				continue
 			}

@@ -5,7 +5,6 @@ import (
 	"fpl-live-tracker/pkg/domain"
 	"fpl-live-tracker/pkg/services/gameweek"
 	"fpl-live-tracker/pkg/services/player"
-	"fpl-live-tracker/pkg/storage"
 	"fpl-live-tracker/pkg/wrapper"
 	"log"
 )
@@ -42,99 +41,104 @@ func NewManagerService(mr domain.ManagerRepository, ps player.PlayerService,
 		wr: wr,
 	}
 
-	// err := ms.UpdateInfos()
-	// if err != nil {
-	// 	log.Println("manager service: failed to init data", err)
-	// 	return nil, err
-	// }
-
 	return &ms, nil
 }
 
 //
 func (ms *managerService) AddNew() error {
-	log.Println("add new start")
-	fplManagers, err := ms.wr.GetManagersCount()
-	if err != nil {
-		return err
+	// fplManagers, err := ms.wr.GetManagersCount()
+	// if err != nil {
+	// 	return err
+	// }
+
+	// storageManagers, err := ms.mr.GetCount()
+	// if err != nil {
+	// 	return err
+	// }
+
+	fplManagers := 44
+	storageManagers := 4
+
+	if storageManagers == fplManagers {
+		// nothing to do here
+		return nil
 	}
 
-	storageManagers, err := ms.mr.GetCount()
-	if err != nil {
-		return err
+	var workersCount = 4
+	jobs := make(chan int, workersCount*2) // to send manager ID to worker
+	// results := make(chan int, numJobs) // to retrieve status of the operation on given job
+
+	for worker := 1; worker <= workersCount; worker++ {
+		go ms.workerAddNew(worker, jobs)
 	}
 
-	log.Println(fplManagers, storageManagers)
-
-	if fplManagers > storageManagers {
-		for id := storageManagers + 1; id <= fplManagers; id++ {
-			err := ms.updateManagersInfo(id)
-			if err != nil {
-				log.Println("manager service:", err)
-			}
-		}
+	for i := storageManagers + 1; i <= fplManagers; i++ {
+		jobs <- i
 	}
+	close(jobs)
 
-	log.Println("add new stop")
 	return nil
+
+	// if fplManagers > storageManagers {
+	// 	for id := storageManagers + 1; id <= fplManagers; id++ {
+	// 		err := ms.updateManagersInfo(id)
+	// 		if err != nil {
+	// 			log.Println("manager service:", err)
+	// 		}
+	// 	}
+	// }
 }
 
 //
 func (ms *managerService) UpdateInfos() error {
-	log.Println("update infos start")
-	storageManagers, err := ms.mr.GetCount()
-	if err != nil {
-		return err
-	}
+	// storageManagers, err := ms.mr.GetCount()
+	// if err != nil {
+	// 	return err
+	// }
 
-	for id := 1; id < storageManagers; id++ {
-		err := ms.updateManagersInfo(id)
-		if err != nil {
-			log.Println("manager service:", err)
-		}
-	}
+	// for id := 1; id < storageManagers; id++ {
+	// 	err := ms.updateManagersInfo(id)
+	// 	if err != nil {
+	// 		log.Println("manager service:", err)
+	// 	}
+	// }
 
-	log.Println("update infos stop")
 	return nil
 }
 
 //
 func (ms *managerService) UpdateTeams() error {
-	log.Println("update teams start")
-	storageManagers, err := ms.mr.GetCount()
-	if err != nil {
-		return err
-	}
+	// storageManagers, err := ms.mr.GetCount()
+	// if err != nil {
+	// 	return err
+	// }
 
-	for id := 1; id < storageManagers; id++ {
-		err := ms.updateManagersTeam(id)
-		if err != nil {
-			log.Println("manager service:", err)
-		}
-	}
+	// for id := 1; id < storageManagers; id++ {
+	// 	err := ms.updateManagersTeam(id)
+	// 	if err != nil {
+	// 		log.Println("manager service:", err)
+	// 	}
+	// }
 
-	log.Println("update teams stop")
 	return nil
 }
 
 //
 func (ms *managerService) UpdatePoints() error {
-	log.Println("update points start")
-	storageManagers, err := ms.mr.GetCount()
-	if err != nil {
-		return err
-	}
+	// storageManagers, err := ms.mr.GetCount()
+	// if err != nil {
+	// 	return err
+	// }
 
-	log.Println(storageManagers)
+	// log.Println(storageManagers)
 
-	for id := 1; id < storageManagers; id++ {
-		err := ms.updateManagersPoints(id)
-		if err != nil {
-			log.Println("manager service:", err)
-		}
-	}
+	// for id := 1; id < storageManagers; id++ {
+	// 	err := ms.updateManagersPoints(id)
+	// 	if err != nil {
+	// 		log.Println("manager service:", err)
+	// 	}
+	// }
 
-	log.Println("update points stop")
 	return nil
 }
 
@@ -206,100 +210,107 @@ func (ms *managerService) updateTeamPlayersStats(team *domain.Team) error {
 }
 
 //
-func (ms *managerService) updateManagersInfo(managerID int) error {
-	// log.Println("update info:", managerID)
-	wrapperManager, err := ms.wr.GetManager(managerID)
-	if err != nil {
-		log.Println("manager service:", err)
-		return err
+func (ms *managerService) workerAddNew(workerID int, jobs <-chan int) {
+	log.Println("starting worker", workerID)
+
+	for job := range jobs {
+		log.Printf("worker %d received job %d", workerID, job)
+		// TODO add actual code
 	}
 
-	manager := ms.convertToDomainManager(wrapperManager)
-	err = ms.mr.UpdateInfo(manager.ID, manager.Info)
-	if err == storage.ErrManagerNotFound {
-		err = ms.mr.Add(manager)
-		if err != nil {
-			log.Println("manager service:", err)
-			return err
-		}
-	} else if err != nil {
-		log.Println("manager service:", err)
-		return err
-	}
-
-	return nil
+	log.Println("stopping worker", workerID)
 }
 
 //
-func (ms *managerService) updateManagersTeam(managerID int) error {
-	// log.Println("update team:", managerID)
+// func (ms *managerService) updateManagersInfo(managerID int) error {
+// 	wrapperManager, err := ms.wr.GetManager(managerID)
+// 	if err != nil {
+// 		log.Println("manager service:", err)
+// 		return err
+// 	}
 
-	gameweek, err := ms.gs.GetCurrentGameweek()
-	if err != nil {
-		log.Println("manager service:", err)
-		return err
-	}
+// 	manager := ms.convertToDomainManager(wrapperManager)
+// 	err = ms.mr.UpdateInfo(manager.ID, manager.Info)
+// 	if err == storage.ErrManagerNotFound {
+// 		err = ms.mr.Add(manager)
+// 		if err != nil {
+// 			log.Println("manager service:", err)
+// 			return err
+// 		}
+// 	} else if err != nil {
+// 		log.Println("manager service:", err)
+// 		return err
+// 	}
 
-	manager, err := ms.GetByID(managerID)
-	if err != nil {
-		log.Println("manager service:", err)
-		return err
-	}
-
-	if manager.Team.GameweekID == gameweek.ID {
-		// log.Println("manager service: team already up-to-date")
-		return nil
-	}
-
-	wrapperTeam, err := ms.wr.GetManagersTeam(managerID, gameweek.ID)
-	if err != nil {
-		log.Println("manager service:", err)
-		return err
-	}
-
-	team, err := ms.convertToDomainTeam(wrapperTeam)
-	if err != nil {
-		log.Println("manager service:", err)
-		return err
-	}
-
-	err = ms.mr.UpdateTeam(managerID, team)
-	if err != nil {
-		log.Println("manager service:", err)
-		return err
-	}
-
-	return nil
-}
+// 	return nil
+// }
 
 //
-func (ms *managerService) updateManagersPoints(managerID int) error {
-	// log.Println("update points:", managerID)
+// func (ms *managerService) updateManagersTeam(managerID int) error {
+// 	gameweek, err := ms.gs.GetCurrentGameweek()
+// 	if err != nil {
+// 		log.Println("manager service:", err)
+// 		return err
+// 	}
 
-	manager, err := ms.mr.GetByID(managerID)
-	if err != nil {
-		return err
-	}
-	team := manager.Team
+// 	manager, err := ms.GetByID(managerID)
+// 	if err != nil {
+// 		log.Println("manager service:", err)
+// 		return err
+// 	}
 
-	err = ms.updateTeamPlayersStats(&team)
-	if err != nil {
-		return err
-	}
+// 	if manager.Team.GameweekID == gameweek.ID {
+// 		// log.Println("manager service: team already up-to-date")
+// 		return nil
+// 	}
 
-	totalPoints := calculateTotalPoints(&team)
-	subPoints := calculateSubPoints(&team)
+// 	wrapperTeam, err := ms.wr.GetManagersTeam(managerID, gameweek.ID)
+// 	if err != nil {
+// 		log.Println("manager service:", err)
+// 		return err
+// 	}
 
-	team.TotalPoints = totalPoints - team.HitPoints
-	team.TotalPointsAfterSubs = totalPoints + subPoints - team.HitPoints
+// 	team, err := ms.convertToDomainTeam(wrapperTeam)
+// 	if err != nil {
+// 		log.Println("manager service:", err)
+// 		return err
+// 	}
 
-	// log.Println(team.TotalPoints)
-	// log.Println(team.TotalPointsAfterSubs)
+// 	err = ms.mr.UpdateTeam(managerID, team)
+// 	if err != nil {
+// 		log.Println("manager service:", err)
+// 		return err
+// 	}
 
-	err = ms.mr.UpdateTeam(manager.ID, team)
-	if err != nil {
-		return err
-	}
+// 	return nil
+// }
 
-	return nil
-}
+//
+// func (ms *managerService) updateManagersPoints(managerID int) error {
+// 	manager, err := ms.mr.GetByID(managerID)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	team := manager.Team
+
+// 	err = ms.updateTeamPlayersStats(&team)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	totalPoints := calculateTotalPoints(&team)
+// 	subPoints := calculateSubPoints(&team)
+
+// 	team.TotalPoints = totalPoints - team.HitPoints
+// 	team.TotalPointsAfterSubs = totalPoints + subPoints - team.HitPoints
+
+// 	// log.Println(team.TotalPoints)
+// 	// log.Println(team.TotalPointsAfterSubs)
+
+// 	err = ms.mr.UpdateTeam(manager.ID, team)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	return nil
+// }

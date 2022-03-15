@@ -8,7 +8,6 @@ import (
 	"fpl-live-tracker/pkg/services/manager"
 	"fpl-live-tracker/pkg/services/player"
 	"log"
-	"time"
 )
 
 type TrackerConfigFunc func(t *Tracker) error
@@ -93,6 +92,11 @@ func WithManagerService(ms manager.ManagerService) TrackerConfigFunc {
 // Track is responsible for keeping all the data from FPL up-to-date.
 // Should be run as a goroutine.
 func (t *Tracker) Track() {
+	err := t.Ms.AddNew()
+	if err != nil {
+		log.Println("tracker:", err)
+	}
+
 	/*
 		schedule
 		update gameweeks data on loop
@@ -110,118 +114,118 @@ func (t *Tracker) Track() {
 	*/
 
 	// initial updates, in case the app had to be restarted during the gameweek
-	err := t.Gs.Update()
-	if err != nil {
-		log.Println("tracker:", err)
-	}
-
-	err = t.Fs.Update()
-	if err != nil {
-		log.Println("tracker:", err)
-	}
-
-	err = t.Ps.UpdateInfos()
-	if err != nil {
-		log.Println("tracker:", err)
-	}
-
-	err = t.Ps.UpdateStats()
-	if err != nil {
-		log.Println("tracker:", err)
-	}
-
-	err = t.Ms.AddNew()
-	if err != nil {
-		log.Println("tracker:", err)
-	}
-
-	// err = t.Ms.UpdateInfos()
+	// err := t.Gs.Update()
 	// if err != nil {
 	// 	log.Println("tracker:", err)
 	// }
 
-	err = t.Ms.UpdateTeams()
-	if err != nil {
-		log.Println("tracker:", err)
-	}
+	// err = t.Fs.Update()
+	// if err != nil {
+	// 	log.Println("tracker:", err)
+	// }
 
-	err = t.Ms.UpdatePoints()
-	if err != nil {
-		log.Println("tracker:", err)
-	}
+	// err = t.Ps.UpdateInfos()
+	// if err != nil {
+	// 	log.Println("tracker:", err)
+	// }
 
-	var timeToUpdateManagersInfos bool
-	var timeToUpdateManagersTeams bool
+	// err = t.Ps.UpdateStats()
+	// if err != nil {
+	// 	log.Println("tracker:", err)
+	// }
 
-	for {
-		err = t.Gs.Update()
-		if err != nil {
-			log.Println("tracker:", err)
-		}
-		currentGw, err := t.Gs.GetCurrentGameweek()
-		if err != nil {
-			log.Println("tracker:", err)
-		}
+	// err = t.Ms.AddNew()
+	// if err != nil {
+	// 	log.Println("tracker:", err)
+	// }
 
-		if currentGw.Finished { // before gameweek starts / after gameweek is finished
-			log.Println("tracker: gameweek finished")
-			timeToUpdateManagersTeams = true
-			if timeToUpdateManagersInfos {
-				log.Println("tracker: gameweek finished, time to update infos")
-				err = t.Ms.UpdateInfos() // once per gameweek
-				if err != nil {
-					log.Println("tracker:", err)
-				}
-				timeToUpdateManagersInfos = false
-			}
-			err = t.Ms.AddNew() // many times between gameweeks
-			if err != nil {
-				log.Println("tracker:", err)
-			}
-			err = t.Ps.UpdateInfos() // many times between gameweeks
-			if err != nil {
-				log.Println("tracker:", err)
-			}
+	// // err = t.Ms.UpdateInfos()
+	// // if err != nil {
+	// // 	log.Println("tracker:", err)
+	// // }
 
-			time.Sleep(1 * time.Hour)
-		} else { // gameweek is live
-			log.Println("tracker: gameweek is live")
-			timeToUpdateManagersInfos = true
-			if timeToUpdateManagersTeams {
-				log.Println("tracker: gameweek is live, time to update teams")
-				err = t.Ms.UpdateTeams() // once per gameweek
-				if err != nil {
-					log.Println("tracker:", err)
-				}
-				timeToUpdateManagersTeams = false
-			}
-			err = t.Fs.Update() //many times between gameweeks
-			if err != nil {
-				log.Println("tracker:", err)
-			}
+	// err = t.Ms.UpdateTeams()
+	// if err != nil {
+	// 	log.Println("tracker:", err)
+	// }
 
-			fixtures, err := t.Fs.GetLiveFixtures(currentGw.ID)
-			if err != nil {
-				log.Println("tracker:", err)
-			}
+	// err = t.Ms.UpdatePoints()
+	// if err != nil {
+	// 	log.Println("tracker:", err)
+	// }
 
-			if len(fixtures) > 0 {
-				log.Println("tracker: gameweek is live, fixtures are live")
-				err = t.Ps.UpdateStats()
-				if err != nil {
-					log.Println("tracker:", err)
-				}
-				err = t.Ms.UpdatePoints()
-				if err != nil {
-					log.Println("tracker:", err)
-				}
-				time.Sleep(1 * time.Minute)
-				continue
-			} else {
-				log.Println("sleep 5 minutes")
-				time.Sleep(5 * time.Minute)
-				continue
-			}
-		}
-	}
+	// var timeToUpdateManagersInfos bool
+	// var timeToUpdateManagersTeams bool
+
+	// for {
+	// 	err = t.Gs.Update()
+	// 	if err != nil {
+	// 		log.Println("tracker:", err)
+	// 	}
+	// 	currentGw, err := t.Gs.GetCurrentGameweek()
+	// 	if err != nil {
+	// 		log.Println("tracker:", err)
+	// 	}
+
+	// 	if currentGw.Finished { // before gameweek starts / after gameweek is finished
+	// 		log.Println("tracker: gameweek finished")
+	// 		timeToUpdateManagersTeams = true
+	// 		if timeToUpdateManagersInfos {
+	// 			log.Println("tracker: gameweek finished, time to update infos")
+	// 			err = t.Ms.UpdateInfos() // once per gameweek
+	// 			if err != nil {
+	// 				log.Println("tracker:", err)
+	// 			}
+	// 			timeToUpdateManagersInfos = false
+	// 		}
+	// 		err = t.Ms.AddNew() // many times between gameweeks
+	// 		if err != nil {
+	// 			log.Println("tracker:", err)
+	// 		}
+	// 		err = t.Ps.UpdateInfos() // many times between gameweeks
+	// 		if err != nil {
+	// 			log.Println("tracker:", err)
+	// 		}
+
+	// 		time.Sleep(1 * time.Hour)
+	// 	} else { // gameweek is live
+	// 		log.Println("tracker: gameweek is live")
+	// 		timeToUpdateManagersInfos = true
+	// 		if timeToUpdateManagersTeams {
+	// 			log.Println("tracker: gameweek is live, time to update teams")
+	// 			err = t.Ms.UpdateTeams() // once per gameweek
+	// 			if err != nil {
+	// 				log.Println("tracker:", err)
+	// 			}
+	// 			timeToUpdateManagersTeams = false
+	// 		}
+	// 		err = t.Fs.Update() //many times between gameweeks
+	// 		if err != nil {
+	// 			log.Println("tracker:", err)
+	// 		}
+
+	// 		fixtures, err := t.Fs.GetLiveFixtures(currentGw.ID)
+	// 		if err != nil {
+	// 			log.Println("tracker:", err)
+	// 		}
+
+	// 		if len(fixtures) > 0 {
+	// 			log.Println("tracker: gameweek is live, fixtures are live")
+	// 			err = t.Ps.UpdateStats()
+	// 			if err != nil {
+	// 				log.Println("tracker:", err)
+	// 			}
+	// 			err = t.Ms.UpdatePoints()
+	// 			if err != nil {
+	// 				log.Println("tracker:", err)
+	// 			}
+	// 			time.Sleep(1 * time.Minute)
+	// 			continue
+	// 		} else {
+	// 			log.Println("sleep 5 minutes")
+	// 			time.Sleep(5 * time.Minute)
+	// 			continue
+	// 		}
+	// 	}
+	// }
 }

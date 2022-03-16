@@ -165,7 +165,7 @@ func (w *wrapper) fetchData(url string, data interface{}) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		err := errorHttpNotOk{
+		err := ErrorHttpNotOk{
 			statusCode: resp.StatusCode,
 		}
 

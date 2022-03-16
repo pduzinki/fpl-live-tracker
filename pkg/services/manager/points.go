@@ -37,18 +37,18 @@ func calculateTotalPoints(team *domain.Team) int {
 func calculateSubPoints(team *domain.Team) int {
 	subPoints := 0
 
-	// clear sub flags
-	for i := 0; i < 15; i++ {
-		team.Picks[i].SubIn = false
-		// team.Picks[i].SubOut = false
-	}
-
 	if len(team.Picks) == 0 {
 		log.Println("calculateSubPoints: team has no players!")
 		return subPoints
 	}
 	if team.ActiveChip == "bboost" {
 		return subPoints
+	}
+
+	// clear sub flags
+	for i := 0; i < 15; i++ {
+		team.Picks[i].SubIn = false
+		// team.Picks[i].SubOut = false
 	}
 
 	liveFormation := getLiveFormation(team)

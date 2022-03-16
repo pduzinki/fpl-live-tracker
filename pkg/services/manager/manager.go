@@ -1,12 +1,15 @@
 package manager
 
 import (
+	"errors"
 	"fmt"
 	"fpl-live-tracker/pkg/domain"
 	"fpl-live-tracker/pkg/services/gameweek"
 	"fpl-live-tracker/pkg/services/player"
+	"fpl-live-tracker/pkg/storage"
 	"fpl-live-tracker/pkg/wrapper"
 	"log"
+	"net/http"
 )
 
 const tripleCaptainActive = "3xc"
@@ -46,36 +49,38 @@ func NewManagerService(mr domain.ManagerRepository, ps player.PlayerService,
 
 //
 func (ms *managerService) AddNew() error {
-	// fplManagers, err := ms.wr.GetManagersCount()
-	// if err != nil {
-	// 	return err
-	// }
+	fplManagers, err := ms.wr.GetManagersCount()
+	if err != nil {
+		return err
+	}
 
-	// storageManagers, err := ms.mr.GetCount()
-	// if err != nil {
-	// 	return err
-	// }
+	storageManagers, err := ms.mr.GetCount()
+	if err != nil {
+		return err
+	}
 
-	fplManagers := 44
-	storageManagers := 4
+	log.Printf("fpl managers: %d	storage managers: %d\n", fplManagers, storageManagers)
+	// fplManagers = 44
+	// storageManagers = 4
 
 	if storageManagers == fplManagers {
 		// nothing to do here
 		return nil
 	}
 
-	var workersCount = 4
-	jobs := make(chan int, workersCount*2) // to send manager ID to worker
+	var workersCount = 64
+	managerIDs := make(chan int, workersCount*2) // to send manager ID to worker
 	// results := make(chan int, numJobs) // to retrieve status of the operation on given job
 
 	for worker := 1; worker <= workersCount; worker++ {
-		go ms.workerAddNew(worker, jobs)
+		go ms.workerAddNew(worker, managerIDs)
+
 	}
 
 	for i := storageManagers + 1; i <= fplManagers; i++ {
-		jobs <- i
+		managerIDs <- i
 	}
-	close(jobs)
+	close(managerIDs)
 
 	return nil
 
@@ -210,15 +215,50 @@ func (ms *managerService) updateTeamPlayersStats(team *domain.Team) error {
 }
 
 //
-func (ms *managerService) workerAddNew(workerID int, jobs <-chan int) {
-	log.Println("starting worker", workerID)
+func (ms *managerService) workerAddNew(workerID int, managerIDs chan int) {
+	for managerID := range managerIDs {
+		wrapperManager, err := ms.wr.GetManager(managerID)
+		var herr *wrapper.ErrorHttpNotOk
+		if errors.As(err, &herr) {
+			switch herr.GetHttpStatusCode() {
+			case http.StatusTooManyRequests:
+				log.Printf("worker %d, 429\n", workerID)
+				managerIDs <- managerID
+				// TODO add sleep
 
-	for job := range jobs {
-		log.Printf("worker %d received job %d", workerID, job)
-		// TODO add actual code
+			case http.StatusServiceUnavailable:
+				log.Printf("worker %d, 503\n", workerID)
+				managerIDs <- managerID
+				// TODO add sleep
+
+			case http.StatusNotFound:
+				log.Printf("worker %d, 404\n", workerID)
+				// TODO perhaps add manager with name "not found"
+			default:
+				log.Println("other http error")
+				managerIDs <- managerID
+				// TODO add sleep
+			}
+		} else if err != nil {
+			log.Println("other err", err)
+			managerIDs <- managerID
+			// TODO add sleep
+		}
+
+		manager := ms.convertToDomainManager(wrapperManager)
+		err = ms.mr.UpdateInfo(manager.ID, manager.Info)
+		if err == storage.ErrManagerNotFound {
+			err = ms.mr.Add(manager)
+			if err != nil {
+				log.Println("manager service:", err)
+				// return err
+			}
+		} else if err != nil {
+			log.Println("manager service:", err)
+			// return err
+		}
+
 	}
-
-	log.Println("stopping worker", workerID)
 }
 
 //

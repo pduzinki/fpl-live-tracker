@@ -98,6 +98,15 @@ func (ms *managerService) AddNew() error {
 
 	log.Println("add new done")
 	return nil
+
+	// if fplManagers > storageManagers {
+	// 	for id := storageManagers + 1; id <= fplManagers; id++ {
+	// 		err := ms.updateManagersInfo(id)
+	// 		if err != nil {
+	// 			log.Println("manager service:", err)
+	// 		}
+	// 	}
+	// }
 }
 
 //

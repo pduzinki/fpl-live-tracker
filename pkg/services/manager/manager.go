@@ -8,15 +8,19 @@ import (
 	"fpl-live-tracker/pkg/services/player"
 	"fpl-live-tracker/pkg/wrapper"
 	"log"
+	"math/rand"
 	"net/http"
+	"time"
 )
 
 const tripleCaptainActive = "3xc"
 const benchBoostActive = "bboost"
 
-// TODO remove later, and add support for handling more than a few managers
-// var IDs []int = []int{1239, 445331, 1056968, 2037831}
-// var myID = 1239
+var sleeps = []time.Duration{
+	10 * time.Second,
+	1 * time.Minute,
+	5 * time.Minute,
+}
 
 type ManagerService interface {
 	AddNew() error
@@ -52,61 +56,53 @@ func (ms *managerService) AddNew() error {
 	if err != nil {
 		return err
 	}
-
 	storageManagers, err := ms.mr.GetCount()
 	if err != nil {
 		return err
 	}
-
 	log.Printf("fpl managers: %d	storage managers: %d\n", fplManagers, storageManagers)
-	fplManagers = 42
-	storageManagers = 4
 
 	if storageManagers == fplManagers {
 		return nil
 	}
 
-	var workersCount = 4
-	managerIDs := make(chan int, workersCount*2)                  // to send manager ID to worker
-	wrapperManagers := make(chan wrapper.Manager, workersCount*2) // to receive wrapper.Manager objects
+	var workersCount = 128
+	managerIDs := make(chan int, workersCount*2)          // to send manager IDs to worker
+	managers := make(chan domain.Manager, workersCount*2) // to receive domain.Manager objects
 
 	for worker := 1; worker <= workersCount; worker++ {
-		go ms.workerAddNew(worker, managerIDs, wrapperManagers)
+		go ms.workerAddNew(worker, managerIDs, managers)
 	}
 
-	batchSize := 16
+	batchSize := 1024
 	for fplManagers > storageManagers {
 		if fplManagers-storageManagers < batchSize {
 			batchSize = fplManagers - storageManagers
 		}
 
-		for i := storageManagers + 1; i <= batchSize+storageManagers; i++ {
-			managerIDs <- i
+		go func() {
+			for i := storageManagers + 1; i <= batchSize+storageManagers; i++ {
+				managerIDs <- i
+			}
+		}()
+
+		mgrs := make([]domain.Manager, 0, batchSize)
+		for len(mgrs) != batchSize {
+			mgrs = append(mgrs, <-managers)
 		}
 
-		managers := make([]wrapper.Manager, 0, batchSize)
-		for len(managers) != batchSize {
-			managers = append(managers, <-wrapperManagers)
+		err := ms.mr.AddMany(mgrs)
+		if err != nil {
+			log.Println("shit", err)
 		}
-
-		// TODO actually add managers to storage here
-		log.Println("managers added:", batchSize)
 
 		storageManagers += batchSize
+		log.Printf("managers added: %d, managers in storage: %d", batchSize, storageManagers)
 	}
 	close(managerIDs)
 
 	log.Println("add new done")
 	return nil
-
-	// if fplManagers > storageManagers {
-	// 	for id := storageManagers + 1; id <= fplManagers; id++ {
-	// 		err := ms.updateManagersInfo(id)
-	// 		if err != nil {
-	// 			log.Println("manager service:", err)
-	// 		}
-	// 	}
-	// }
 }
 
 //
@@ -230,21 +226,22 @@ func (ms *managerService) updateTeamPlayersStats(team *domain.Team) error {
 }
 
 //
-func (ms *managerService) workerAddNew(workerID int, managerIDs chan int, wrapperManagers chan wrapper.Manager) {
+func (ms *managerService) workerAddNew(workerID int, managerIDs chan int, managers chan domain.Manager) {
 	for managerID := range managerIDs {
 		wrapperManager, err := ms.wr.GetManager(managerID)
 		var herr *wrapper.ErrorHttpNotOk
 		if errors.As(err, &herr) {
-			switch herr.GetHttpStatusCode() {
+			statusCode := herr.GetHttpStatusCode()
+			switch statusCode {
 			case http.StatusTooManyRequests:
 				log.Printf("worker %d, 429\n", workerID)
 				managerIDs <- managerID
-				// TODO add sleep
+				time.Sleep(sleeps[rand.Intn(len(sleeps))])
 				continue
 			case http.StatusServiceUnavailable:
 				log.Printf("worker %d, 503\n", workerID)
 				managerIDs <- managerID
-				// TODO add sleep
+				time.Sleep(sleeps[len(sleeps)-1])
 				continue
 			case http.StatusNotFound:
 				log.Printf("worker %d, 404\n", workerID)
@@ -255,20 +252,20 @@ func (ms *managerService) workerAddNew(workerID int, managerIDs chan int, wrappe
 					Name:      "Not found",
 				}
 			default:
-				log.Println("other http error")
+				log.Println("other http error", statusCode)
 				managerIDs <- managerID
-				// TODO add sleep
+				time.Sleep(sleeps[len(sleeps)-1])
 				continue
 			}
 		} else if err != nil {
 			log.Println("other err", err)
 			managerIDs <- managerID
-			// TODO add sleep
+			time.Sleep(sleeps[len(sleeps)-1])
 			continue
 		}
 
-		wrapperManagers <- wrapperManager
-		log.Printf("ok %d\n", wrapperManager.ID)
+		domainManager := ms.convertToDomainManager(wrapperManager)
+		managers <- domainManager
 	}
 	log.Println("worker done")
 }

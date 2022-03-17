@@ -6,7 +6,6 @@ import (
 	"fpl-live-tracker/pkg/domain"
 	"fpl-live-tracker/pkg/services/gameweek"
 	"fpl-live-tracker/pkg/services/player"
-	"fpl-live-tracker/pkg/storage"
 	"fpl-live-tracker/pkg/wrapper"
 	"log"
 	"net/http"
@@ -60,38 +59,45 @@ func (ms *managerService) AddNew() error {
 	}
 
 	log.Printf("fpl managers: %d	storage managers: %d\n", fplManagers, storageManagers)
-	// fplManagers = 44
-	// storageManagers = 4
+	fplManagers = 42
+	storageManagers = 4
 
 	if storageManagers == fplManagers {
-		// nothing to do here
 		return nil
 	}
 
-	var workersCount = 64
-	managerIDs := make(chan int, workersCount*2) // to send manager ID to worker
-	// results := make(chan int, numJobs) // to retrieve status of the operation on given job
+	var workersCount = 4
+	managerIDs := make(chan int, workersCount*2)                  // to send manager ID to worker
+	wrapperManagers := make(chan wrapper.Manager, workersCount*2) // to receive wrapper.Manager objects
 
 	for worker := 1; worker <= workersCount; worker++ {
-		go ms.workerAddNew(worker, managerIDs)
-
+		go ms.workerAddNew(worker, managerIDs, wrapperManagers)
 	}
 
-	for i := storageManagers + 1; i <= fplManagers; i++ {
-		managerIDs <- i
+	batchSize := 16
+	for fplManagers > storageManagers {
+		if fplManagers-storageManagers < batchSize {
+			batchSize = fplManagers - storageManagers
+		}
+
+		for i := storageManagers + 1; i <= batchSize+storageManagers; i++ {
+			managerIDs <- i
+		}
+
+		managers := make([]wrapper.Manager, 0, batchSize)
+		for len(managers) != batchSize {
+			managers = append(managers, <-wrapperManagers)
+		}
+
+		// TODO actually add managers to storage here
+		log.Println("managers added:", batchSize)
+
+		storageManagers += batchSize
 	}
 	close(managerIDs)
 
+	log.Println("add new done")
 	return nil
-
-	// if fplManagers > storageManagers {
-	// 	for id := storageManagers + 1; id <= fplManagers; id++ {
-	// 		err := ms.updateManagersInfo(id)
-	// 		if err != nil {
-	// 			log.Println("manager service:", err)
-	// 		}
-	// 	}
-	// }
 }
 
 //
@@ -215,7 +221,7 @@ func (ms *managerService) updateTeamPlayersStats(team *domain.Team) error {
 }
 
 //
-func (ms *managerService) workerAddNew(workerID int, managerIDs chan int) {
+func (ms *managerService) workerAddNew(workerID int, managerIDs chan int, wrapperManagers chan wrapper.Manager) {
 	for managerID := range managerIDs {
 		wrapperManager, err := ms.wr.GetManager(managerID)
 		var herr *wrapper.ErrorHttpNotOk
@@ -225,40 +231,37 @@ func (ms *managerService) workerAddNew(workerID int, managerIDs chan int) {
 				log.Printf("worker %d, 429\n", workerID)
 				managerIDs <- managerID
 				// TODO add sleep
-
+				continue
 			case http.StatusServiceUnavailable:
 				log.Printf("worker %d, 503\n", workerID)
 				managerIDs <- managerID
 				// TODO add sleep
-
+				continue
 			case http.StatusNotFound:
 				log.Printf("worker %d, 404\n", workerID)
-				// TODO perhaps add manager with name "not found"
+				wrapperManager = wrapper.Manager{
+					ID:        managerID,
+					FirstName: "Not found",
+					LastName:  "Not found",
+					Name:      "Not found",
+				}
 			default:
 				log.Println("other http error")
 				managerIDs <- managerID
 				// TODO add sleep
+				continue
 			}
 		} else if err != nil {
 			log.Println("other err", err)
 			managerIDs <- managerID
 			// TODO add sleep
+			continue
 		}
 
-		manager := ms.convertToDomainManager(wrapperManager)
-		err = ms.mr.UpdateInfo(manager.ID, manager.Info)
-		if err == storage.ErrManagerNotFound {
-			err = ms.mr.Add(manager)
-			if err != nil {
-				log.Println("manager service:", err)
-				// return err
-			}
-		} else if err != nil {
-			log.Println("manager service:", err)
-			// return err
-		}
-
+		wrapperManagers <- wrapperManager
+		log.Printf("ok %d\n", wrapperManager.ID)
 	}
+	log.Println("worker done")
 }
 
 //

@@ -51,6 +51,7 @@ func NewManagerService(mr domain.ManagerRepository, ps player.PlayerService,
 
 //
 func (ms *managerService) AddNew() error {
+	log.Println("add new start")
 	fplManagers, err := ms.wr.GetManagersCount()
 	if err != nil {
 		return err
@@ -62,6 +63,7 @@ func (ms *managerService) AddNew() error {
 	log.Printf("fpl managers: %d	storage managers: %d\n", fplManagers, storageManagers)
 
 	if storageManagers == fplManagers {
+		log.Println("nobody new to add")
 		return nil
 	}
 
@@ -125,6 +127,7 @@ func (ms *managerService) AddNew() error {
 
 //
 func (ms *managerService) UpdateInfos() error {
+	log.Println("update infos start")
 	updatedManagers := 0
 	storageManagers, err := ms.mr.GetCount()
 	if err != nil {
@@ -156,7 +159,11 @@ func (ms *managerService) UpdateInfos() error {
 		}
 	}()
 
-	for updatedManagers != storageManagers {
+	for updatedManagers < storageManagers {
+		if storageManagers-updatedManagers < batchSize {
+			batchSize = storageManagers - updatedManagers
+		}
+
 		go func() {
 			for i := updatedManagers + 1; i <= batchSize+updatedManagers; i++ {
 				managerIDs <- i
@@ -186,37 +193,122 @@ func (ms *managerService) UpdateInfos() error {
 
 //
 func (ms *managerService) UpdateTeams() error {
-	// storageManagers, err := ms.mr.GetCount()
-	// if err != nil {
-	// 	return err
-	// }
+	log.Println("update teams start")
+	updatedManagers := 0
+	storageManagers, err := ms.mr.GetCount()
+	if err != nil {
+		return err
+	}
 
-	// for id := 1; id < storageManagers; id++ {
-	// 	err := ms.updateManagersTeam(id)
-	// 	if err != nil {
-	// 		log.Println("manager service:", err)
-	// 	}
-	// }
+	var workersCount = 128
+	batchSize := 1024
+	managerIDs := make(chan int, batchSize)          // to send manager IDs to worker
+	managers := make(chan domain.Manager, batchSize) // to receive domain.Manager objects
 
+	gw, _ := ms.gs.GetCurrentGameweek()
+
+	for worker := 1; worker <= workersCount; worker++ {
+		go ms.workerGetManagerTeam(worker, managerIDs, managers, gw.ID)
+	}
+
+	ticker := time.NewTicker(1 * time.Minute)
+	defer ticker.Stop()
+	tickerDone := make(chan bool)
+	go func() {
+		for {
+			select {
+			case <-tickerDone:
+				return
+			case <-ticker.C:
+
+				log.Printf("updated managers: %v. coverage: %.2f%%\n",
+					updatedManagers, 100*float64(updatedManagers)/float64(storageManagers))
+			}
+		}
+	}()
+
+	for updatedManagers < storageManagers {
+		if storageManagers-updatedManagers < batchSize {
+			batchSize = storageManagers - updatedManagers
+		}
+
+		go func() {
+			for i := updatedManagers + 1; i <= batchSize+updatedManagers; i++ {
+				managerIDs <- i
+			}
+		}()
+
+		mgrs := make([]domain.Manager, 0, batchSize)
+		for len(mgrs) != batchSize {
+			mgrs = append(mgrs, <-managers)
+		}
+
+		for _, mgr := range mgrs {
+			err := ms.mr.UpdateTeam(mgr.ID, mgr.Team)
+			if err != nil {
+				log.Println("shiet2")
+			}
+		}
+		updatedManagers += batchSize
+	}
+	close(managerIDs)
+	tickerDone <- true
+
+	log.Println("update teams done")
 	return nil
 }
 
 //
 func (ms *managerService) UpdatePoints() error {
-	// storageManagers, err := ms.mr.GetCount()
-	// if err != nil {
-	// 	return err
-	// }
+	log.Println("update points start")
+	updatedManagers := 0
+	storageManagers, err := ms.mr.GetCount()
+	if err != nil {
+		return err
+	}
 
-	// log.Println(storageManagers)
+	var workersCount = 128
+	batchSize := 1024
+	managerIDs := make(chan int, batchSize) // to send manager IDs to worker
+	// managers := make(chan domain.Manager, batchSize) // to receive domain.Manager objects
 
-	// for id := 1; id < storageManagers; id++ {
-	// 	err := ms.updateManagersPoints(id)
-	// 	if err != nil {
-	// 		log.Println("manager service:", err)
-	// 	}
-	// }
+	for worker := 1; worker <= workersCount; worker++ {
+		go ms.workerUpdatePoints(worker, managerIDs)
+	}
 
+	ticker := time.NewTicker(1 * time.Minute)
+	defer ticker.Stop()
+	tickerDone := make(chan bool)
+	go func() {
+		for {
+			select {
+			case <-tickerDone:
+				return
+			case <-ticker.C:
+
+				log.Printf("updated managers points: %v. coverage: %.2f%%\n",
+					updatedManagers, 100*float64(updatedManagers)/float64(storageManagers))
+			}
+		}
+	}()
+
+	for updatedManagers < storageManagers {
+		if storageManagers-updatedManagers < batchSize {
+			batchSize = storageManagers - updatedManagers
+		}
+
+		// go func() {
+		for i := updatedManagers + 1; i <= batchSize+updatedManagers; i++ {
+			managerIDs <- i
+		}
+		// }()
+
+		updatedManagers += batchSize
+	}
+	close(managerIDs)
+	tickerDone <- true
+
+	log.Println("update points done")
 	return nil
 }
 
@@ -326,11 +418,73 @@ func (ms *managerService) workerGetManagerInfo(workerID int, managerIDs chan int
 }
 
 //
-func (ms *managerService) workerUpdateTeams(workerID int) {
+func (ms *managerService) workerGetManagerTeam(workerID int, managerIDs chan int, managers chan domain.Manager, gw int) {
+	for managerID := range managerIDs {
+		wrapperTeam, err := ms.wr.GetManagersTeam(managerID, gw)
+		if herr, ok := err.(wrapper.ErrorHttpNotOk); ok {
+			statusCode := herr.GetHttpStatusCode()
+			switch statusCode {
+			case http.StatusTooManyRequests:
+				managerIDs <- managerID
+				time.Sleep(sleeps[rand.Intn(len(sleeps))])
+				continue
+			case http.StatusServiceUnavailable:
+				managerIDs <- managerID
+				time.Sleep(sleeps[len(sleeps)-1])
+				continue
+			case http.StatusNotFound:
+
+			default:
+				managerIDs <- managerID
+				time.Sleep(sleeps[len(sleeps)-1])
+				continue
+			}
+		} else if err != nil {
+			managerIDs <- managerID
+			time.Sleep(sleeps[len(sleeps)-1])
+			continue
+		}
+
+		domainTeam, _ := ms.convertToDomainTeam(wrapperTeam)
+		managers <- domain.Manager{
+			ID:   managerID,
+			Team: domainTeam,
+		}
+	}
 }
 
 //
-func (ms *managerService) workerUpdatePoints(workerID int) {
+func (ms *managerService) workerUpdatePoints(workerID int, managerIDs chan int) {
+	for managerID := range managerIDs {
+
+		manager, err := ms.mr.GetByID(managerID)
+		if err != nil {
+			log.Println("1")
+			// return err
+		}
+		team := manager.Team
+
+		err = ms.updateTeamPlayersStats(&team)
+		if err != nil {
+			log.Println("2")
+			// return err
+		}
+
+		totalPoints := calculateTotalPoints(&team)
+		subPoints := calculateSubPoints(&team)
+
+		team.TotalPoints = totalPoints - team.HitPoints
+		team.TotalPointsAfterSubs = totalPoints + subPoints - team.HitPoints
+
+		// log.Println(team.TotalPoints)
+		// log.Println(team.TotalPointsAfterSubs)
+
+		err = ms.mr.UpdateTeam(manager.ID, team)
+		if err != nil {
+			log.Println("3")
+			// return err
+		}
+	}
 }
 
 //

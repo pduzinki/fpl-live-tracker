@@ -97,6 +97,12 @@ func (t *Tracker) Track() {
 		log.Println("tracker:", err)
 	}
 
+	t.Ms.UpdateInfos()
+	t.Ms.UpdateTeams()
+
+	t.Ps.UpdateStats()
+	t.Ms.UpdatePoints()
+
 	/*
 		schedule
 		update gameweeks data on loop

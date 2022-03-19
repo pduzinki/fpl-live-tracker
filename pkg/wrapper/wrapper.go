@@ -118,6 +118,7 @@ func (w *wrapper) GetManagersCount() (int, error) {
 		return 0, err
 	}
 
+	return 5000, nil // TODO temporary cap number of handled managers
 	return bs.ManagersCount, nil
 }
 

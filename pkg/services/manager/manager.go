@@ -1,7 +1,6 @@
 package manager
 
 import (
-	"errors"
 	"fmt"
 	"fpl-live-tracker/pkg/domain"
 	"fpl-live-tracker/pkg/services/gameweek"
@@ -67,14 +66,33 @@ func (ms *managerService) AddNew() error {
 	}
 
 	var workersCount = 128
-	managerIDs := make(chan int, workersCount*2)          // to send manager IDs to worker
-	managers := make(chan domain.Manager, workersCount*2) // to receive domain.Manager objects
+	batchSize := 1024
+	managerIDs := make(chan int, batchSize)          // to send manager IDs to worker
+	managers := make(chan domain.Manager, batchSize) // to receive domain.Manager objects
 
 	for worker := 1; worker <= workersCount; worker++ {
-		go ms.workerAddNew(worker, managerIDs, managers)
+		go ms.workerGetManagerInfo(worker, managerIDs, managers)
 	}
 
-	batchSize := 1024
+	ticker := time.NewTicker(1 * time.Minute)
+	defer ticker.Stop()
+	tickerDone := make(chan bool)
+	go func() {
+		for {
+			select {
+			case <-tickerDone:
+				return
+			case <-ticker.C:
+				storageManagers, err := ms.mr.GetCount()
+				if err != nil {
+					continue
+				}
+				log.Printf("managers in the storage: %v. coverage: %.2f%%\n",
+					storageManagers, 100*float64(storageManagers)/float64(fplManagers))
+			}
+		}
+	}()
+
 	for fplManagers > storageManagers {
 		if fplManagers-storageManagers < batchSize {
 			batchSize = fplManagers - storageManagers
@@ -97,9 +115,9 @@ func (ms *managerService) AddNew() error {
 		}
 
 		storageManagers += batchSize
-		log.Printf("managers added: %d, managers in storage: %d", batchSize, storageManagers)
 	}
 	close(managerIDs)
+	tickerDone <- true
 
 	log.Println("add new done")
 	return nil
@@ -107,18 +125,62 @@ func (ms *managerService) AddNew() error {
 
 //
 func (ms *managerService) UpdateInfos() error {
-	// storageManagers, err := ms.mr.GetCount()
-	// if err != nil {
-	// 	return err
-	// }
+	updatedManagers := 0
+	storageManagers, err := ms.mr.GetCount()
+	if err != nil {
+		return err
+	}
 
-	// for id := 1; id < storageManagers; id++ {
-	// 	err := ms.updateManagersInfo(id)
-	// 	if err != nil {
-	// 		log.Println("manager service:", err)
-	// 	}
-	// }
+	var workersCount = 128
+	batchSize := 1024
+	managerIDs := make(chan int, batchSize)          // to send manager IDs to worker
+	managers := make(chan domain.Manager, batchSize) // to receive domain.Manager objects
 
+	for worker := 1; worker <= workersCount; worker++ {
+		go ms.workerGetManagerInfo(worker, managerIDs, managers)
+	}
+
+	ticker := time.NewTicker(1 * time.Minute)
+	defer ticker.Stop()
+	tickerDone := make(chan bool)
+	go func() {
+		for {
+			select {
+			case <-tickerDone:
+				return
+			case <-ticker.C:
+
+				log.Printf("updated managers: %v. coverage: %.2f%%\n",
+					updatedManagers, 100*float64(updatedManagers)/float64(storageManagers))
+			}
+		}
+	}()
+
+	for updatedManagers != storageManagers {
+		go func() {
+			for i := updatedManagers + 1; i <= batchSize+updatedManagers; i++ {
+				managerIDs <- i
+			}
+		}()
+
+		mgrs := make([]domain.Manager, 0, batchSize)
+		for len(mgrs) != batchSize {
+			mgrs = append(mgrs, <-managers)
+		}
+
+		for _, mgr := range mgrs {
+			err := ms.mr.UpdateInfo(mgr.ID, mgr.Info)
+			if err != nil {
+				log.Println("shiet")
+			}
+		}
+
+		updatedManagers += batchSize
+	}
+	close(managerIDs)
+	tickerDone <- true
+
+	log.Println("update infos done")
 	return nil
 }
 
@@ -226,25 +288,21 @@ func (ms *managerService) updateTeamPlayersStats(team *domain.Team) error {
 }
 
 //
-func (ms *managerService) workerAddNew(workerID int, managerIDs chan int, managers chan domain.Manager) {
+func (ms *managerService) workerGetManagerInfo(workerID int, managerIDs chan int, managers chan domain.Manager) {
 	for managerID := range managerIDs {
 		wrapperManager, err := ms.wr.GetManager(managerID)
-		var herr *wrapper.ErrorHttpNotOk
-		if errors.As(err, &herr) {
+		if herr, ok := err.(wrapper.ErrorHttpNotOk); ok {
 			statusCode := herr.GetHttpStatusCode()
 			switch statusCode {
 			case http.StatusTooManyRequests:
-				log.Printf("worker %d, 429\n", workerID)
 				managerIDs <- managerID
 				time.Sleep(sleeps[rand.Intn(len(sleeps))])
 				continue
 			case http.StatusServiceUnavailable:
-				log.Printf("worker %d, 503\n", workerID)
 				managerIDs <- managerID
 				time.Sleep(sleeps[len(sleeps)-1])
 				continue
 			case http.StatusNotFound:
-				log.Printf("worker %d, 404\n", workerID)
 				wrapperManager = wrapper.Manager{
 					ID:        managerID,
 					FirstName: "Not found",
@@ -252,13 +310,11 @@ func (ms *managerService) workerAddNew(workerID int, managerIDs chan int, manage
 					Name:      "Not found",
 				}
 			default:
-				log.Println("other http error", statusCode)
 				managerIDs <- managerID
 				time.Sleep(sleeps[len(sleeps)-1])
 				continue
 			}
 		} else if err != nil {
-			log.Println("other err", err)
 			managerIDs <- managerID
 			time.Sleep(sleeps[len(sleeps)-1])
 			continue
@@ -267,7 +323,14 @@ func (ms *managerService) workerAddNew(workerID int, managerIDs chan int, manage
 		domainManager := ms.convertToDomainManager(wrapperManager)
 		managers <- domainManager
 	}
-	log.Println("worker done")
+}
+
+//
+func (ms *managerService) workerUpdateTeams(workerID int) {
+}
+
+//
+func (ms *managerService) workerUpdatePoints(workerID int) {
 }
 
 //

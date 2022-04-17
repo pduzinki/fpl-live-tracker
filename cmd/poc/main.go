@@ -21,7 +21,7 @@ func worker(client *http.Client, managerIDs chan int, teams chan wrapper.Team, w
 
 		resp, err := client.Do(req)
 		if err != nil || resp.StatusCode != http.StatusOK {
-			fmt.Printf("!")
+			fmt.Println("err", err, "http code", resp.StatusCode)
 			teams <- wrapper.Team{}
 			wg.Done()
 			continue
@@ -58,22 +58,25 @@ func main() {
 
 	managerIDs := make(chan int, runtime.NumCPU()*4)
 	teams := make(chan wrapper.Team, runtime.NumCPU()*4)
-	var wg sync.WaitGroup
+	var workerWg sync.WaitGroup
+	var closureWg sync.WaitGroup
 
-	for i := 0; i <= runtime.NumCPU()*16; i++ {
-		go worker(&client, managerIDs, teams, &wg)
-		// go fastWorker(&fastClient, managerIDs, teams)
+	for i := 0; i <= runtime.NumCPU()*8; i++ {
+		go worker(&client, managerIDs, teams, &workerWg)
 	}
 
 	start := time.Now()
 
 	total := 2800
-	wg.Add(total)
+	workerWg.Add(total)
+	closureWg.Add(2)
 
 	go func() {
 		for id := 1; id <= total; id++ {
 			managerIDs <- id
 		}
+		closureWg.Done()
+		fmt.Println("closure 1 closing")
 	}()
 
 	tmp := make([]wrapper.Team, 0, total)
@@ -81,17 +84,18 @@ func main() {
 	go func() {
 		for team := range teams {
 			tmp = append(tmp, team)
-			// fmt.Println(len(tmp))
 		}
-		fmt.Println("closing")
+		closureWg.Done()
+		fmt.Println("closure 2 closing")
 	}()
 
-	wg.Wait()
-	fmt.Println("finished after:", time.Since(start))
+	workerWg.Wait()
+	fmt.Println("workers finished after:", time.Since(start))
 
 	close(teams)
 	close(managerIDs)
-	fmt.Println("closing channels")
+	fmt.Println("channels closed")
 
+	closureWg.Wait()
 	fmt.Println(len(tmp))
 }

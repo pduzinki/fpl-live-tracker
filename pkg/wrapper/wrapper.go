@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"runtime"
 	"time"
 )
 
@@ -30,9 +31,15 @@ type wrapper struct {
 
 // NewWrapper returns new instance of Wrapper.
 func NewWrapper() Wrapper {
+	t := http.DefaultTransport.(*http.Transport).Clone()
+	t.MaxIdleConns = runtime.NumCPU() * 16
+	t.MaxConnsPerHost = runtime.NumCPU() * 16
+	t.MaxIdleConnsPerHost = runtime.NumCPU() * 16
+
 	return &wrapper{
 		client: &http.Client{
-			Timeout: time.Second * 10,
+			Timeout:   time.Second * 10,
+			Transport: t,
 		},
 		baseURL: DefaultURL,
 	}

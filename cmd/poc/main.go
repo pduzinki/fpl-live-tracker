@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func worker(client *http.Client, ids <-chan int, failed chan<- int, teams chan wrapper.Team, wg *sync.WaitGroup) {
+func worker(client *http.Client, ids <-chan int, failed chan<- int, teams chan<- wrapper.Team, wg *sync.WaitGroup) {
 	for id := range ids {
 		url := fmt.Sprintf("https://fantasy.premierleague.com/api/entry/%d/event/33/picks/", id)
 
@@ -90,12 +90,12 @@ func main() {
 		fmt.Println("closure 2 closing")
 	}()
 
-	tmp := make([]wrapper.Team, 0, total)
+	teams := make([]wrapper.Team, 0, total)
 
 	innerWg.Add(1)
 	go func() {
 		for team := range received {
-			tmp = append(tmp, team)
+			teams = append(teams, team)
 		}
 		innerWg.Done()
 		fmt.Println("closure 3 closing")
@@ -110,5 +110,5 @@ func main() {
 	fmt.Println("channels closed")
 
 	innerWg.Wait()
-	fmt.Println(len(tmp))
+	fmt.Println(len(teams))
 }

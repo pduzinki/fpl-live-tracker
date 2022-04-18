@@ -12,8 +12,8 @@ import (
 	"time"
 )
 
-func worker(client *http.Client, managerIDs chan int, teams chan wrapper.Team, wg *sync.WaitGroup) {
-	for id := range managerIDs {
+func worker(client *http.Client, ids <-chan int, failed chan<- int, teams chan wrapper.Team, wg *sync.WaitGroup) {
+	for id := range ids {
 		url := fmt.Sprintf("https://fantasy.premierleague.com/api/entry/%d/event/33/picks/", id)
 
 		req, _ := http.NewRequest("GET", url, nil)
@@ -22,8 +22,9 @@ func worker(client *http.Client, managerIDs chan int, teams chan wrapper.Team, w
 		resp, err := client.Do(req)
 		if err != nil || resp.StatusCode != http.StatusOK {
 			fmt.Println("err", err, "http code", resp.StatusCode)
-			teams <- wrapper.Team{}
-			wg.Done()
+
+			failed <- id
+			time.Sleep(10 * time.Second)
 			continue
 		}
 
@@ -56,46 +57,58 @@ func main() {
 		Transport: t,
 	}
 
-	managerIDs := make(chan int, runtime.NumCPU()*4)
-	teams := make(chan wrapper.Team, runtime.NumCPU()*4)
+	ids := make(chan int, runtime.NumCPU()*4)
+	failed := make(chan int, runtime.NumCPU()*4)
+	received := make(chan wrapper.Team, runtime.NumCPU()*4)
 	var workerWg sync.WaitGroup
-	var closureWg sync.WaitGroup
+	var innerWg sync.WaitGroup
 
-	for i := 0; i <= runtime.NumCPU()*8; i++ {
-		go worker(&client, managerIDs, teams, &workerWg)
+	for i := 0; i <= runtime.NumCPU()*16; i++ {
+		go worker(&client, ids, failed, received, &workerWg)
 	}
 
 	start := time.Now()
 
 	total := 2800
 	workerWg.Add(total)
-	closureWg.Add(2)
 
+	innerWg.Add(1)
 	go func() {
 		for id := 1; id <= total; id++ {
-			managerIDs <- id
+			ids <- id
 		}
-		closureWg.Done()
+		innerWg.Done()
 		fmt.Println("closure 1 closing")
+	}()
+
+	innerWg.Add(1)
+	go func() {
+		for id := range failed {
+			ids <- id
+		}
+		innerWg.Done()
+		fmt.Println("closure 2 closing")
 	}()
 
 	tmp := make([]wrapper.Team, 0, total)
 
+	innerWg.Add(1)
 	go func() {
-		for team := range teams {
+		for team := range received {
 			tmp = append(tmp, team)
 		}
-		closureWg.Done()
-		fmt.Println("closure 2 closing")
+		innerWg.Done()
+		fmt.Println("closure 3 closing")
 	}()
 
 	workerWg.Wait()
 	fmt.Println("workers finished after:", time.Since(start))
 
-	close(teams)
-	close(managerIDs)
+	close(received)
+	close(ids)
+	close(failed)
 	fmt.Println("channels closed")
 
-	closureWg.Wait()
+	innerWg.Wait()
 	fmt.Println(len(tmp))
 }

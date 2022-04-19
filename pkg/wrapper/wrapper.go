@@ -117,15 +117,17 @@ func (w *wrapper) GetPlayersStats(gameweekID int) ([]PlayerStats, error) {
 
 //
 func (w *wrapper) GetManagersCount() (int, error) {
-	url := fmt.Sprintf(w.baseURL + "/bootstrap-static/")
-	var bs Bootstrap
+	// url := fmt.Sprintf(w.baseURL + "/bootstrap-static/")
+	// var bs Bootstrap
 
-	err := w.fetchData(url, &bs)
-	if err != nil {
-		return 0, err
-	}
+	// err := w.fetchData(url, &bs)
+	// if err != nil {
+	// 	return 0, err
+	// }
 
-	return bs.ManagersCount, nil
+	// return bs.ManagersCount, nil
+
+	return 100, nil // TODO remove later, let's just limit this for now
 }
 
 // GetManager queries https://fantasy.premierleague.com/api/entry/{id}/

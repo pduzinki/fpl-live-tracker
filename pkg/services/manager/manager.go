@@ -8,6 +8,9 @@ import (
 	"fpl-live-tracker/pkg/storage"
 	"fpl-live-tracker/pkg/wrapper"
 	"log"
+	"runtime"
+	"sync"
+	"time"
 )
 
 const tripleCaptainActive = "3xc"
@@ -42,40 +45,92 @@ func NewManagerService(mr domain.ManagerRepository, ps player.PlayerService,
 		wr: wr,
 	}
 
-	// err := ms.UpdateInfos()
-	// if err != nil {
-	// 	log.Println("manager service: failed to init data", err)
-	// 	return nil, err
-	// }
-
 	return &ms, nil
 }
 
 //
 func (ms *managerService) AddNew() error {
-	log.Println("add new start")
-	fplManagers, err := ms.wr.GetManagersCount()
+	log.Println("manager service: AddNew started")
+	inFplManagers, err := ms.wr.GetManagersCount()
 	if err != nil {
 		return err
 	}
 
-	storageManagers, err := ms.mr.GetCount()
+	inStorageManagers, err := ms.mr.GetCount()
 	if err != nil {
 		return err
 	}
 
-	log.Println(fplManagers, storageManagers)
+	if inFplManagers == inStorageManagers {
+		return nil // everything up-to-date, nothing to do here
+	}
 
-	if fplManagers > storageManagers {
-		for id := storageManagers + 1; id <= fplManagers; id++ {
-			err := ms.updateManagersInfo(id)
-			if err != nil {
-				log.Println("manager service:", err)
+	chanSize := runtime.NumCPU() * 4
+	workerCount := runtime.NumCPU() * 16
+
+	ids := make(chan int, chanSize)
+	failed := make(chan int, chanSize)
+	managers := make(chan wrapper.Manager, chanSize)
+	var workerWg sync.WaitGroup
+	var innerWg sync.WaitGroup
+
+	newManagersCount := inFplManagers - inStorageManagers
+	workerWg.Add(newManagersCount)
+
+	for i := 0; i <= workerCount; i++ {
+		go func() {
+			for id := range ids {
+				wm, err := ms.wr.GetManager(id)
+				if err != nil { // TODO improve error handling
+					failed <- id
+					time.Sleep(10 * time.Second)
+				}
+
+				managers <- wm
+				workerWg.Done()
+			}
+		}()
+	}
+
+	innerWg.Add(1)
+	go func() {
+		// send to ids chan
+		for id := inStorageManagers + 1; id <= inFplManagers; id++ {
+			ids <- id
+		}
+		innerWg.Done()
+	}()
+
+	innerWg.Add(1)
+	go func() {
+		// receive from failed chan, send to ids chan
+		for id := range failed {
+			ids <- id
+		}
+		innerWg.Done()
+	}()
+
+	innerWg.Add(1)
+	go func() {
+		// receive from received chan
+		for wm := range managers {
+			dm := ms.convertToDomainManager(wm)
+			err := ms.mr.Add(dm)
+			if err != nil { // TODO improve error handling
+				log.Println("manager service: failed to add new manager")
 			}
 		}
-	}
+		innerWg.Done()
+	}()
 
-	log.Println("add new stop")
+	workerWg.Wait()
+
+	close(ids)
+	close(failed)
+	close(managers)
+
+	innerWg.Wait()
+	log.Println("manager service: AddNew returned")
 	return nil
 }
 

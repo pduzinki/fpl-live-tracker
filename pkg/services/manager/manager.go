@@ -136,7 +136,7 @@ func (ms *managerService) AddNew() error {
 
 //
 func (ms *managerService) UpdateInfos() error {
-	log.Println("manager service: UpdateInfo started")
+	log.Println("manager service: UpdateInfos started")
 	inStorageManagers, err := ms.mr.GetCount()
 	if err != nil {
 		return err
@@ -207,26 +207,94 @@ func (ms *managerService) UpdateInfos() error {
 
 	innerWg.Wait()
 
-	log.Println("manager service: UpdateInfo returned")
+	log.Println("manager service: UpdateInfos returned")
 	return nil
 }
 
 //
 func (ms *managerService) UpdateTeams() error {
-	log.Println("update teams start")
-	storageManagers, err := ms.mr.GetCount()
+	log.Println("manager service: UpdateTeams started")
+	inStorageManagers, err := ms.mr.GetCount()
 	if err != nil {
 		return err
 	}
 
-	for id := 1; id < storageManagers; id++ {
-		err := ms.updateManagersTeam(id)
-		if err != nil {
-			log.Println("manager service:", err)
-		}
+	gameweek, err := ms.gs.GetCurrentGameweek()
+	if err != nil {
+		log.Println("manager service:", err)
+		return err
 	}
 
-	log.Println("update teams stop")
+	chanSize := runtime.NumCPU() * 4
+	workerCount := runtime.NumCPU() * 16
+
+	ids := make(chan int, chanSize)
+	failed := make(chan int, chanSize)
+	teams := make(chan wrapper.Team, chanSize)
+	var workerWg sync.WaitGroup
+	var innerWg sync.WaitGroup
+
+	workerWg.Add(inStorageManagers)
+
+	for i := 0; i <= workerCount; i++ {
+		go func() {
+			for id := range ids {
+				wt, err := ms.wr.GetManagersTeam(id, gameweek.ID)
+				if err != nil { // TODO improve error handling
+					failed <- id
+					time.Sleep(10 * time.Second)
+				}
+
+				teams <- wt
+				workerWg.Done()
+			}
+		}()
+	}
+
+	innerWg.Add(1)
+	go func() {
+		// send to ids chan
+		for id := 1; id <= inStorageManagers; id++ {
+			ids <- id
+		}
+		innerWg.Done()
+	}()
+
+	innerWg.Add(1)
+	go func() {
+		// receive from failed chan, send to ids chan
+		for id := range failed {
+			ids <- id
+		}
+		innerWg.Done()
+	}()
+
+	innerWg.Add(1)
+	go func() {
+		// receive from managers chan
+		for wt := range teams {
+			dt, err := ms.convertToDomainTeam(wt)
+			if err != nil {
+				log.Println("manager service: failed to convert team data")
+			}
+
+			err = ms.mr.UpdateTeam(wt.ID, dt)
+			if err != nil { // TODO improve error handling
+				log.Println("manager service: failed to add new manager")
+			}
+		}
+		innerWg.Done()
+	}()
+
+	workerWg.Wait()
+
+	close(ids)
+	close(failed)
+	close(teams)
+
+	innerWg.Wait()
+
+	log.Println("manager service: UpdateTeams returned")
 	return nil
 }
 

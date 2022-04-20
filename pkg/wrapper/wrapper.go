@@ -155,6 +155,7 @@ func (w *wrapper) GetManagersTeam(managerID, gameweekID int) (Team, error) {
 		return Team{}, err
 	}
 
+	t.ID = managerID
 	return t, nil
 }
 

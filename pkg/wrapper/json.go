@@ -8,6 +8,7 @@ type Manager struct {
 }
 
 type Team struct {
+	ID           int          `json:"-"`
 	ActiveChip   string       `json:"active_chip"`
 	EntryHistory EntryHistory `json:"entry_history"`
 	Picks        []Pick       `json:"picks"`

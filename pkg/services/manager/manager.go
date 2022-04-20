@@ -112,7 +112,7 @@ func (ms *managerService) AddNew() error {
 
 	innerWg.Add(1)
 	go func() {
-		// receive from received chan
+		// receive from managers chan
 		for wm := range managers {
 			dm := ms.convertToDomainManager(wm)
 			err := ms.mr.Add(dm)
@@ -136,20 +136,78 @@ func (ms *managerService) AddNew() error {
 
 //
 func (ms *managerService) UpdateInfos() error {
-	log.Println("update infos start")
-	storageManagers, err := ms.mr.GetCount()
+	log.Println("manager service: UpdateInfo started")
+	inStorageManagers, err := ms.mr.GetCount()
 	if err != nil {
 		return err
 	}
 
-	for id := 1; id < storageManagers; id++ {
-		err := ms.updateManagersInfo(id)
-		if err != nil {
-			log.Println("manager service:", err)
-		}
+	chanSize := runtime.NumCPU() * 4
+	workerCount := runtime.NumCPU() * 16
+
+	ids := make(chan int, chanSize)
+	failed := make(chan int, chanSize)
+	managers := make(chan wrapper.Manager, chanSize)
+	var workerWg sync.WaitGroup
+	var innerWg sync.WaitGroup
+
+	workerWg.Add(inStorageManagers)
+
+	for i := 0; i <= workerCount; i++ {
+		go func() {
+			for id := range ids {
+				wm, err := ms.wr.GetManager(id)
+				if err != nil { // TODO improve error handling
+					failed <- id
+					time.Sleep(10 * time.Second)
+				}
+
+				managers <- wm
+				workerWg.Done()
+			}
+		}()
 	}
 
-	log.Println("update infos stop")
+	innerWg.Add(1)
+	go func() {
+		// send to ids chan
+		for id := 1; id <= inStorageManagers; id++ {
+			ids <- id
+		}
+		innerWg.Done()
+	}()
+
+	innerWg.Add(1)
+	go func() {
+		// receive from failed chan, send to ids chan
+		for id := range failed {
+			ids <- id
+		}
+		innerWg.Done()
+	}()
+
+	innerWg.Add(1)
+	go func() {
+		// receive from managers chan
+		for wm := range managers {
+			dm := ms.convertToDomainManager(wm)
+			err := ms.mr.UpdateInfo(dm.ID, dm.Info)
+			if err != nil { // TODO improve error handling
+				log.Println("manager service: failed to add new manager")
+			}
+		}
+		innerWg.Done()
+	}()
+
+	workerWg.Wait()
+
+	close(ids)
+	close(failed)
+	close(managers)
+
+	innerWg.Wait()
+
+	log.Println("manager service: UpdateInfo returned")
 	return nil
 }
 

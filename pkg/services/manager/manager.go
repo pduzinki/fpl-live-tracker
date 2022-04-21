@@ -5,7 +5,6 @@ import (
 	"fpl-live-tracker/pkg/domain"
 	"fpl-live-tracker/pkg/services/gameweek"
 	"fpl-live-tracker/pkg/services/player"
-	"fpl-live-tracker/pkg/storage"
 	"fpl-live-tracker/pkg/wrapper"
 	"log"
 	"runtime"
@@ -15,10 +14,6 @@ import (
 
 const tripleCaptainActive = "3xc"
 const benchBoostActive = "bboost"
-
-// TODO remove later, and add support for handling more than a few managers
-// var IDs []int = []int{1239, 445331, 1056968, 2037831}
-// var myID = 1239
 
 type ManagerService interface {
 	AddNew() error
@@ -84,6 +79,7 @@ func (ms *managerService) AddNew() error {
 				if err != nil { // TODO improve error handling
 					failed <- id
 					time.Sleep(10 * time.Second)
+					continue
 				}
 
 				managers <- wm
@@ -117,7 +113,7 @@ func (ms *managerService) AddNew() error {
 			dm := ms.convertToDomainManager(wm)
 			err := ms.mr.Add(dm)
 			if err != nil { // TODO improve error handling
-				log.Println("manager service: failed to add new manager")
+				log.Println("manager service: failed to add new manager", err)
 			}
 		}
 		innerWg.Done()
@@ -160,6 +156,7 @@ func (ms *managerService) UpdateInfos() error {
 				if err != nil { // TODO improve error handling
 					failed <- id
 					time.Sleep(10 * time.Second)
+					continue
 				}
 
 				managers <- wm
@@ -193,7 +190,7 @@ func (ms *managerService) UpdateInfos() error {
 			dm := ms.convertToDomainManager(wm)
 			err := ms.mr.UpdateInfo(dm.ID, dm.Info)
 			if err != nil { // TODO improve error handling
-				log.Println("manager service: failed to add new manager")
+				log.Println("manager service: failed to add new manager", err)
 			}
 		}
 		innerWg.Done()
@@ -243,6 +240,7 @@ func (ms *managerService) UpdateTeams() error {
 				if err != nil { // TODO improve error handling
 					failed <- id
 					time.Sleep(10 * time.Second)
+					continue
 				}
 
 				teams <- wt
@@ -280,7 +278,7 @@ func (ms *managerService) UpdateTeams() error {
 
 			err = ms.mr.UpdateTeam(wt.ID, dt)
 			if err != nil { // TODO improve error handling
-				log.Println("manager service: failed to add new manager")
+				log.Println("manager service: failed to add new manager", err)
 			}
 		}
 		innerWg.Done()
@@ -387,71 +385,71 @@ func (ms *managerService) updateTeamPlayersStats(team *domain.Team) error {
 }
 
 //
-func (ms *managerService) updateManagersInfo(managerID int) error {
-	// log.Println("update info:", managerID)
-	wrapperManager, err := ms.wr.GetManager(managerID)
-	if err != nil {
-		log.Println("manager service:", err)
-		return err
-	}
+// func (ms *managerService) updateManagersInfo(managerID int) error {
+// 	// log.Println("update info:", managerID)
+// 	wrapperManager, err := ms.wr.GetManager(managerID)
+// 	if err != nil {
+// 		log.Println("manager service:", err)
+// 		return err
+// 	}
 
-	manager := ms.convertToDomainManager(wrapperManager)
-	err = ms.mr.UpdateInfo(manager.ID, manager.Info)
-	if err == storage.ErrManagerNotFound {
-		err = ms.mr.Add(manager)
-		if err != nil {
-			log.Println("manager service:", err)
-			return err
-		}
-	} else if err != nil {
-		log.Println("manager service:", err)
-		return err
-	}
+// 	manager := ms.convertToDomainManager(wrapperManager)
+// 	err = ms.mr.UpdateInfo(manager.ID, manager.Info)
+// 	if err == storage.ErrManagerNotFound {
+// 		err = ms.mr.Add(manager)
+// 		if err != nil {
+// 			log.Println("manager service:", err)
+// 			return err
+// 		}
+// 	} else if err != nil {
+// 		log.Println("manager service:", err)
+// 		return err
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 //
-func (ms *managerService) updateManagersTeam(managerID int) error {
-	// log.Println("update team:", managerID)
+// func (ms *managerService) updateManagersTeam(managerID int) error {
+// 	// log.Println("update team:", managerID)
 
-	gameweek, err := ms.gs.GetCurrentGameweek()
-	if err != nil {
-		log.Println("manager service:", err)
-		return err
-	}
+// 	gameweek, err := ms.gs.GetCurrentGameweek()
+// 	if err != nil {
+// 		log.Println("manager service:", err)
+// 		return err
+// 	}
 
-	manager, err := ms.GetByID(managerID)
-	if err != nil {
-		log.Println("manager service:", err)
-		return err
-	}
+// 	manager, err := ms.GetByID(managerID)
+// 	if err != nil {
+// 		log.Println("manager service:", err)
+// 		return err
+// 	}
 
-	if manager.Team.GameweekID == gameweek.ID {
-		// log.Println("manager service: team already up-to-date")
-		return nil
-	}
+// 	if manager.Team.GameweekID == gameweek.ID {
+// 		// log.Println("manager service: team already up-to-date")
+// 		return nil
+// 	}
 
-	wrapperTeam, err := ms.wr.GetManagersTeam(managerID, gameweek.ID)
-	if err != nil {
-		log.Println("manager service:", err)
-		return err
-	}
+// 	wrapperTeam, err := ms.wr.GetManagersTeam(managerID, gameweek.ID)
+// 	if err != nil {
+// 		log.Println("manager service:", err)
+// 		return err
+// 	}
 
-	team, err := ms.convertToDomainTeam(wrapperTeam)
-	if err != nil {
-		log.Println("manager service:", err)
-		return err
-	}
+// 	team, err := ms.convertToDomainTeam(wrapperTeam)
+// 	if err != nil {
+// 		log.Println("manager service:", err)
+// 		return err
+// 	}
 
-	err = ms.mr.UpdateTeam(managerID, team)
-	if err != nil {
-		log.Println("manager service:", err)
-		return err
-	}
+// 	err = ms.mr.UpdateTeam(managerID, team)
+// 	if err != nil {
+// 		log.Println("manager service:", err)
+// 		return err
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 //
 func (ms *managerService) updateManagersPoints(managerID int) error {

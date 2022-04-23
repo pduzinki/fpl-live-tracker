@@ -72,7 +72,7 @@ func (ms *managerService) AddNew() error {
 	newManagersCount := inFplManagers - inStorageManagers
 	workerWg.Add(newManagersCount)
 
-	for i := 0; i <= workerCount; i++ {
+	for i := 0; i < workerCount; i++ {
 		go func() {
 			for id := range ids {
 				wm, err := ms.wr.GetManager(id)
@@ -149,7 +149,7 @@ func (ms *managerService) UpdateInfos() error {
 
 	workerWg.Add(inStorageManagers)
 
-	for i := 0; i <= workerCount; i++ {
+	for i := 0; i < workerCount; i++ {
 		go func() {
 			for id := range ids {
 				wm, err := ms.wr.GetManager(id)
@@ -233,7 +233,7 @@ func (ms *managerService) UpdateTeams() error {
 
 	workerWg.Add(inStorageManagers)
 
-	for i := 0; i <= workerCount; i++ {
+	for i := 0; i < workerCount; i++ {
 		go func() {
 			for id := range ids {
 				wt, err := ms.wr.GetManagersTeam(id, gameweek.ID)
@@ -298,22 +298,62 @@ func (ms *managerService) UpdateTeams() error {
 
 //
 func (ms *managerService) UpdatePoints() error {
-	log.Println("update points start")
-	storageManagers, err := ms.mr.GetCount()
+	log.Println("manager service: UpdatePoints started")
+
+	inStorageManagers, err := ms.mr.GetCount()
 	if err != nil {
 		return err
 	}
 
-	log.Println(storageManagers)
+	chanSize := runtime.NumCPU()
+	workerCount := runtime.NumCPU()
 
-	for id := 1; id < storageManagers; id++ {
-		err := ms.updateManagersPoints(id)
-		if err != nil {
-			log.Println("manager service:", err)
-		}
+	ids := make(chan int, chanSize)
+	failed := make(chan int, chanSize)
+	var workerWg sync.WaitGroup
+	var innerWg sync.WaitGroup
+
+	workerWg.Add(inStorageManagers)
+	for i := 0; i < workerCount; i++ {
+		go func() {
+			for id := range ids {
+				err := ms.updateManagersPoints(id)
+				if err != nil {
+					failed <- id
+					log.Println("manager service: failed to update points", err)
+					continue
+				}
+				workerWg.Done()
+			}
+		}()
 	}
 
-	log.Println("update points stop")
+	innerWg.Add(1)
+	go func() {
+		// send to ids chan
+		for id := 1; id <= inStorageManagers; id++ {
+			ids <- id
+		}
+		innerWg.Done()
+	}()
+
+	innerWg.Add(1)
+	go func() {
+		// receive from failed chan, send to ids chan
+		for id := range failed {
+			ids <- id
+		}
+		innerWg.Done()
+	}()
+
+	workerWg.Wait()
+
+	close(ids)
+	close(failed)
+
+	innerWg.Wait()
+
+	log.Println("managers service: UpdatePoints returned")
 	return nil
 }
 
@@ -453,8 +493,6 @@ func (ms *managerService) updateTeamPlayersStats(team *domain.Team) error {
 
 //
 func (ms *managerService) updateManagersPoints(managerID int) error {
-	// log.Println("update points:", managerID)
-
 	manager, err := ms.mr.GetByID(managerID)
 	if err != nil {
 		return err
@@ -471,9 +509,6 @@ func (ms *managerService) updateManagersPoints(managerID int) error {
 
 	team.TotalPoints = totalPoints - team.HitPoints
 	team.TotalPointsAfterSubs = totalPoints + subPoints - team.HitPoints
-
-	// log.Println(team.TotalPoints)
-	// log.Println(team.TotalPointsAfterSubs)
 
 	err = ms.mr.UpdateTeam(manager.ID, team)
 	if err != nil {

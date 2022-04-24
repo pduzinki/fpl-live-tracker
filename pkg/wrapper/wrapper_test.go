@@ -15,9 +15,9 @@ func TestFetchData(t *testing.T) {
 		wantErr             error
 	}{
 		{"ok", http.StatusOK, "./testdata/fetchdata.json", nil},
-		{"too many requests", http.StatusTooManyRequests, "./testdata/fetchdata.json", errorHttpNotOk{429}},
-		{"not found", http.StatusNotFound, "./testdata/fetchdata.json", errorHttpNotOk{404}},
-		{"service unavailable", http.StatusServiceUnavailable, "./testdata/fetchdata.json", errorHttpNotOk{503}},
+		{"too many requests", http.StatusTooManyRequests, "./testdata/fetchdata.json", ErrorHttpNotOk{429}},
+		{"not found", http.StatusNotFound, "./testdata/fetchdata.json", ErrorHttpNotOk{404}},
+		{"service unavailable", http.StatusServiceUnavailable, "./testdata/fetchdata.json", ErrorHttpNotOk{503}},
 		{"unmarshal error", http.StatusOK, "./testdata/fetchdata.broken_json", ErrUnmarshalFailure},
 	}
 

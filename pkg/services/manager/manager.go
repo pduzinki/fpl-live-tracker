@@ -7,6 +7,8 @@ import (
 	"fpl-live-tracker/pkg/services/player"
 	"fpl-live-tracker/pkg/wrapper"
 	"log"
+	"math/rand"
+	"net/http"
 	"runtime"
 	"sync"
 	"time"
@@ -33,6 +35,7 @@ type managerService struct {
 //
 func NewManagerService(mr domain.ManagerRepository, ps player.PlayerService,
 	gs gameweek.GameweekService, wr wrapper.Wrapper) (ManagerService, error) {
+	rand.Seed(time.Now().UnixNano())
 	ms := managerService{
 		mr: mr,
 		ps: ps,
@@ -76,9 +79,32 @@ func (ms *managerService) AddNew() error {
 		go func() {
 			for id := range ids {
 				wm, err := ms.wr.GetManager(id)
-				if err != nil { // TODO improve error handling
+				if herr, ok := err.(wrapper.ErrorHttpNotOk); ok {
+					statusCode := herr.GetHttpStatusCode()
+					switch statusCode {
+					case http.StatusTooManyRequests:
+						failed <- id
+						time.Sleep(duration())
+						continue
+					case http.StatusServiceUnavailable:
+						failed <- id
+						time.Sleep(10 * time.Minute)
+						continue
+					case http.StatusNotFound:
+						wm = wrapper.Manager{
+							ID:        id,
+							FirstName: "not found",
+							LastName:  "not found",
+							Name:      "not found",
+						}
+					default:
+						failed <- id
+						time.Sleep(10 * time.Minute)
+						continue
+					}
+				} else if err != nil {
 					failed <- id
-					time.Sleep(10 * time.Second)
+					time.Sleep(10 * time.Minute)
 					continue
 				}
 
@@ -153,9 +179,32 @@ func (ms *managerService) UpdateInfos() error {
 		go func() {
 			for id := range ids {
 				wm, err := ms.wr.GetManager(id)
-				if err != nil { // TODO improve error handling
+				if herr, ok := err.(wrapper.ErrorHttpNotOk); ok {
+					statusCode := herr.GetHttpStatusCode()
+					switch statusCode {
+					case http.StatusTooManyRequests:
+						failed <- id
+						time.Sleep(duration())
+						continue
+					case http.StatusServiceUnavailable:
+						failed <- id
+						time.Sleep(10 * time.Minute)
+						continue
+					case http.StatusNotFound:
+						wm = wrapper.Manager{
+							ID:        id,
+							FirstName: "not found",
+							LastName:  "not found",
+							Name:      "not found",
+						}
+					default:
+						failed <- id
+						time.Sleep(10 * time.Minute)
+						continue
+					}
+				} else if err != nil {
 					failed <- id
-					time.Sleep(10 * time.Second)
+					time.Sleep(10 * time.Minute)
 					continue
 				}
 
@@ -237,9 +286,31 @@ func (ms *managerService) UpdateTeams() error {
 		go func() {
 			for id := range ids {
 				wt, err := ms.wr.GetManagersTeam(id, gameweek.ID)
-				if err != nil { // TODO improve error handling
+
+				if herr, ok := err.(wrapper.ErrorHttpNotOk); ok {
+					statusCode := herr.GetHttpStatusCode()
+					switch statusCode {
+					case http.StatusTooManyRequests:
+						failed <- id
+						time.Sleep(duration())
+						continue
+					case http.StatusServiceUnavailable:
+						failed <- id
+						time.Sleep(10 * time.Minute)
+						continue
+					case http.StatusNotFound:
+						wt = wrapper.Team{
+							ID:         id,
+							ActiveChip: "not found",
+						}
+					default:
+						failed <- id
+						time.Sleep(10 * time.Minute)
+						continue
+					}
+				} else if err != nil {
 					failed <- id
-					time.Sleep(10 * time.Second)
+					time.Sleep(10 * time.Minute)
 					continue
 				}
 
@@ -516,4 +587,9 @@ func (ms *managerService) updateManagersPoints(managerID int) error {
 	}
 
 	return nil
+}
+
+func duration() time.Duration {
+	// random duration between 30s to 5min
+	return (time.Duration(rand.Intn(270)) * time.Second) + 30
 }

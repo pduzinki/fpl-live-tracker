@@ -138,7 +138,7 @@ func (ms *managerService) AddNew() error {
 		for wm := range managers {
 			dm := ms.convertToDomainManager(wm)
 			err := ms.mr.Add(dm)
-			if err != nil { // TODO improve error handling
+			if err != nil {
 				log.Println("manager service: failed to add new manager", err)
 			}
 		}
@@ -238,7 +238,7 @@ func (ms *managerService) UpdateInfos() error {
 		for wm := range managers {
 			dm := ms.convertToDomainManager(wm)
 			err := ms.mr.UpdateInfo(dm.ID, dm.Info)
-			if err != nil { // TODO improve error handling
+			if err != nil {
 				log.Println("manager service: failed to add new manager", err)
 			}
 		}
@@ -348,7 +348,7 @@ func (ms *managerService) UpdateTeams() error {
 			}
 
 			err = ms.mr.UpdateTeam(wt.ID, dt)
-			if err != nil { // TODO improve error handling
+			if err != nil {
 				log.Println("manager service: failed to add new manager", err)
 			}
 		}

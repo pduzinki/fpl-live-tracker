@@ -83,6 +83,7 @@ func (ms *managerService) AddNew() error {
 					statusCode := herr.GetHttpStatusCode()
 					switch statusCode {
 					case http.StatusTooManyRequests:
+						log.Println("manager service: too many requests!")
 						failed <- id
 						time.Sleep(duration())
 						continue
@@ -183,6 +184,7 @@ func (ms *managerService) UpdateInfos() error {
 					statusCode := herr.GetHttpStatusCode()
 					switch statusCode {
 					case http.StatusTooManyRequests:
+						log.Println("manager service: too many requests!")
 						failed <- id
 						time.Sleep(duration())
 						continue
@@ -291,6 +293,7 @@ func (ms *managerService) UpdateTeams() error {
 					statusCode := herr.GetHttpStatusCode()
 					switch statusCode {
 					case http.StatusTooManyRequests:
+						log.Println("manager service: too many requests!")
 						failed <- id
 						time.Sleep(duration())
 						continue

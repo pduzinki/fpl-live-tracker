@@ -127,7 +127,7 @@ func (w *wrapper) GetManagersCount() (int, error) {
 
 	// return bs.ManagersCount, nil
 
-	return 100, nil // TODO remove later, let's just limit this for now
+	return 2000, nil // TODO remove later, let's just limit this for now
 }
 
 // GetManager queries https://fantasy.premierleague.com/api/entry/{id}/

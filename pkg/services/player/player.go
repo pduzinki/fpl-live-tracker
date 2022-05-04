@@ -206,6 +206,11 @@ func (ps *playerService) updatePredictedBonusPoints() error {
 		})
 
 		topBPS := findTopBPS(allPlayersStats)
+		if len(topBPS) == 1 {
+			// all players on same bps, fixture must have just started, ignore bps
+			continue
+		}
+
 		bp := findPlayersAndBonusPoints(allPlayersStats, topBPS)
 		for _, pair := range bp {
 			err := ps.addBonusPoints(pair.playerID, pair.bonusPoints)

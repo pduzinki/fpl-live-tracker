@@ -9,6 +9,7 @@ import (
 	"fpl-live-tracker/pkg/wrapper"
 	"log"
 	"sort"
+	"time"
 )
 
 // PlayerService is an interface for interacting with players
@@ -192,6 +193,11 @@ func (ps *playerService) updatePredictedBonusPoints() error {
 	}
 
 	for _, f := range liveFixtures {
+		if time.Since(f.Info.KickoffTime) < (15 * time.Minute) {
+			// don't add predicted bonus points if the fixture just started
+			continue
+		}
+
 		bpsStats, ok := f.Stats["bps"]
 		if !ok {
 			log.Println("player service: bps stats not found in live fixture")
@@ -206,10 +212,6 @@ func (ps *playerService) updatePredictedBonusPoints() error {
 		})
 
 		topBPS := findTopBPS(allPlayersStats)
-		if len(topBPS) == 1 {
-			// all players on same bps, fixture must have just started, ignore bps
-			continue
-		}
 
 		bp := findPlayersAndBonusPoints(allPlayersStats, topBPS)
 		for _, pair := range bp {

@@ -17,6 +17,7 @@ import (
 const tripleCaptainActive = "3xc"
 const benchBoostActive = "bboost"
 
+// ManagerService is an interface for interacting with managers
 type ManagerService interface {
 	AddNew() error
 	UpdateInfos() error
@@ -25,6 +26,7 @@ type ManagerService interface {
 	GetByID(id int) (domain.Manager, error)
 }
 
+// managerService implements ManagerService interface
 type managerService struct {
 	mr domain.ManagerRepository
 	ps player.PlayerService
@@ -32,7 +34,7 @@ type managerService struct {
 	wr wrapper.Wrapper
 }
 
-//
+// NewManagerService returns new instance of ManagerService
 func NewManagerService(mr domain.ManagerRepository, ps player.PlayerService,
 	gs gameweek.GameweekService, wr wrapper.Wrapper) (ManagerService, error) {
 	rand.Seed(time.Now().UnixNano())
@@ -157,7 +159,7 @@ func (ms *managerService) AddNew() error {
 	return nil
 }
 
-//
+// UpdateInfos updates information about all managers currently in the storage
 func (ms *managerService) UpdateInfos() error {
 	log.Println("manager service: UpdateInfos started")
 	inStorageManagers, err := ms.mr.GetCount()
@@ -259,7 +261,7 @@ func (ms *managerService) UpdateInfos() error {
 	return nil
 }
 
-//
+// UpdateTeams updates team information for all managers currently in the storage
 func (ms *managerService) UpdateTeams() error {
 	log.Println("manager service: UpdateTeams started")
 	inStorageManagers, err := ms.mr.GetCount()
@@ -370,7 +372,7 @@ func (ms *managerService) UpdateTeams() error {
 	return nil
 }
 
-//
+// UpdatePoints updates points data for all managers currently in the storage
 func (ms *managerService) UpdatePoints() error {
 	log.Println("manager service: UpdatePoints started")
 
@@ -431,7 +433,7 @@ func (ms *managerService) UpdatePoints() error {
 	return nil
 }
 
-//
+// GetByID returns managers with given ID, or error otherwise
 func (ms *managerService) GetByID(id int) (domain.Manager, error) {
 	manager := domain.Manager{ID: id}
 
@@ -443,7 +445,7 @@ func (ms *managerService) GetByID(id int) (domain.Manager, error) {
 	return ms.mr.GetByID(id)
 }
 
-//
+// convertToDomainManager returns domain.Manager, consistent with given wrapper.Manager
 func (ms *managerService) convertToDomainManager(wm wrapper.Manager) domain.Manager {
 	return domain.Manager{
 		ID: wm.ID,
@@ -454,7 +456,7 @@ func (ms *managerService) convertToDomainManager(wm wrapper.Manager) domain.Mana
 	}
 }
 
-//
+// convertToDomainTeam returns domain.Team, consistent with given wrapper.Team
 func (ms *managerService) convertToDomainTeam(wt wrapper.Team) (domain.Team, error) {
 	team := domain.Team{
 		GameweekID: wt.EntryHistory.GameweekID,

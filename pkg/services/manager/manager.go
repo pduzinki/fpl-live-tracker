@@ -48,7 +48,7 @@ func NewManagerService(mr domain.ManagerRepository, ps player.PlayerService,
 	return &ms, nil
 }
 
-//
+// AddNew adds managers that joined the game since the last AddNew call, to the storage
 func (ms *managerService) AddNew() error {
 	log.Println("manager service: AddNew started")
 	inFplManagers, err := ms.wr.GetManagersCount()
@@ -484,7 +484,7 @@ func (ms *managerService) convertToDomainTeam(wt wrapper.Team) (domain.Team, err
 	return team, nil
 }
 
-//
+// updateTeamPlayersStats updates players stats in the given team
 func (ms *managerService) updateTeamPlayersStats(team *domain.Team) error {
 	for i := 0; i < len(team.Picks); i++ {
 		tp := team.Picks[i]
@@ -500,7 +500,7 @@ func (ms *managerService) updateTeamPlayersStats(team *domain.Team) error {
 	return nil
 }
 
-//
+// updateManagersPoints updates points gained by manager's team with given ID
 func (ms *managerService) updateManagersPoints(managerID int) error {
 	manager, err := ms.mr.GetByID(managerID)
 	if err != nil {

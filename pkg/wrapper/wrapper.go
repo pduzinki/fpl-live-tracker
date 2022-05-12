@@ -144,6 +144,20 @@ func (w *wrapper) GetManager(id int) (Manager, error) {
 	return m, nil
 }
 
+// GetManagersHistory queries https://fantasy.premierleague.com/api/entry/{id}/history/
+// and returns wrapper.History, containing basic manager's gameweeks data
+func (w *wrapper) GetManagersHistory(id int) (History, error) {
+	url := fmt.Sprintf(w.baseURL+"/entry/%d/history/", id)
+	var h History
+
+	err := w.fetchData(url, &h)
+	if err != nil {
+		return History{}, err
+	}
+
+	return h, nil
+}
+
 // GetManagersTeam queries https://fantasy.premierleague.com/api/entry/{managerID}/event/{gameweekID}/picks/
 // and returns wrapper.Team, consisting of manager team picks for given gameweekf
 func (w *wrapper) GetManagersTeam(managerID, gameweekID int) (Team, error) {

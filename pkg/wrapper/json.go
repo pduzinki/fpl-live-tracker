@@ -7,6 +7,16 @@ type Manager struct {
 	Name      string `json:"name"`
 }
 
+type History struct {
+	ID            int               `json:"-"`
+	CurrentSeason []GameweekHistory `json:"current"`
+}
+
+type GameweekHistory struct {
+	Event  int `json:"event"`
+	Points int `json:"points"`
+}
+
 type Team struct {
 	ID           int          `json:"-"`
 	ActiveChip   string       `json:"active_chip"`

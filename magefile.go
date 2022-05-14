@@ -15,10 +15,19 @@ func Clear() error {
 	return sh.Run("rm", "app", "-f")
 }
 
-// Build compiles the app
+// Dev builds dev version of the app
+func Dev() error {
+	mg.Deps(Clear)
+	return build("dev")
+}
+
+// Build builds the app
 func Build() error {
 	mg.Deps(Clear)
+	return build("")
+}
 
+func build(tags string) error {
 	if err := sh.Run("go", "mod", "download"); err != nil {
 		return err
 	}
@@ -27,7 +36,7 @@ func Build() error {
 		"GOOS":   runtime.GOOS,
 		"GOARCH": runtime.GOARCH,
 	}
-	_, err := sh.Exec(env, os.Stdout, os.Stderr, "go", "build", "-ldflags="+"-w -s", "-o", "app", "./cmd/server")
+	_, err := sh.Exec(env, os.Stdout, os.Stderr, "go", "build", "-v", "-tags", tags, "-ldflags="+"-w -s", "-o", "app", "./cmd/server")
 
 	return err
 }

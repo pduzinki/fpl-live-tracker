@@ -1,4 +1,4 @@
-//go:build !dev
+//go:build dev
 
 package wrapper
 
@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"runtime"
 	"time"
@@ -119,15 +120,8 @@ func (w *wrapper) GetPlayersStats(gameweekID int) ([]PlayerStats, error) {
 
 //
 func (w *wrapper) GetManagersCount() (int, error) {
-	url := fmt.Sprintf(w.baseURL + "/bootstrap-static/")
-	var bs Bootstrap
-
-	err := w.fetchData(url, &bs)
-	if err != nil {
-		return 0, err
-	}
-
-	return bs.ManagersCount, nil
+	log.Println("wrapper dev build, GetManagersCount limited at 2000")
+	return 2000, nil
 }
 
 // GetManager queries https://fantasy.premierleague.com/api/entry/{id}/

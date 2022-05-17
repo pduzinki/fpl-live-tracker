@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"fpl-live-tracker/pkg/domain"
+	"fpl-live-tracker/pkg/storage/memory"
 	"fpl-live-tracker/pkg/wrapper"
 	"io/ioutil"
 	"log"
@@ -37,6 +39,7 @@ func worker(client *http.Client, ids <-chan int, failed chan<- int, teams chan<-
 		if err != nil {
 			log.Println("unmarshal error")
 		}
+		team.ID = id
 
 		teams <- team
 		wg.Done()
@@ -46,6 +49,8 @@ func worker(client *http.Client, ids <-chan int, failed chan<- int, teams chan<-
 func main() {
 	fmt.Println("start")
 	fmt.Println("core count:", runtime.NumCPU())
+
+	mr := memory.NewManagerRepository()
 
 	t := http.DefaultTransport.(*http.Transport).Clone()
 	t.MaxIdleConns = runtime.NumCPU() * 16
@@ -90,12 +95,17 @@ func main() {
 		fmt.Println("closure 2 closing")
 	}()
 
-	teams := make([]wrapper.Team, 0, total)
+	// teams := make([]wrapper.Team, 0, total)
 
 	innerWg.Add(1)
 	go func() {
 		for team := range received {
-			teams = append(teams, team)
+			manager := convert(team)
+			err := mr.Add(manager)
+			if err != nil {
+				fmt.Println(err)
+			}
+			// teams = append(teams, team)
 		}
 		innerWg.Done()
 		fmt.Println("closure 3 closing")
@@ -110,5 +120,20 @@ func main() {
 	fmt.Println("channels closed")
 
 	innerWg.Wait()
-	fmt.Println(len(teams))
+	// fmt.Println(len(teams))
+	fmt.Println(mr.GetCount())
+}
+
+func convert(wt wrapper.Team) domain.Manager {
+	manager := domain.Manager{
+		ID: wt.ID,
+		Team: domain.Team{
+			GameweekID: wt.EntryHistory.GameweekID,
+			Picks:      nil,
+			ActiveChip: wt.ActiveChip,
+			HitPoints:  wt.EntryHistory.EventTransfersCost,
+		},
+	}
+
+	return manager
 }

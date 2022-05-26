@@ -25,6 +25,6 @@ type TeamPlayer struct {
 type TeamRepository interface {
 	Add(Team Team) error
 	Update(ID int, team Team) error // TODO probably remove ID arg
-	GetByID(id int) (Team, error)
+	GetByID(ID int) (Team, error)
 	GetCount() (int, error)
 }

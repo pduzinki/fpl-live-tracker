@@ -25,3 +25,9 @@ var (
 	ErrManagerAlreadyExists error = errors.New("storage: manager already exists")
 	ErrManagerNotFound      error = errors.New("storage: manager not found")
 )
+
+// team errors
+var (
+	ErrTeamAlreadyExists error = errors.New("storage: team already exists")
+	ErrTeamNotFound      error = errors.New("storage: team not found")
+)

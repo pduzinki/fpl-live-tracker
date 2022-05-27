@@ -36,8 +36,8 @@ func (tr *teamRepository) Update(ID int, team domain.Team) error {
 	tr.Lock()
 	defer tr.Unlock()
 
-	if t, ok := tr.teams[ID]; ok {
-		tr.teams[ID] = t
+	if _, ok := tr.teams[ID]; ok {
+		tr.teams[ID] = team
 		return nil
 	}
 

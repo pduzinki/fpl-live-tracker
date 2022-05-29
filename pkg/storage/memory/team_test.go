@@ -93,9 +93,64 @@ func TestTeamUpdate(t *testing.T) {
 }
 
 func TestTeamGetByID(t *testing.T) {
-	// TODO add test
+	testcases := []struct {
+		id      int
+		want    domain.Team
+		wantErr error
+	}{
+		{jacksTeam.ID, jacksTeam, nil},
+		{joelsTeam.ID, domain.Team{}, storage.ErrTeamNotFound},
+	}
+
+	tr := teamRepository{
+		teams: map[int]domain.Team{
+			jacksTeam.ID: jacksTeam,
+		},
+	}
+
+	for _, test := range testcases {
+		got, gotErr := tr.GetByID(test.id)
+		if gotErr != test.wantErr {
+			t.Errorf("error: for %v, got err '%v', want err '%v'", test.id, gotErr, test.wantErr)
+		}
+		if !reflect.DeepEqual(got, test.want) {
+			t.Errorf("error: for %v, got '%v', want '%v'", test.id, got, test.want)
+		}
+	}
 }
 
 func TestTeamGetCount(t *testing.T) {
-	// TODO add test
+	testcases := []struct {
+		want    int
+		wantErr error
+	}{
+		{
+			want:    0,
+			wantErr: nil,
+		},
+		{
+			want:    1,
+			wantErr: nil,
+		},
+		{
+			want:    2,
+			wantErr: nil,
+		},
+	}
+
+	tr := teamRepository{
+		teams: map[int]domain.Team{},
+	}
+
+	for id, test := range testcases {
+		got, gotErr := tr.GetCount()
+		if gotErr != test.wantErr {
+			t.Errorf("error: got err '%v', want err '%v'", gotErr, test.wantErr)
+		}
+		if got != test.want {
+			t.Errorf("error: got '%v', want '%v'", got, test.want)
+		}
+
+		tr.Add(domain.Team{ID: id})
+	}
 }

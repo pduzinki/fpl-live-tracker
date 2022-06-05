@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"fpl-live-tracker/pkg/config"
 	"fpl-live-tracker/pkg/domain"
+	"fpl-live-tracker/pkg/storage"
 	"log"
 	"os"
 	"testing"
@@ -11,6 +12,15 @@ import (
 	"github.com/ory/dockertest"
 	"github.com/ory/dockertest/docker"
 )
+
+var (
+	jimsTeam  = domain.Team{ID: 1}
+	janesTeam = domain.Team{ID: 2}
+	joelsTeam = domain.Team{ID: 3}
+	jacksTeam = domain.Team{ID: 4}
+)
+
+var tr domain.TeamRepository
 
 func TestMain(m *testing.M) {
 	fmt.Println("testmain")
@@ -32,7 +42,7 @@ func TestMain(m *testing.M) {
 
 	resource, err := pool.RunWithOptions(&opts)
 	if err != nil {
-		log.Fatalf("err 2")
+		log.Fatalf("err 2 %v", err)
 	}
 
 	if err = pool.Retry(func() error {
@@ -42,7 +52,7 @@ func TestMain(m *testing.M) {
 			Database: "fpl-live-tracker",
 		}
 
-		tr, err := NewTeamRepository(config)
+		tr, err = NewTeamRepository(config)
 		if err != nil {
 			log.Fatalf("err 5")
 		}
@@ -60,7 +70,8 @@ func TestMain(m *testing.M) {
 		log.Fatalf("err 3")
 	}
 
-	// TODO seed data
+	// seed data
+	tr.Add(jimsTeam)
 
 	code := m.Run()
 
@@ -72,8 +83,20 @@ func TestMain(m *testing.M) {
 }
 
 func TestTeamAdd(t *testing.T) {
-	fmt.Println("a")
-	// TODO add test
+	testcases := []struct {
+		team domain.Team
+		want error
+	}{
+		{joelsTeam, nil},
+		{jimsTeam, storage.ErrTeamAlreadyExists},
+	}
+
+	for _, test := range testcases {
+		got := tr.Add(test.team)
+		if got != test.want {
+			t.Errorf("error: for %v, got err '%v', want '%v'", test.team, got, test.want)
+		}
+	}
 }
 
 func TestTeamUpdate(t *testing.T) {

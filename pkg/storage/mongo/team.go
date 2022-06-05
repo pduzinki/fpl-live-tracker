@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"fpl-live-tracker/pkg/config"
 	"fpl-live-tracker/pkg/domain"
@@ -43,7 +44,14 @@ func (tr *teamRepository) Add(team domain.Team) error {
 
 	_, err := tr.teams.InsertOne(ctx, team)
 	if err != nil {
-		return err
+		var werr mongo.WriteException
+		if errors.As(err, &werr) {
+			if len(werr.WriteErrors) > 0 && werr.WriteErrors[0].Code == 11000 {
+				return storage.ErrTeamAlreadyExists
+			}
+		}
+
+		return storage.ErrAddRecordFailed
 	}
 
 	return nil

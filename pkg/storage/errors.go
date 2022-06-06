@@ -31,8 +31,3 @@ var (
 	ErrTeamAlreadyExists error = errors.New("storage: team already exists")
 	ErrTeamNotFound      error = errors.New("storage: team not found")
 )
-
-// misc. errors
-var (
-	ErrAddRecordFailed error = errors.New("storage: add record failed")
-)

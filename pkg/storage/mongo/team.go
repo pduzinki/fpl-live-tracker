@@ -51,7 +51,7 @@ func (tr *teamRepository) Add(team domain.Team) error {
 			}
 		}
 
-		return storage.ErrAddRecordFailed
+		return fmt.Errorf("storage: add record failed: %w", err)
 	}
 
 	return nil
@@ -66,7 +66,7 @@ func (tr *teamRepository) Update(ID int, team domain.Team) error {
 
 	result, err := tr.teams.ReplaceOne(ctx, filter, team)
 	if err != nil {
-		return err
+		return fmt.Errorf("storage: update record failed: %w", err)
 	}
 
 	if result.MatchedCount == 0 {
@@ -82,11 +82,14 @@ func (tr *teamRepository) GetByID(ID int) (domain.Team, error) {
 	defer cancel()
 
 	result := tr.teams.FindOne(ctx, bson.M{"_id": ID})
+	if result.Err() == mongo.ErrNoDocuments {
+		return domain.Team{}, storage.ErrTeamNotFound
+	}
 
 	var team domain.Team
 	err := result.Decode(&team)
 	if err != nil {
-		return domain.Team{}, err
+		return domain.Team{}, fmt.Errorf("storage: get record failed: %w", err)
 	}
 
 	return team, nil
@@ -99,7 +102,7 @@ func (tr *teamRepository) GetCount() (int, error) {
 
 	count, err := tr.teams.CountDocuments(ctx, bson.M{})
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("storage: get record count failed: %w", err)
 	}
 
 	return int(count), nil

@@ -1,12 +1,12 @@
 package mongo
 
 import (
-	"fmt"
 	"fpl-live-tracker/pkg/config"
 	"fpl-live-tracker/pkg/domain"
 	"fpl-live-tracker/pkg/storage"
 	"log"
 	"os"
+	"reflect"
 	"testing"
 
 	"github.com/ory/dockertest"
@@ -23,10 +23,9 @@ var (
 var tr domain.TeamRepository
 
 func TestMain(m *testing.M) {
-	fmt.Println("testmain")
 	pool, err := dockertest.NewPool("")
 	if err != nil {
-		log.Fatalf("err 1")
+		log.Fatalf("failed to create new pool: %v", err)
 	}
 
 	opts := dockertest.RunOptions{
@@ -42,7 +41,7 @@ func TestMain(m *testing.M) {
 
 	resource, err := pool.RunWithOptions(&opts)
 	if err != nil {
-		log.Fatalf("err 2 %v", err)
+		log.Fatalf("failed to start the container: %v", err)
 	}
 
 	if err = pool.Retry(func() error {
@@ -54,20 +53,12 @@ func TestMain(m *testing.M) {
 
 		tr, err = NewTeamRepository(config)
 		if err != nil {
-			log.Fatalf("err 5")
+			log.Fatalf("failed to create new team repository: %v", err)
 		}
-
-		_ = tr
-
-		err = tr.Add(domain.Team{ID: 1239, ActiveChip: "3xc"})
-		log.Println("err:", err)
-
-		team, err := tr.GetByID(1239)
-		log.Println(team, err)
 
 		return nil
 	}); err != nil {
-		log.Fatalf("err 3")
+		log.Fatalf("failed to connect to the container: %v", err)
 	}
 
 	// seed data
@@ -76,7 +67,7 @@ func TestMain(m *testing.M) {
 	code := m.Run()
 
 	if err = pool.Purge(resource); err != nil {
-		log.Fatalf("err 4")
+		log.Fatalf("failed to remove the container: %v", err)
 	}
 
 	os.Exit(code)
@@ -100,16 +91,74 @@ func TestTeamAdd(t *testing.T) {
 }
 
 func TestTeamUpdate(t *testing.T) {
-	fmt.Println("b")
-	// TODO add test
+	testcases := []struct {
+		teamID int
+		team   domain.Team
+		want   error
+	}{
+		{
+			teamID: jimsTeam.ID,
+			team: domain.Team{
+				ID: jimsTeam.ID,
+			},
+			want: nil,
+		},
+		{
+			teamID: 420,
+			team: domain.Team{
+				ID: 420,
+			},
+			want: storage.ErrTeamNotFound,
+		},
+	}
+
+	for _, test := range testcases {
+		got := tr.Update(test.teamID, test.team)
+		if got != test.want {
+			t.Errorf("error: got err '%v', want '%v'", got, test.want)
+		}
+	}
 }
 
 func TestTeamGetByID(t *testing.T) {
-	fmt.Println("c")
-	// TODO add test
+	testcases := []struct {
+		id      int
+		want    domain.Team
+		wantErr error
+	}{
+		{jimsTeam.ID, jimsTeam, nil},
+		{jacksTeam.ID, domain.Team{}, storage.ErrTeamNotFound},
+	}
+
+	for _, test := range testcases {
+		got, gotErr := tr.GetByID(test.id)
+		if gotErr != test.wantErr {
+			t.Errorf("error: for %v, got err '%v', want err '%v'", test.id, gotErr, test.wantErr)
+		}
+		if !reflect.DeepEqual(got, test.want) {
+			t.Errorf("error: for %v, got '%v', want '%v'", test.id, got, test.want)
+		}
+	}
 }
 
 func TestTeamGetCount(t *testing.T) {
-	fmt.Println("d")
-	// TODO add test
+	testcases := []struct {
+		want    int
+		wantErr error
+	}{
+		{
+			want:    2,
+			wantErr: nil,
+		},
+	}
+
+	for _, test := range testcases {
+		got, gotErr := tr.GetCount()
+		if gotErr != test.wantErr {
+			t.Errorf("error: got err '%v', want err '%v'", gotErr, test.wantErr)
+		}
+		if got != test.want {
+			t.Errorf("error: got '%v', want '%v'", got, test.want)
+		}
+	}
 }

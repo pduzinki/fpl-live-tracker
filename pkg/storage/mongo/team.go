@@ -13,13 +13,13 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-//
+// teamRepository implements domain.TeamRepository interface
 type teamRepository struct {
 	db    *mongo.Database
 	teams *mongo.Collection
 }
 
-//
+// NewTeamRepository returns new instance of domain.TeamRepository
 func NewTeamRepository(config config.MongoConfig) (domain.TeamRepository, error) {
 	client, err := mongo.Connect(context.Background(),
 		options.Client().ApplyURI(fmt.Sprintf("mongodb://%s:%d", config.Host, config.Port)))
@@ -37,7 +37,7 @@ func NewTeamRepository(config config.MongoConfig) (domain.TeamRepository, error)
 	}, nil
 }
 
-//
+// Add saves given team into mongo collection, or returns an error on failure
 func (tr *teamRepository) Add(team domain.Team) error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
@@ -57,7 +57,7 @@ func (tr *teamRepository) Add(team domain.Team) error {
 	return nil
 }
 
-//
+// Update updates team with matching ID in mongo collection, of return an error on failure
 func (tr *teamRepository) Update(ID int, team domain.Team) error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
@@ -95,7 +95,7 @@ func (tr *teamRepository) GetByID(ID int) (domain.Team, error) {
 	return team, nil
 }
 
-//
+// GetCount returns number of team records in mongo collection
 func (tr *teamRepository) GetCount() (int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()

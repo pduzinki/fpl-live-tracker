@@ -6,20 +6,20 @@ import (
 	"sync"
 )
 
-//
+// teamRepository implements domain.TeamRepository interface
 type teamRepository struct {
 	teams map[int]domain.Team
 	sync.RWMutex
 }
 
-//
+// NewTeamRepository returns new instance of domain.TeamRepository
 func NewTeamRepository() domain.TeamRepository {
 	return &teamRepository{
 		teams: make(map[int]domain.Team),
 	}
 }
 
-//
+// Add saves given team into memory storage, or returns an error on failure
 func (tr *teamRepository) Add(team domain.Team) error {
 	tr.Lock()
 	defer tr.Unlock()
@@ -31,7 +31,7 @@ func (tr *teamRepository) Add(team domain.Team) error {
 	return nil
 }
 
-//
+// Update updates team with matching ID in memory storage, of return an error on failure
 func (tr *teamRepository) Update(ID int, team domain.Team) error {
 	tr.Lock()
 	defer tr.Unlock()
@@ -44,7 +44,7 @@ func (tr *teamRepository) Update(ID int, team domain.Team) error {
 	return storage.ErrTeamNotFound
 }
 
-//
+// GetByID returns team with matching ID, or returns an error on failure
 func (tr *teamRepository) GetByID(ID int) (domain.Team, error) {
 	tr.RLock()
 	defer tr.RUnlock()
@@ -56,7 +56,7 @@ func (tr *teamRepository) GetByID(ID int) (domain.Team, error) {
 	return domain.Team{}, storage.ErrTeamNotFound
 }
 
-//
+// GetCount returns number of team records in memory storage
 func (tr *teamRepository) GetCount() (int, error) {
 	tr.RLock()
 	defer tr.RUnlock()

@@ -15,13 +15,13 @@ import (
 
 const timeout = 10 * time.Second
 
-//
+// managerRepository implements domain.ManagerRepository interface
 type managerRepository struct {
 	db       *mongo.Database
 	managers *mongo.Collection
 }
 
-//
+// NewManagerRepository returns new instance of domain.ManagerRepository
 func NewManagerRepository(config config.MongoConfig) (domain.ManagerRepository, error) {
 	client, err := mongo.Connect(context.Background(),
 		options.Client().ApplyURI(fmt.Sprintf("mongodb://%s:%d", config.Host, config.Port)))
@@ -39,7 +39,7 @@ func NewManagerRepository(config config.MongoConfig) (domain.ManagerRepository, 
 	}, nil
 }
 
-//
+// Add saves given manager into mongo collection, or returns error on failure
 func (mr *managerRepository) Add(manager domain.Manager) error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
@@ -52,7 +52,7 @@ func (mr *managerRepository) Add(manager domain.Manager) error {
 	return nil
 }
 
-//
+// AddMany saves all given managers into mongo collection, or returns error on failure
 func (mr *managerRepository) AddMany(managers []domain.Manager) error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
@@ -70,7 +70,7 @@ func (mr *managerRepository) AddMany(managers []domain.Manager) error {
 	return nil
 }
 
-//
+// Update updates manager with matching ID in mongo collection, or returns error on failure
 func (mr *managerRepository) UpdateInfo(managerID int, info domain.ManagerInfo) error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
@@ -94,7 +94,7 @@ func (mr *managerRepository) UpdateInfo(managerID int, info domain.ManagerInfo) 
 	return nil
 }
 
-//
+// UpdateTeam updates team of manager with given ID, or returns error on failure
 func (mr *managerRepository) UpdateTeam(managerID int, team domain.Team) error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
@@ -118,7 +118,7 @@ func (mr *managerRepository) UpdateTeam(managerID int, team domain.Team) error {
 	return nil
 }
 
-//
+// GetByID returns manager with given ID, or returns error on failure
 func (mr *managerRepository) GetByID(id int) (domain.Manager, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
@@ -134,7 +134,7 @@ func (mr *managerRepository) GetByID(id int) (domain.Manager, error) {
 	return manager, nil
 }
 
-//
+// GetCount returns number of manager records in mongo collection
 func (mr *managerRepository) GetCount() (int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()

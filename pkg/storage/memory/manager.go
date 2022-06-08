@@ -73,7 +73,7 @@ func (mr *managerRepository) UpdateTeam(managerID int, team domain.Team) error {
 	return storage.ErrManagerNotFound
 }
 
-// GetById returns manager with given ID, or returns error on failure
+// GetByID returns manager with given ID, or returns error on failure
 func (mr *managerRepository) GetByID(id int) (domain.Manager, error) {
 	mr.RLock()
 	defer mr.RUnlock()
@@ -85,7 +85,7 @@ func (mr *managerRepository) GetByID(id int) (domain.Manager, error) {
 	return domain.Manager{}, storage.ErrManagerNotFound
 }
 
-//
+// GetCount returns number of manager records in memory storage
 func (mr *managerRepository) GetCount() (int, error) {
 	mr.RLock()
 	defer mr.RUnlock()

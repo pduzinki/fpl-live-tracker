@@ -14,9 +14,6 @@ import (
 	"time"
 )
 
-const tripleCaptainActive = "3xc"
-const benchBoostActive = "bboost"
-
 // ManagerService is an interface for interacting with managers
 type ManagerService interface {
 	AddNew() error
@@ -263,112 +260,112 @@ func (ms *managerService) UpdateInfos() error {
 
 // UpdateTeams updates team information for all managers currently in the storage
 func (ms *managerService) UpdateTeams() error {
-	log.Println("manager service: UpdateTeams started")
-	inStorageManagers, err := ms.mr.GetCount()
-	if err != nil {
-		return err
-	}
+	// log.Println("manager service: UpdateTeams started")
+	// inStorageManagers, err := ms.mr.GetCount()
+	// if err != nil {
+	// 	return err
+	// }
 
-	gameweek, err := ms.gs.GetCurrentGameweek()
-	if err != nil {
-		log.Println("manager service:", err)
-		return err
-	}
+	// gameweek, err := ms.gs.GetCurrentGameweek()
+	// if err != nil {
+	// 	log.Println("manager service:", err)
+	// 	return err
+	// }
 
-	chanSize := runtime.NumCPU() * 4
-	workerCount := runtime.NumCPU() * 16
+	// chanSize := runtime.NumCPU() * 4
+	// workerCount := runtime.NumCPU() * 16
 
-	ids := make(chan int, chanSize)
-	failed := make(chan int, chanSize)
-	teams := make(chan wrapper.Team, chanSize)
-	var workerWg sync.WaitGroup
-	var innerWg sync.WaitGroup
+	// ids := make(chan int, chanSize)
+	// failed := make(chan int, chanSize)
+	// teams := make(chan wrapper.Team, chanSize)
+	// var workerWg sync.WaitGroup
+	// var innerWg sync.WaitGroup
 
-	workerWg.Add(inStorageManagers)
+	// workerWg.Add(inStorageManagers)
 
-	for i := 0; i < workerCount; i++ {
-		go func() {
-			for id := range ids {
-				wt, err := ms.wr.GetManagersTeam(id, gameweek.ID)
+	// for i := 0; i < workerCount; i++ {
+	// 	go func() {
+	// 		for id := range ids {
+	// 			wt, err := ms.wr.GetManagersTeam(id, gameweek.ID)
 
-				if herr, ok := err.(wrapper.ErrorHttpNotOk); ok {
-					statusCode := herr.GetHttpStatusCode()
-					switch statusCode {
-					case http.StatusTooManyRequests:
-						log.Println("manager service: too many requests!")
-						failed <- id
-						time.Sleep(duration())
-						continue
-					case http.StatusServiceUnavailable:
-						failed <- id
-						time.Sleep(10 * time.Minute)
-						continue
-					case http.StatusNotFound:
-						wt = wrapper.Team{
-							ID:         id,
-							ActiveChip: "not found",
-						}
-					default:
-						failed <- id
-						time.Sleep(10 * time.Minute)
-						continue
-					}
-				} else if err != nil {
-					failed <- id
-					time.Sleep(10 * time.Minute)
-					continue
-				}
+	// 			if herr, ok := err.(wrapper.ErrorHttpNotOk); ok {
+	// 				statusCode := herr.GetHttpStatusCode()
+	// 				switch statusCode {
+	// 				case http.StatusTooManyRequests:
+	// 					log.Println("manager service: too many requests!")
+	// 					failed <- id
+	// 					time.Sleep(duration())
+	// 					continue
+	// 				case http.StatusServiceUnavailable:
+	// 					failed <- id
+	// 					time.Sleep(10 * time.Minute)
+	// 					continue
+	// 				case http.StatusNotFound:
+	// 					wt = wrapper.Team{
+	// 						ID:         id,
+	// 						ActiveChip: "not found",
+	// 					}
+	// 				default:
+	// 					failed <- id
+	// 					time.Sleep(10 * time.Minute)
+	// 					continue
+	// 				}
+	// 			} else if err != nil {
+	// 				failed <- id
+	// 				time.Sleep(10 * time.Minute)
+	// 				continue
+	// 			}
 
-				teams <- wt
-				workerWg.Done()
-			}
-		}()
-	}
+	// 			teams <- wt
+	// 			workerWg.Done()
+	// 		}
+	// 	}()
+	// }
 
-	innerWg.Add(1)
-	go func() {
-		// send to ids chan
-		for id := 1; id <= inStorageManagers; id++ {
-			ids <- id
-		}
-		innerWg.Done()
-	}()
+	// innerWg.Add(1)
+	// go func() {
+	// 	// send to ids chan
+	// 	for id := 1; id <= inStorageManagers; id++ {
+	// 		ids <- id
+	// 	}
+	// 	innerWg.Done()
+	// }()
 
-	innerWg.Add(1)
-	go func() {
-		// receive from failed chan, send to ids chan
-		for id := range failed {
-			ids <- id
-		}
-		innerWg.Done()
-	}()
+	// innerWg.Add(1)
+	// go func() {
+	// 	// receive from failed chan, send to ids chan
+	// 	for id := range failed {
+	// 		ids <- id
+	// 	}
+	// 	innerWg.Done()
+	// }()
 
-	innerWg.Add(1)
-	go func() {
-		// receive from managers chan
-		for wt := range teams {
-			dt, err := ms.convertToDomainTeam(wt)
-			if err != nil {
-				log.Println("manager service: failed to convert team data")
-			}
+	// innerWg.Add(1)
+	// go func() {
+	// 	// receive from managers chan
+	// 	for wt := range teams {
+	// 		dt, err := ms.convertToDomainTeam(wt)
+	// 		if err != nil {
+	// 			log.Println("manager service: failed to convert team data")
+	// 		}
 
-			err = ms.mr.UpdateTeam(wt.ID, dt)
-			if err != nil {
-				log.Println("manager service: failed to add new manager", err)
-			}
-		}
-		innerWg.Done()
-	}()
+	// 		err = ms.mr.UpdateTeam(wt.ID, dt)
+	// 		if err != nil {
+	// 			log.Println("manager service: failed to add new manager", err)
+	// 		}
+	// 	}
+	// 	innerWg.Done()
+	// }()
 
-	workerWg.Wait()
+	// workerWg.Wait()
 
-	close(ids)
-	close(failed)
-	close(teams)
+	// close(ids)
+	// close(failed)
+	// close(teams)
 
-	innerWg.Wait()
+	// innerWg.Wait()
 
-	log.Println("manager service: UpdateTeams returned")
+	// log.Println("manager service: UpdateTeams returned")
 	return nil
 }
 
@@ -502,27 +499,27 @@ func (ms *managerService) updateTeamPlayersStats(team *domain.Team) error {
 
 // updateManagersPoints updates points gained by manager's team with given ID
 func (ms *managerService) updateManagersPoints(managerID int) error {
-	manager, err := ms.mr.GetByID(managerID)
-	if err != nil {
-		return err
-	}
-	team := manager.Team
+	// manager, err := ms.mr.GetByID(managerID)
+	// if err != nil {
+	// 	return err
+	// }
+	// team := manager.Team
 
-	err = ms.updateTeamPlayersStats(&team)
-	if err != nil {
-		return err
-	}
+	// err = ms.updateTeamPlayersStats(&team)
+	// if err != nil {
+	// 	return err
+	// }
 
-	totalPoints := calculateTotalPoints(&team)
-	subPoints := calculateSubPoints(&team)
+	// totalPoints := calculateTotalPoints(&team)
+	// subPoints := calculateSubPoints(&team)
 
-	team.TotalPoints = totalPoints - team.HitPoints
-	team.TotalPointsAfterSubs = totalPoints + subPoints - team.HitPoints
+	// team.TotalPoints = totalPoints - team.HitPoints
+	// team.TotalPointsAfterSubs = totalPoints + subPoints - team.HitPoints
 
-	err = ms.mr.UpdateTeam(manager.ID, team)
-	if err != nil {
-		return err
-	}
+	// err = ms.mr.UpdateTeam(manager.ID, team)
+	// if err != nil {
+	// 	return err
+	// }
 
 	return nil
 }

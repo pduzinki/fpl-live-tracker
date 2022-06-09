@@ -1,4 +1,4 @@
-package manager
+package team
 
 import (
 	"fpl-live-tracker/pkg/domain"

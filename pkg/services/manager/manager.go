@@ -454,48 +454,48 @@ func (ms *managerService) convertToDomainManager(wm wrapper.Manager) domain.Mana
 }
 
 // convertToDomainTeam returns domain.Team, consistent with given wrapper.Team
-func (ms *managerService) convertToDomainTeam(wt wrapper.Team) (domain.Team, error) {
-	team := domain.Team{
-		GameweekID: wt.EntryHistory.GameweekID,
-		Picks:      make([]domain.TeamPlayer, 0, 15),
-		ActiveChip: wt.ActiveChip,
-		HitPoints:  wt.EntryHistory.EventTransfersCost,
-	}
+// func (ms *managerService) convertToDomainTeam(wt wrapper.Team) (domain.Team, error) {
+// 	team := domain.Team{
+// 		GameweekID: wt.EntryHistory.GameweekID,
+// 		Picks:      make([]domain.TeamPlayer, 0, 15),
+// 		ActiveChip: wt.ActiveChip,
+// 		HitPoints:  wt.EntryHistory.EventTransfersCost,
+// 	}
 
-	for _, pick := range wt.Picks {
-		p, err := ms.ps.GetByID(pick.ID)
-		if err != nil {
-			log.Println("manager service:", err)
-			return domain.Team{}, err
-		}
+// 	for _, pick := range wt.Picks {
+// 		p, err := ms.ps.GetByID(pick.ID)
+// 		if err != nil {
+// 			log.Println("manager service:", err)
+// 			return domain.Team{}, err
+// 		}
 
-		dp := domain.TeamPlayer{
-			Player:        p,
-			IsCaptain:     pick.IsCaptain,
-			IsViceCaptain: pick.IsViceCaptain,
-		}
+// 		dp := domain.TeamPlayer{
+// 			Player:        p,
+// 			IsCaptain:     pick.IsCaptain,
+// 			IsViceCaptain: pick.IsViceCaptain,
+// 		}
 
-		team.Picks = append(team.Picks, dp)
-	}
+// 		team.Picks = append(team.Picks, dp)
+// 	}
 
-	return team, nil
-}
+// 	return team, nil
+// }
 
 // updateTeamPlayersStats updates players stats in the given team
-func (ms *managerService) updateTeamPlayersStats(team *domain.Team) error {
-	for i := 0; i < len(team.Picks); i++ {
-		tp := team.Picks[i]
-		p, err := ms.ps.GetByID(tp.ID)
-		if err != nil {
-			log.Println("manager service: failed to update manager's team stats", err)
-			return err
-		}
-		tp.Stats = p.Stats
-		team.Picks[i] = tp
-	}
+// func (ms *managerService) updateTeamPlayersStats(team *domain.Team) error {
+// 	for i := 0; i < len(team.Picks); i++ {
+// 		tp := team.Picks[i]
+// 		p, err := ms.ps.GetByID(tp.ID)
+// 		if err != nil {
+// 			log.Println("manager service: failed to update manager's team stats", err)
+// 			return err
+// 		}
+// 		tp.Stats = p.Stats
+// 		team.Picks[i] = tp
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 // updateManagersPoints updates points gained by manager's team with given ID
 func (ms *managerService) updateManagersPoints(managerID int) error {

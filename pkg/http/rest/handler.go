@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fpl-live-tracker/pkg/services/manager"
 	"fpl-live-tracker/pkg/services/player"
+	"fpl-live-tracker/pkg/services/team"
 	"io"
 	"net/http"
 	"strconv"
@@ -12,12 +13,13 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func Handler(ps player.PlayerService, ms manager.ManagerService) http.Handler {
+func Handler(ps player.PlayerService, ms manager.ManagerService, ts team.TeamService) http.Handler {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/", Homepage()).Methods("GET")
 	r.HandleFunc("/api/players", GetPlayers(ps)).Methods("GET")
 	r.HandleFunc("/api/manager/{id:[0-9]+}", GetManager(ms)).Methods("GET")
+	r.HandleFunc("/api/team/{id:[0-9]+}", GetTeam(ts)).Methods("GET")
 	r.HandleFunc("/api/league/{id:[0-9]+}", GetLeague()).Methods("GET")
 
 	return r
@@ -78,6 +80,35 @@ func GetManager(ms manager.ManagerService) func(w http.ResponseWriter, r *http.R
 		}
 
 		j, err := json.Marshal(m)
+		if err != nil {
+			http.Error(w, "failed to marshal data", http.StatusInternalServerError)
+			return
+		}
+
+		io.Copy(w, bytes.NewReader(j))
+	}
+}
+
+//
+func GetTeam(ts team.TeamService) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		vars := mux.Vars(r)
+		teamIDstr := vars["id"]
+		teamID, err := strconv.ParseUint(teamIDstr, 10, 32)
+		if err != nil {
+			http.Error(w, "failed to parse url", http.StatusInternalServerError)
+			return
+		}
+
+		t, err := ts.GetByID(int(teamID))
+		if err != nil {
+			http.Error(w, "failed to get team", http.StatusInternalServerError)
+			return
+		}
+
+		j, err := json.Marshal(t)
 		if err != nil {
 			http.Error(w, "failed to marshal data", http.StatusInternalServerError)
 			return

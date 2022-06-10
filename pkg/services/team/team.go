@@ -4,6 +4,7 @@ import (
 	"fpl-live-tracker/pkg/domain"
 	"fpl-live-tracker/pkg/services/gameweek"
 	"fpl-live-tracker/pkg/services/player"
+	"fpl-live-tracker/pkg/storage"
 	"fpl-live-tracker/pkg/wrapper"
 	"log"
 	"math/rand"
@@ -136,9 +137,15 @@ func (ts *teamService) UpdateTeams() error {
 				log.Println("team service: failed to convert team data")
 			}
 
-			err = ts.tr.Update(wt.ID, dt)
-			if err != nil {
-				log.Println("team service: failed to add new team", err)
+			err = ts.tr.Update(dt.ID, dt)
+			if err == storage.ErrTeamNotFound {
+				err = ts.tr.Add(dt)
+				if err != nil {
+					log.Println("team service: failed to add new team", err)
+				}
+			} else if err != nil {
+				log.Println("team service: failed to update team", err)
+
 			}
 		}
 		innerWg.Done()
@@ -177,7 +184,7 @@ func (ts *teamService) UpdatePoints() error {
 	for i := 0; i < workerCount; i++ {
 		go func() {
 			for id := range ids {
-				err := ts.updateManagersPoints(id)
+				err := ts.updateTeamPoints(id)
 				if err != nil {
 					failed <- id
 					log.Println("team service: failed to update points", err)
@@ -219,13 +226,14 @@ func (ts *teamService) UpdatePoints() error {
 
 //
 func (ts *teamService) GetByID(id int) (domain.Team, error) {
-	// TODO implement this
-	return domain.Team{}, nil
+	// TODO add validations
+	return ts.tr.GetByID(id)
 }
 
 // convertToDomainTeam returns domain.Team, consistent with given wrapper.Team
 func (ts *teamService) convertToDomainTeam(wt wrapper.Team) (domain.Team, error) {
 	team := domain.Team{
+		ID:         wt.ID,
 		GameweekID: wt.EntryHistory.GameweekID,
 		Picks:      make([]domain.TeamPlayer, 0, 15),
 		ActiveChip: wt.ActiveChip,
@@ -251,8 +259,8 @@ func (ts *teamService) convertToDomainTeam(wt wrapper.Team) (domain.Team, error)
 	return team, nil
 }
 
-// updateManagersPoints updates points gained by manager's team with given ID
-func (ts *teamService) updateManagersPoints(teamID int) error {
+// updateTeamPoints updates points gained by manager's team with given ID
+func (ts *teamService) updateTeamPoints(teamID int) error {
 	team, err := ts.tr.GetByID(teamID)
 	if err != nil {
 		return err

@@ -11,6 +11,7 @@ import (
 	"fpl-live-tracker/pkg/services/gameweek"
 	"fpl-live-tracker/pkg/services/manager"
 	"fpl-live-tracker/pkg/services/player"
+	"fpl-live-tracker/pkg/services/team"
 	"fpl-live-tracker/pkg/services/tracker"
 	"fpl-live-tracker/pkg/storage/memory"
 	"fpl-live-tracker/pkg/wrapper"
@@ -58,18 +59,22 @@ func main() {
 		log.Fatalln("error: failed to init manager service")
 	}
 
+	tr := memory.NewTeamRepository()
+	ts := team.NewTeamService(tr, gs, ps, wr)
+
 	tracker, err := tracker.NewTracker(
 		tracker.WithPlayerService(ps),
 		tracker.WithClubService(cs),
 		tracker.WithFixtureService(fs),
 		tracker.WithGameweekService(gs),
-		tracker.WithManagerService(ms))
+		tracker.WithManagerService(ms),
+		tracker.WithTeamService(ts))
 	if err != nil {
 		log.Fatalf("failed to init tracker: %v\n", err)
 	}
 	go tracker.Track()
 
-	router := rest.Handler(ps, ms)
+	router := rest.Handler(ps, ms, ts)
 
 	log.Println("fpl-live-tracker now listening on port 3000")
 	log.Fatal(http.ListenAndServe(":3000", router))

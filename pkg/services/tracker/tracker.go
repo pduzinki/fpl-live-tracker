@@ -181,7 +181,7 @@ func (t *Tracker) Track() {
 			timeToUpdateManagersTeams = true
 			if timeToUpdateManagersInfos {
 				log.Println("tracker: gameweek finished, time to update infos")
-				err = t.Ms.UpdateInfos() // once per gameweek
+				err = t.Ms.Update() // once per gameweek
 				if err != nil {
 					log.Println("tracker:", err)
 				}

@@ -14,14 +14,6 @@ func TestManagerServiceUpdateInfos(t *testing.T) {
 	// TODO add test
 }
 
-func TestManagerServiceUpdateTeams(t *testing.T) {
-	// TODO add test
-}
-
-func TestManagerServiceUpdatePoints(t *testing.T) {
-	// TODO add test
-}
-
 func TestManagerServiceGetByID(t *testing.T) {
 	testcases := []struct {
 		ID   int
@@ -73,13 +65,5 @@ func TestManagerServiceGetByID(t *testing.T) {
 }
 
 func TestManagerServiceConvertToDomainManager(t *testing.T) {
-	// TODO add test
-}
-
-func TestManagerServiceConvertToDomainTeam(t *testing.T) {
-	// TODO add test
-}
-
-func TestUpdateTeamPlayersStats(t *testing.T) {
 	// TODO add test
 }

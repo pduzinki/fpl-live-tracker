@@ -97,8 +97,8 @@ func addTeams(tr domain.TeamRepository) {
 	innerWg.Add(1)
 	go func() {
 		for team := range received {
-			manager := convert(team)
-			err := tr.Add(manager)
+			t := convert(team)
+			err := tr.Add(t)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -232,14 +232,4 @@ func convert(wt wrapper.Team) domain.Team {
 	}
 
 	return team
-}
-
-func convertTeam(wt wrapper.Team) domain.Team {
-	return domain.Team{
-		ID:         wt.ID,
-		GameweekID: wt.EntryHistory.GameweekID,
-		Picks:      nil,
-		ActiveChip: wt.ActiveChip,
-		HitPoints:  wt.EntryHistory.EventTransfersCost,
-	}
 }

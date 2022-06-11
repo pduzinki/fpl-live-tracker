@@ -58,11 +58,11 @@ func (tr *teamRepository) Add(team domain.Team) error {
 }
 
 // Update updates team with matching ID in mongo collection, of return an error on failure
-func (tr *teamRepository) Update(ID int, team domain.Team) error {
+func (tr *teamRepository) Update(team domain.Team) error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	filter := bson.M{"_id": ID}
+	filter := bson.M{"_id": team.ID}
 
 	result, err := tr.teams.ReplaceOne(ctx, filter, team)
 	if err != nil {

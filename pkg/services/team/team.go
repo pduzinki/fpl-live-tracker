@@ -137,7 +137,7 @@ func (ts *teamService) UpdateTeams() error {
 				log.Println("team service: failed to convert team data")
 			}
 
-			err = ts.tr.Update(dt.ID, dt)
+			err = ts.tr.Update(dt)
 			if err == storage.ErrTeamNotFound {
 				err = ts.tr.Add(dt)
 				if err != nil {
@@ -277,7 +277,7 @@ func (ts *teamService) updateTeamPoints(teamID int) error {
 	team.TotalPoints = totalPoints - team.HitPoints
 	team.TotalPointsAfterSubs = totalPoints + subPoints - team.HitPoints
 
-	err = ts.tr.Update(team.ID, team)
+	err = ts.tr.Update(team)
 	if err != nil {
 		return err
 	}

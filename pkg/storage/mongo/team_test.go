@@ -113,7 +113,7 @@ func TestTeamUpdate(t *testing.T) {
 	}
 
 	for _, test := range testcases {
-		got := tr.Update(test.teamID, test.team)
+		got := tr.Update(test.team)
 		if got != test.want {
 			t.Errorf("error: got err '%v', want '%v'", got, test.want)
 		}

@@ -32,12 +32,12 @@ func (tr *teamRepository) Add(team domain.Team) error {
 }
 
 // Update updates team with matching ID in memory storage, of return an error on failure
-func (tr *teamRepository) Update(ID int, team domain.Team) error {
+func (tr *teamRepository) Update(team domain.Team) error {
 	tr.Lock()
 	defer tr.Unlock()
 
-	if _, ok := tr.teams[ID]; ok {
-		tr.teams[ID] = team
+	if _, ok := tr.teams[team.ID]; ok {
+		tr.teams[team.ID] = team
 		return nil
 	}
 

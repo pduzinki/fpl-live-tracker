@@ -23,8 +23,8 @@ type TeamPlayer struct {
 
 // TeamRepository is an interface for interacting with Team storage
 type TeamRepository interface {
-	Add(Team Team) error
-	Update(ID int, team Team) error // TODO probably remove ID arg
+	Add(team Team) error
+	Update(team Team) error
 	GetByID(ID int) (Team, error)
 	GetCount() (int, error)
 }

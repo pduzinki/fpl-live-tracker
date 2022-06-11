@@ -189,7 +189,7 @@ func updateTeams(tr domain.TeamRepository) {
 	go func() {
 		for team := range received {
 			t := convert(team)
-			err := tr.Update(t.ID, t)
+			err := tr.Update(t)
 			if err != nil {
 				fmt.Println(err)
 			}

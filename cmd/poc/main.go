@@ -46,7 +46,7 @@ func worker(client *http.Client, ids <-chan int, failed chan<- int, teams chan<-
 	}
 }
 
-func addTeams(mr domain.ManagerRepository) {
+func addTeams(tr domain.TeamRepository) {
 	fmt.Println("start")
 	fmt.Println("core count:", runtime.NumCPU())
 
@@ -98,7 +98,7 @@ func addTeams(mr domain.ManagerRepository) {
 	go func() {
 		for team := range received {
 			manager := convert(team)
-			err := mr.Add(manager)
+			err := tr.Add(manager)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -118,7 +118,7 @@ func addTeams(mr domain.ManagerRepository) {
 	innerWg.Wait()
 }
 
-func updateTeams(mr domain.ManagerRepository) {
+func updateTeams(tr domain.TeamRepository) {
 	fmt.Println("start")
 	fmt.Println("core count:", runtime.NumCPU())
 
@@ -156,13 +156,13 @@ func updateTeams(mr domain.ManagerRepository) {
 			// then decrement workerWg,
 			// else send id into channel to worker
 
-			manager, err := mr.GetByID(id)
+			team, err := tr.GetByID(id)
 			if err != nil {
 				fmt.Println("GetByID failed")
 
 			}
 
-			if manager.Team.GameweekID == 33 {
+			if team.GameweekID == 33 {
 				// already updated
 				alreadyUpdated++
 				workerWg.Done()
@@ -188,9 +188,8 @@ func updateTeams(mr domain.ManagerRepository) {
 	innerWg.Add(1)
 	go func() {
 		for team := range received {
-			manager := convert(team)
-			dteam := convertTeam(team)
-			err := mr.UpdateTeam(manager.ID, dteam)
+			t := convert(team)
+			err := tr.Update(t.ID, t)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -212,33 +211,32 @@ func updateTeams(mr domain.ManagerRepository) {
 }
 
 func main() {
-	mr := memory.NewManagerRepository()
-	addTeams(mr)
-	added, _ := mr.GetCount()
-	fmt.Println("new managers added:", added)
+	tr := memory.NewTeamRepository()
+	addTeams(tr)
+	added, _ := tr.GetCount()
+	fmt.Println("new teams added:", added)
 
-	// now that managers are added, let's try to update them, but only if they really need update (i.e GameweekID < live gameweek)
+	// now that teams are added, let's try to update them, but only if they really need update (i.e GameweekID < live gameweek)
 	fmt.Println("----")
 	fmt.Println("updating teams...")
-	updateTeams(mr)
+	updateTeams(tr)
 }
 
-func convert(wt wrapper.Team) domain.Manager {
-	manager := domain.Manager{
-		ID: wt.ID,
-		Team: domain.Team{
-			GameweekID: wt.EntryHistory.GameweekID,
-			Picks:      nil,
-			ActiveChip: wt.ActiveChip,
-			HitPoints:  wt.EntryHistory.EventTransfersCost,
-		},
+func convert(wt wrapper.Team) domain.Team {
+	team := domain.Team{
+		ID:         wt.ID,
+		GameweekID: wt.EntryHistory.GameweekID,
+		Picks:      nil,
+		ActiveChip: wt.ActiveChip,
+		HitPoints:  wt.EntryHistory.EventTransfersCost,
 	}
 
-	return manager
+	return team
 }
 
 func convertTeam(wt wrapper.Team) domain.Team {
 	return domain.Team{
+		ID:         wt.ID,
 		GameweekID: wt.EntryHistory.GameweekID,
 		Picks:      nil,
 		ActiveChip: wt.ActiveChip,

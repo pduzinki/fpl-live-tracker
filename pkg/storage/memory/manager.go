@@ -60,18 +60,18 @@ func (mr *managerRepository) UpdateInfo(managerID int, info domain.ManagerInfo) 
 }
 
 // UpdateTeam updates team of manager with given ID, or returns error on failure
-func (mr *managerRepository) UpdateTeam(managerID int, team domain.Team) error {
-	mr.Lock()
-	defer mr.Unlock()
+// func (mr *managerRepository) UpdateTeam(managerID int, team domain.Team) error {
+// 	mr.Lock()
+// 	defer mr.Unlock()
 
-	if m, ok := mr.managers[managerID]; ok {
-		m.Team = team
-		mr.managers[managerID] = m
-		return nil
-	}
+// 	if m, ok := mr.managers[managerID]; ok {
+// 		m.Team = team
+// 		mr.managers[managerID] = m
+// 		return nil
+// 	}
 
-	return storage.ErrManagerNotFound
-}
+// 	return storage.ErrManagerNotFound
+// }
 
 // GetByID returns manager with given ID, or returns error on failure
 func (mr *managerRepository) GetByID(id int) (domain.Manager, error) {

@@ -139,51 +139,51 @@ func TestManagerUpdateInfo(t *testing.T) {
 	}
 }
 
-func TestManagerUpdateTeam(t *testing.T) {
-	testcases := []struct {
-		managerID int
-		team      domain.Team
-		want      error
-	}{
-		{
-			managerID: 1,
-			team:      johnsTeam,
-			want:      nil,
-		},
-		{
-			managerID: 234,
-			team:      domain.Team{},
-			want:      storage.ErrManagerNotFound,
-		},
-	}
+// func TestManagerUpdateTeam(t *testing.T) {
+// 	testcases := []struct {
+// 		managerID int
+// 		team      domain.Team
+// 		want      error
+// 	}{
+// 		{
+// 			managerID: 1,
+// 			team:      johnsTeam,
+// 			want:      nil,
+// 		},
+// 		{
+// 			managerID: 234,
+// 			team:      domain.Team{},
+// 			want:      storage.ErrManagerNotFound,
+// 		},
+// 	}
 
-	mr := managerRepository{
-		managers: map[int]domain.Manager{
-			john.ID: {
-				ID:   john.ID,
-				Info: john.Info,
-				Team: domain.Team{},
-			},
-		},
-	}
+// 	mr := managerRepository{
+// 		managers: map[int]domain.Manager{
+// 			john.ID: {
+// 				ID:   john.ID,
+// 				Info: john.Info,
+// 				Team: domain.Team{},
+// 			},
+// 		},
+// 	}
 
-	for _, test := range testcases {
-		got := mr.UpdateTeam(test.managerID, test.team)
-		if got != test.want {
-			t.Errorf("error: got err '%v', want '%v'", got, test.want)
-		}
+// 	for _, test := range testcases {
+// 		got := mr.UpdateTeam(test.managerID, test.team)
+// 		if got != test.want {
+// 			t.Errorf("error: got err '%v', want '%v'", got, test.want)
+// 		}
 
-		if got == nil {
-			if v, ok := mr.managers[test.managerID]; ok {
-				if !reflect.DeepEqual(v.Team, test.team) {
-					t.Errorf("error: incorrect manager's team data in memory storage")
-				}
-			} else {
-				t.Errorf("error: manager not found in memory storage")
-			}
-		}
-	}
-}
+// 		if got == nil {
+// 			if v, ok := mr.managers[test.managerID]; ok {
+// 				if !reflect.DeepEqual(v.Team, test.team) {
+// 					t.Errorf("error: incorrect manager's team data in memory storage")
+// 				}
+// 			} else {
+// 				t.Errorf("error: manager not found in memory storage")
+// 			}
+// 		}
+// 	}
+// }
 
 func TestManagerGetByID(t *testing.T) {
 	testcases := []struct {

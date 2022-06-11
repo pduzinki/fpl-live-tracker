@@ -4,7 +4,6 @@ package domain
 type Manager struct {
 	ID   int         `bson:"_id"`
 	Info ManagerInfo `bson:"ManagerInfo"`
-	Team Team        `bson:"Team"` // TODO remove Team from Manager
 }
 
 //
@@ -18,7 +17,6 @@ type ManagerRepository interface {
 	Add(manager Manager) error
 	AddMany(managers []Manager) error
 	UpdateInfo(managerID int, info ManagerInfo) error
-	UpdateTeam(managerID int, team Team) error // TODO remove this
 	GetByID(id int) (Manager, error)
 	GetCount() (int, error)
 }

@@ -234,7 +234,7 @@ func (ms *managerService) Update() error {
 		// receive from managers chan
 		for wm := range managers {
 			dm := ms.convertToDomainManager(wm)
-			err := ms.mr.UpdateInfo(dm.ID, dm.Info)
+			err := ms.mr.Update(dm)
 			if err != nil {
 				log.Println("manager service: failed to add new manager", err)
 			}

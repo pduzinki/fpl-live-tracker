@@ -94,24 +94,27 @@ func TestManagerAddMany(t *testing.T) {
 	}
 }
 
-func TestManagerUpdateInfo(t *testing.T) {
+func TestManagerUpdate(t *testing.T) {
 	testcases := []struct {
-		managerID   int
-		managerInfo domain.ManagerInfo
-		want        error
+		managerID int
+		manager   domain.Manager
+		want      error
 	}{
 		{
 			managerID: john.ID,
-			managerInfo: domain.ManagerInfo{
-				Name:     john.Info.Name,
-				TeamName: "John United",
+			manager: domain.Manager{
+				ID: john.ID,
+				Info: domain.ManagerInfo{
+					Name:     john.Info.Name,
+					TeamName: "John United",
+				},
 			},
 			want: nil,
 		},
 		{
-			managerID:   0,
-			managerInfo: domain.ManagerInfo{},
-			want:        storage.ErrManagerNotFound,
+			managerID: 0,
+			manager:   domain.Manager{},
+			want:      storage.ErrManagerNotFound,
 		},
 	}
 
@@ -122,14 +125,14 @@ func TestManagerUpdateInfo(t *testing.T) {
 	}
 
 	for _, test := range testcases {
-		got := mr.UpdateInfo(test.managerID, test.managerInfo)
+		got := mr.Update(test.manager)
 		if got != test.want {
 			t.Errorf("error: got err '%v', want '%v'", got, test.want)
 		}
 
 		if got == nil {
 			if v, ok := mr.managers[test.managerID]; ok {
-				if !reflect.DeepEqual(v.Info, test.managerInfo) {
+				if !reflect.DeepEqual(v, test.manager) {
 					t.Errorf("error: incorrect manager data in memory storage")
 				}
 			} else {
@@ -138,52 +141,6 @@ func TestManagerUpdateInfo(t *testing.T) {
 		}
 	}
 }
-
-// func TestManagerUpdateTeam(t *testing.T) {
-// 	testcases := []struct {
-// 		managerID int
-// 		team      domain.Team
-// 		want      error
-// 	}{
-// 		{
-// 			managerID: 1,
-// 			team:      johnsTeam,
-// 			want:      nil,
-// 		},
-// 		{
-// 			managerID: 234,
-// 			team:      domain.Team{},
-// 			want:      storage.ErrManagerNotFound,
-// 		},
-// 	}
-
-// 	mr := managerRepository{
-// 		managers: map[int]domain.Manager{
-// 			john.ID: {
-// 				ID:   john.ID,
-// 				Info: john.Info,
-// 				Team: domain.Team{},
-// 			},
-// 		},
-// 	}
-
-// 	for _, test := range testcases {
-// 		got := mr.UpdateTeam(test.managerID, test.team)
-// 		if got != test.want {
-// 			t.Errorf("error: got err '%v', want '%v'", got, test.want)
-// 		}
-
-// 		if got == nil {
-// 			if v, ok := mr.managers[test.managerID]; ok {
-// 				if !reflect.DeepEqual(v.Team, test.team) {
-// 					t.Errorf("error: incorrect manager's team data in memory storage")
-// 				}
-// 			} else {
-// 				t.Errorf("error: manager not found in memory storage")
-// 			}
-// 		}
-// 	}
-// }
 
 func TestManagerGetByID(t *testing.T) {
 	testcases := []struct {

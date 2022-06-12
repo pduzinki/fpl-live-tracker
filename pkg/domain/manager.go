@@ -16,7 +16,7 @@ type ManagerInfo struct {
 type ManagerRepository interface {
 	Add(manager Manager) error
 	AddMany(managers []Manager) error
-	UpdateInfo(managerID int, info ManagerInfo) error
+	Update(manager Manager) error
 	GetByID(id int) (Manager, error)
 	GetCount() (int, error)
 }

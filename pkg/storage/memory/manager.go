@@ -46,13 +46,12 @@ func (mr *managerRepository) AddMany(managers []domain.Manager) error {
 }
 
 // Update updates manager with matching ID in memory storage, or returns error on failure
-func (mr *managerRepository) UpdateInfo(managerID int, info domain.ManagerInfo) error {
+func (mr *managerRepository) Update(manager domain.Manager) error {
 	mr.Lock()
 	defer mr.Unlock()
 
-	if m, ok := mr.managers[managerID]; ok {
-		m.Info = info
-		mr.managers[managerID] = m
+	if _, ok := mr.managers[manager.ID]; ok {
+		mr.managers[manager.ID] = manager
 		return nil
 	}
 

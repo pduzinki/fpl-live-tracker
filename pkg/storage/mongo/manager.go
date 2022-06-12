@@ -71,20 +71,15 @@ func (mr *managerRepository) AddMany(managers []domain.Manager) error {
 }
 
 // Update updates manager with matching ID in mongo collection, or returns error on failure
-func (mr *managerRepository) UpdateInfo(managerID int, info domain.ManagerInfo) error {
+func (mr *managerRepository) Update(manager domain.Manager) error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	filter := bson.M{"_id": managerID}
-	update := bson.M{
-		"$set": bson.M{
-			"ManagerInfo": info,
-		},
-	}
+	filter := bson.M{"_id": manager.ID}
 
-	result, err := mr.managers.UpdateOne(ctx, filter, update)
+	result, err := mr.managers.ReplaceOne(ctx, filter, manager)
 	if err != nil {
-		return err
+		return fmt.Errorf("storage: update record failed: %w", err)
 	}
 
 	if result.MatchedCount == 0 {

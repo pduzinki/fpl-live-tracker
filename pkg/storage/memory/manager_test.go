@@ -163,5 +163,30 @@ func TestManagerGetByID(t *testing.T) {
 }
 
 func TestManagerGetCount(t *testing.T) {
-	// TODO add test
+	testcases := []struct {
+		want    int
+		wantErr error
+	}{
+		{
+			want:    2,
+			wantErr: nil,
+		},
+	}
+
+	mr := managerRepository{
+		managers: map[int]domain.Manager{
+			john.ID: john,
+			jim.ID:  jim,
+		},
+	}
+
+	for _, test := range testcases {
+		got, gotErr := mr.GetCount()
+		if gotErr != test.wantErr {
+			t.Errorf("error: got err '%v', want err '%v'", gotErr, test.wantErr)
+		}
+		if got != test.want {
+			t.Errorf("error: got '%v', want '%v'", got, test.want)
+		}
+	}
 }

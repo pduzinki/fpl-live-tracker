@@ -48,12 +48,10 @@ func TestTeamAdd(t *testing.T) {
 
 func TestTeamUpdate(t *testing.T) {
 	testcases := []struct {
-		teamID int
-		team   domain.Team
-		want   error
+		team domain.Team
+		want error
 	}{
 		{
-			teamID: jacksTeam.ID,
 			team: domain.Team{
 				ID:         jacksTeam.ID,
 				GameweekID: 22,
@@ -61,9 +59,10 @@ func TestTeamUpdate(t *testing.T) {
 			want: nil,
 		},
 		{
-			teamID: 420,
-			team:   domain.Team{},
-			want:   storage.ErrTeamNotFound,
+			team: domain.Team{
+				ID: 420,
+			},
+			want: storage.ErrTeamNotFound,
 		},
 	}
 
@@ -80,7 +79,7 @@ func TestTeamUpdate(t *testing.T) {
 		}
 
 		if got == nil {
-			if v, ok := tr.teams[test.teamID]; ok {
+			if v, ok := tr.teams[test.team.ID]; ok {
 				if !reflect.DeepEqual(v, test.team) {
 					t.Errorf("error: incorrect team data in memory storage")
 				}

@@ -96,12 +96,10 @@ func TestManagerAddMany(t *testing.T) {
 
 func TestManagerUpdate(t *testing.T) {
 	testcases := []struct {
-		managerID int
-		manager   domain.Manager
-		want      error
+		manager domain.Manager
+		want    error
 	}{
 		{
-			managerID: john.ID,
 			manager: domain.Manager{
 				ID: john.ID,
 				Info: domain.ManagerInfo{
@@ -112,9 +110,10 @@ func TestManagerUpdate(t *testing.T) {
 			want: nil,
 		},
 		{
-			managerID: 0,
-			manager:   domain.Manager{},
-			want:      storage.ErrManagerNotFound,
+			manager: domain.Manager{
+				ID: 0,
+			},
+			want: storage.ErrManagerNotFound,
 		},
 	}
 
@@ -131,7 +130,7 @@ func TestManagerUpdate(t *testing.T) {
 		}
 
 		if got == nil {
-			if v, ok := mr.managers[test.managerID]; ok {
+			if v, ok := mr.managers[test.manager.ID]; ok {
 				if !reflect.DeepEqual(v, test.manager) {
 					t.Errorf("error: incorrect manager data in memory storage")
 				}

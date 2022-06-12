@@ -92,19 +92,16 @@ func TestTeamAdd(t *testing.T) {
 
 func TestTeamUpdate(t *testing.T) {
 	testcases := []struct {
-		teamID int
-		team   domain.Team
-		want   error
+		team domain.Team
+		want error
 	}{
 		{
-			teamID: jimsTeam.ID,
 			team: domain.Team{
 				ID: jimsTeam.ID,
 			},
 			want: nil,
 		},
 		{
-			teamID: 420,
 			team: domain.Team{
 				ID: 420,
 			},

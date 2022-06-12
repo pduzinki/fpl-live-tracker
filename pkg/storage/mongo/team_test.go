@@ -56,6 +56,11 @@ func TestMain(m *testing.M) {
 			log.Fatalf("failed to create new team repository: %v", err)
 		}
 
+		mr, err = NewManagerRepository(config)
+		if err != nil {
+			log.Fatalf("failed to create new manager repository: %v", err)
+		}
+
 		return nil
 	}); err != nil {
 		log.Fatalf("failed to connect to the container: %v", err)
@@ -63,6 +68,8 @@ func TestMain(m *testing.M) {
 
 	// seed data
 	tr.Add(jimsTeam)
+
+	mr.Add(john)
 
 	code := m.Run()
 

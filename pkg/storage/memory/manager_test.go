@@ -12,13 +12,6 @@ var (
 	jim  = domain.Manager{ID: 2, Info: domain.ManagerInfo{Name: "Jim Jim", TeamName: "FC Jim"}}
 	jane = domain.Manager{ID: 3, Info: domain.ManagerInfo{Name: "Jane Foo", TeamName: "Jane City"}}
 	joel = domain.Manager{ID: 66, Info: domain.ManagerInfo{Name: "Joel Bar", TeamName: "Bar AFC"}}
-
-	johnsTeam = domain.Team{
-		Picks: []domain.TeamPlayer{
-			{Player: domain.Player{ID: 1, Info: domain.PlayerInfo{Name: "Lukaku"}}, IsCaptain: true, IsViceCaptain: false},
-		},
-		TotalPoints: 123,
-	}
 )
 
 func TestManagerAdd(t *testing.T) {

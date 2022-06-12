@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"fpl-live-tracker/pkg/config"
 	"fpl-live-tracker/pkg/domain"
@@ -46,7 +47,14 @@ func (mr *managerRepository) Add(manager domain.Manager) error {
 
 	_, err := mr.managers.InsertOne(ctx, manager)
 	if err != nil {
-		return err
+		var werr mongo.WriteException
+		if errors.As(err, &werr) {
+			if len(werr.WriteErrors) > 0 && werr.WriteErrors[0].Code == 11000 {
+				return storage.ErrManagerAlreadyExists
+			}
+		}
+
+		return fmt.Errorf("storage: add record failed: %w", err)
 	}
 
 	return nil
@@ -89,41 +97,20 @@ func (mr *managerRepository) Update(manager domain.Manager) error {
 	return nil
 }
 
-// UpdateTeam updates team of manager with given ID, or returns error on failure
-func (mr *managerRepository) UpdateTeam(managerID int, team domain.Team) error {
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-
-	filter := bson.M{"_id": managerID}
-	update := bson.M{
-		"$set": bson.M{
-			"Team": team,
-		},
-	}
-
-	result, err := mr.managers.UpdateOne(ctx, filter, update)
-	if err != nil {
-		return err
-	}
-
-	if result.MatchedCount == 0 {
-		return storage.ErrManagerNotFound
-	}
-
-	return nil
-}
-
 // GetByID returns manager with given ID, or returns error on failure
 func (mr *managerRepository) GetByID(id int) (domain.Manager, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
 	result := mr.managers.FindOne(ctx, bson.M{"_id": id})
+	if result.Err() == mongo.ErrNoDocuments {
+		return domain.Manager{}, storage.ErrManagerNotFound
+	}
 
 	var manager domain.Manager
 	err := result.Decode(&manager)
 	if err != nil {
-		return domain.Manager{}, err
+		return domain.Manager{}, fmt.Errorf("storage: get record failed: %w", err)
 	}
 
 	return manager, nil
@@ -136,7 +123,7 @@ func (mr *managerRepository) GetCount() (int, error) {
 
 	count, err := mr.managers.CountDocuments(ctx, bson.M{})
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("storage: get record count failed: %w", err)
 	}
 
 	return int(count), nil

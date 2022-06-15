@@ -10,7 +10,7 @@ type Wrapper struct {
 	GetPlayersStatsFn  func(int) ([]wrapper.PlayerStats, error)
 	GetManagersCountFn func() (int, error)
 	GetManagerFn       func(id int) (wrapper.Manager, error)
-	GetManagersTeamFn  func(managerID, gameweekID int) (wrapper.Team, error)
+	GetTeamFn          func(managerID, gameweekID int) (wrapper.Team, error)
 }
 
 func (w *Wrapper) GetClubs() ([]wrapper.Club, error) {
@@ -40,6 +40,6 @@ func (w *Wrapper) GetManagersCount() (int, error) {
 func (w *Wrapper) GetManager(id int) (wrapper.Manager, error) {
 	return w.GetManagerFn(id)
 }
-func (w *Wrapper) GetManagersTeam(managerID, gameweekID int) (wrapper.Team, error) {
-	return w.GetManagersTeamFn(managerID, gameweekID)
+func (w *Wrapper) GetTeam(managerID, gameweekID int) (wrapper.Team, error) {
+	return w.GetTeamFn(managerID, gameweekID)
 }

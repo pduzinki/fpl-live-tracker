@@ -14,6 +14,7 @@ import (
 	"fpl-live-tracker/pkg/services/team"
 	"fpl-live-tracker/pkg/services/tracker"
 	"fpl-live-tracker/pkg/storage/memory"
+	"fpl-live-tracker/pkg/storage/mongo"
 	"fpl-live-tracker/pkg/wrapper"
 )
 
@@ -48,18 +49,22 @@ func main() {
 		log.Fatalln("error: failed to init player service")
 	}
 
-	// mr, err := mongo.NewManagerRepository(cfg.MongoConfig)
-	// if err != nil {
-	// 	log.Fatalln("error: failed to init manager repository")
-	// }
-	mr := memory.NewManagerRepository()
+	mr, err := mongo.NewManagerRepository(cfg.MongoConfig)
+	if err != nil {
+		log.Fatalln("error: failed to init manager repository")
+	}
+	// mr := memory.NewManagerRepository()
 
 	ms, err := manager.NewManagerService(mr, gs, wr)
 	if err != nil {
 		log.Fatalln("error: failed to init manager service")
 	}
 
-	tr := memory.NewTeamRepository()
+	tr, err := mongo.NewTeamRepository(cfg.MongoConfig)
+	if err != nil {
+		log.Fatalln("error: failed to init team repository")
+	}
+
 	ts := team.NewTeamService(tr, gs, ps, wr)
 
 	tracker, err := tracker.NewTracker(

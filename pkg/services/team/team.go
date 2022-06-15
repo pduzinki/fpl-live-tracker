@@ -74,7 +74,7 @@ func (ts *teamService) UpdateTeams() error {
 	for i := 0; i < workerCount; i++ {
 		go func() {
 			for id := range ids {
-				wt, err := ts.wr.GetManagersTeam(id, gameweek.ID)
+				wt, err := ts.wr.GetTeam(id, gameweek.ID)
 
 				if herr, ok := err.(wrapper.ErrorHttpNotOk); ok {
 					statusCode := herr.GetHttpStatusCode()
@@ -112,9 +112,20 @@ func (ts *teamService) UpdateTeams() error {
 
 	innerWg.Add(1)
 	go func() {
-		// send to ids chan
+		// if team needs an update, send id to ids chan
+		currentGw, _ := ts.gs.GetCurrentGameweek()
+		if err != nil {
+			log.Println("team service: failed to get current gameweek from gameweek service")
+		}
+
 		for id := 1; id <= inFplManagers; id++ {
-			ids <- id
+			team, err := ts.tr.GetByID(id)
+			if err != nil || team.GameweekID < currentGw.ID {
+				ids <- id
+			} else {
+				// team already up-to-date, skipping
+				workerWg.Done()
+			}
 		}
 		innerWg.Done()
 	}()

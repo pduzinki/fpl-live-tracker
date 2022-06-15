@@ -226,7 +226,13 @@ func (ts *teamService) UpdatePoints() error {
 
 //
 func (ts *teamService) GetByID(id int) (domain.Team, error) {
-	// TODO add validations
+	team := domain.Team{ID: id}
+
+	err := runTeamValidations(&team, idHigherThanZero)
+	if err != nil {
+		return domain.Team{}, err
+	}
+
 	return ts.tr.GetByID(id)
 }
 

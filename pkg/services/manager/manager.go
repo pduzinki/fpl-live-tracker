@@ -46,15 +46,18 @@ func (ms *managerService) AddNew() error {
 	log.Println("manager service: AddNew started")
 	inFplManagers, err := ms.wr.GetManagersCount()
 	if err != nil {
+		log.Println("manager service:", err)
 		return err
 	}
 
 	inStorageManagers, err := ms.mr.GetCount()
 	if err != nil {
+		log.Println("manager service:", err)
 		return err
 	}
 
 	if inFplManagers == inStorageManagers {
+		log.Println("manager service: no new managers to add, AddNew returned")
 		return nil // everything up-to-date, nothing to do here
 	}
 
@@ -157,6 +160,7 @@ func (ms *managerService) Update() error {
 	log.Println("manager service: UpdateInfos started")
 	inStorageManagers, err := ms.mr.GetCount()
 	if err != nil {
+		log.Println("manager service:", err)
 		return err
 	}
 

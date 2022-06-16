@@ -24,7 +24,7 @@ type TeamService interface {
 	GetByID(id int) (domain.Team, error)
 }
 
-//
+// teamService implements TeamService interface
 type teamService struct {
 	tr domain.TeamRepository
 	gs gameweek.GameweekService
@@ -32,7 +32,7 @@ type teamService struct {
 	wr wrapper.Wrapper
 }
 
-//
+// NewTeamService returns new instance of TeamService
 func NewTeamService(tr domain.TeamRepository, gs gameweek.GameweekService,
 	ps player.PlayerService, wr wrapper.Wrapper) TeamService {
 	rand.Seed(time.Now().UnixNano())
@@ -44,7 +44,8 @@ func NewTeamService(tr domain.TeamRepository, gs gameweek.GameweekService,
 	}
 }
 
-//
+// UpdateTeams queries FPL API and updates all teams data
+// (e.g. gameweek picks, chips played, hits taken), in its underlying team storage
 func (ts *teamService) UpdateTeams() error {
 	log.Println("team service: UpdateTeams started")
 	// keep in mind, that number of teams can be lower than number of managers
@@ -174,7 +175,7 @@ func (ts *teamService) UpdateTeams() error {
 	return nil
 }
 
-//
+// UpdatePoints updates points gained for all of the teams in the team storage
 func (ts *teamService) UpdatePoints() error {
 	log.Println("team service: UpdatePoints started")
 
@@ -235,7 +236,7 @@ func (ts *teamService) UpdatePoints() error {
 	return nil
 }
 
-//
+// GetByID returns team with given ID, or an error otherwise
 func (ts *teamService) GetByID(id int) (domain.Team, error) {
 	team := domain.Team{ID: id}
 

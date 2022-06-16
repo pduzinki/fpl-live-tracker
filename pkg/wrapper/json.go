@@ -1,10 +1,11 @@
 package wrapper
 
 type Manager struct {
-	ID        int    `json:"id"`
-	FirstName string `json:"player_first_name"`
-	LastName  string `json:"player_last_name"`
-	Name      string `json:"name"`
+	ID           int    `json:"id"`
+	FirstName    string `json:"player_first_name"`
+	LastName     string `json:"player_last_name"`
+	Name         string `json:"name"`
+	CurrentEvent int    `json:"current_event"`
 }
 
 type History struct {

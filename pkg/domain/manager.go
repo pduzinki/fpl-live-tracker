@@ -2,8 +2,9 @@ package domain
 
 // Manager represents a human being that plays Fantasy Premier League
 type Manager struct {
-	ID   int         `bson:"_id"`
-	Info ManagerInfo `bson:"ManagerInfo"`
+	ID          int         `bson:"_id"`
+	UpdatedInGw int         `bson:"UpdatedInGw"`
+	Info        ManagerInfo `bson:"ManagerInfo"`
 }
 
 //

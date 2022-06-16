@@ -273,7 +273,8 @@ func (ms *managerService) GetByID(id int) (domain.Manager, error) {
 // convertToDomainManager returns domain.Manager, consistent with given wrapper.Manager
 func (ms *managerService) convertToDomainManager(wm wrapper.Manager) domain.Manager {
 	return domain.Manager{
-		ID: wm.ID,
+		ID:          wm.ID,
+		UpdatedInGw: wm.CurrentEvent,
 		Info: domain.ManagerInfo{
 			Name:     fmt.Sprintf("%s %s", wm.FirstName, wm.LastName),
 			TeamName: wm.Name,

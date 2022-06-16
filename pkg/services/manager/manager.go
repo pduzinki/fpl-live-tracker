@@ -164,6 +164,11 @@ func (ms *managerService) Update() error {
 		return err
 	}
 
+	gameweek, err := ms.gs.GetCurrentGameweek()
+	if err != nil {
+		log.Println("manager service:", err)
+	}
+
 	chanSize := runtime.NumCPU() * 4
 	workerCount := runtime.NumCPU() * 16
 
@@ -219,7 +224,13 @@ func (ms *managerService) Update() error {
 	go func() {
 		// send to ids chan
 		for id := 1; id <= inStorageManagers; id++ {
-			ids <- id
+			manager, err := ms.mr.GetByID(id)
+			if err != nil || manager.UpdatedInGw < gameweek.ID || gameweek.ID == 0 {
+				ids <- id
+			} else {
+				// manager already up-to-date, skipping
+				workerWg.Done()
+			}
 		}
 		innerWg.Done()
 	}()

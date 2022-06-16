@@ -12,7 +12,8 @@
             // "program": "${workspaceRoot}",
             "program": "${workspaceRoot}/cmd/server/",
             "env": {},
-            "args": []
+            "args": [],
+            "buildFlags": "-tags 'dev'"
         }
     ]
 }

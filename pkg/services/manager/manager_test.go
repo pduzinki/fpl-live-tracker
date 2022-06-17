@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-var john = domain.Manager{ID: 1, Info: domain.ManagerInfo{Name: "John", TeamName: "John FC"}}
+var john = domain.Manager{ID: 1, Name: "John", TeamName: "John FC"}
 
 func TestManagerServiceUpdateInfos(t *testing.T) {
 	// TODO add test

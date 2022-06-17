@@ -286,10 +286,8 @@ func (ms *managerService) convertToDomainManager(wm wrapper.Manager) domain.Mana
 	return domain.Manager{
 		ID:          wm.ID,
 		UpdatedInGw: wm.CurrentEvent,
-		Info: domain.ManagerInfo{
-			Name:     fmt.Sprintf("%s %s", wm.FirstName, wm.LastName),
-			TeamName: wm.Name,
-		},
+		Name:        fmt.Sprintf("%s %s", wm.FirstName, wm.LastName),
+		TeamName:    wm.Name,
 	}
 }
 

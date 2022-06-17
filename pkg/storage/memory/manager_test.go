@@ -8,10 +8,10 @@ import (
 )
 
 var (
-	john = domain.Manager{ID: 1, Info: domain.ManagerInfo{Name: "John Doe", TeamName: "FC John"}}
-	jim  = domain.Manager{ID: 2, Info: domain.ManagerInfo{Name: "Jim Jim", TeamName: "FC Jim"}}
-	jane = domain.Manager{ID: 3, Info: domain.ManagerInfo{Name: "Jane Foo", TeamName: "Jane City"}}
-	joel = domain.Manager{ID: 66, Info: domain.ManagerInfo{Name: "Joel Bar", TeamName: "Bar AFC"}}
+	john = domain.Manager{ID: 1, Name: "John Doe", TeamName: "FC John"}
+	jim  = domain.Manager{ID: 2, Name: "Jim Jim", TeamName: "FC Jim"}
+	jane = domain.Manager{ID: 3, Name: "Jane Foo", TeamName: "Jane City"}
+	joel = domain.Manager{ID: 66, Name: "Joel Bar", TeamName: "Bar AFC"}
 )
 
 func TestManagerAdd(t *testing.T) {
@@ -94,11 +94,9 @@ func TestManagerUpdate(t *testing.T) {
 	}{
 		{
 			manager: domain.Manager{
-				ID: john.ID,
-				Info: domain.ManagerInfo{
-					Name:     john.Info.Name,
-					TeamName: "John United",
-				},
+				ID:       john.ID,
+				Name:     john.Name,
+				TeamName: "John United",
 			},
 			want: nil,
 		},

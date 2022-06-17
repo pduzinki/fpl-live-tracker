@@ -3,8 +3,6 @@ package team
 import "fpl-live-tracker/pkg/domain"
 
 var (
-	john = domain.Manager{ID: 1, Info: domain.ManagerInfo{Name: "John", TeamName: "John FC"}}
-
 	ramsdale = domain.TeamPlayer{Player: domain.Player{
 		Info: domain.PlayerInfo{Position: "GKP"},
 		Stats: domain.PlayerStats{

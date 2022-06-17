@@ -2,15 +2,10 @@ package domain
 
 // Manager represents a human being that plays Fantasy Premier League
 type Manager struct {
-	ID          int         `bson:"_id"`
-	UpdatedInGw int         `bson:"UpdatedInGw"`
-	Info        ManagerInfo `bson:"ManagerInfo"`
-}
-
-//
-type ManagerInfo struct {
-	Name     string `bson:"Name"`
-	TeamName string `bson:"TeamName"` // TODO move fields from ManagerInfo to Manager
+	ID          int    `bson:"_id"`
+	UpdatedInGw int    `bson:"UpdatedInGw"`
+	Name        string `bson:"Name"`
+	TeamName    string `bson:"TeamName"`
 }
 
 // ManagerRepository is an interface for interacting with Manager storage

@@ -11,6 +11,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -30,6 +31,12 @@ func NewManagerRepository(config config.MongoConfig) (domain.ManagerRepository, 
 		return nil, err
 	}
 	// defer client.Disconnect(context.TODO())
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	if err := client.Ping(ctx, readpref.Primary()); err != nil {
+		return nil, fmt.Errorf("manager repository: failed to ping mongodb %w", err)
+	}
 
 	db := client.Database(config.Database)
 	managers := db.Collection("managers")

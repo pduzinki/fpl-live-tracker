@@ -143,7 +143,7 @@ func (t *Tracker) Track() {
 		log.Println("tracker:", err)
 	}
 
-	err = t.Ms.AddNew()
+	err = t.Ms.Update()
 	if err != nil {
 		log.Println("tracker:", err)
 	}
@@ -187,7 +187,7 @@ func (t *Tracker) Track() {
 				}
 				timeToUpdateManagersInfos = false
 			}
-			err = t.Ms.AddNew() // many times between gameweeks
+			err = t.Ms.Update() // many times between gameweeks
 			if err != nil {
 				log.Println("tracker:", err)
 			}

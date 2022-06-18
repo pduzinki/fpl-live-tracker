@@ -1,6 +1,7 @@
 package mongo
 
 import (
+	"fmt"
 	"fpl-live-tracker/pkg/config"
 	"fpl-live-tracker/pkg/domain"
 	"fpl-live-tracker/pkg/storage"
@@ -12,6 +13,8 @@ import (
 	"github.com/ory/dockertest"
 	"github.com/ory/dockertest/docker"
 )
+
+const hostPort = 27018
 
 var (
 	jimsTeam  = domain.Team{ID: 1}
@@ -34,7 +37,7 @@ func TestMain(m *testing.M) {
 		ExposedPorts: []string{"27017"},
 		PortBindings: map[docker.Port][]docker.PortBinding{
 			"27017": {
-				{HostIP: "0.0.0.0", HostPort: "27017"},
+				{HostIP: "0.0.0.0", HostPort: fmt.Sprint(hostPort)},
 			},
 		},
 	}
@@ -47,7 +50,7 @@ func TestMain(m *testing.M) {
 	if err = pool.Retry(func() error {
 		config := config.MongoConfig{
 			Host:     "localhost",
-			Port:     27017,
+			Port:     hostPort,
 			Database: "fpl-live-tracker",
 		}
 

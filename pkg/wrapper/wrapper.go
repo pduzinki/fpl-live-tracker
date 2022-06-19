@@ -22,6 +22,7 @@ type Wrapper interface {
 	GetPlayersStats(gameweekID int) ([]PlayerStats, error)
 	GetManagersCount() (int, error)
 	GetManager(id int) (Manager, error)
+	GetManagersHistory(id int) (History, error)
 	GetTeam(managerID, gameweekID int) (Team, error)
 }
 

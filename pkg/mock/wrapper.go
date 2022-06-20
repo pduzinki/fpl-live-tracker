@@ -3,15 +3,15 @@ package mock
 import "fpl-live-tracker/pkg/wrapper"
 
 type Wrapper struct {
-	GetClubsFn           func() ([]wrapper.Club, error)
-	GetFixturesFn        func() ([]wrapper.Fixture, error)
-	GetGameweeksFn       func() ([]wrapper.Gameweek, error)
-	GetPlayersFn         func() ([]wrapper.Player, error)
-	GetPlayersStatsFn    func(int) ([]wrapper.PlayerStats, error)
-	GetManagersCountFn   func() (int, error)
-	GetManagerFn         func(id int) (wrapper.Manager, error)
-	GetManagersHistoryFn func(id int) (wrapper.History, error)
-	GetTeamFn            func(managerID, gameweekID int) (wrapper.Team, error)
+	GetClubsFn         func() ([]wrapper.Club, error)
+	GetFixturesFn      func() ([]wrapper.Fixture, error)
+	GetGameweeksFn     func() ([]wrapper.Gameweek, error)
+	GetPlayersFn       func() ([]wrapper.Player, error)
+	GetPlayersStatsFn  func(int) ([]wrapper.PlayerStats, error)
+	GetManagersCountFn func() (int, error)
+	GetManagerFn       func(id int) (wrapper.Manager, error)
+	GetHistoryFn       func(id int) (wrapper.History, error)
+	GetTeamFn          func(managerID, gameweekID int) (wrapper.Team, error)
 }
 
 func (w *Wrapper) GetClubs() ([]wrapper.Club, error) {
@@ -42,8 +42,8 @@ func (w *Wrapper) GetManager(id int) (wrapper.Manager, error) {
 	return w.GetManagerFn(id)
 }
 
-func (w *Wrapper) GetManagersHistory(id int) (wrapper.History, error) {
-	return w.GetManagersHistoryFn(id)
+func (w *Wrapper) GetHistory(id int) (wrapper.History, error) {
+	return w.GetHistoryFn(id)
 }
 
 func (w *Wrapper) GetTeam(managerID, gameweekID int) (wrapper.Team, error) {

@@ -2,13 +2,13 @@ package domain
 
 //
 type Team struct {
-	ID                   int          `bson:"_id"`
-	GameweekID           int          `bson:"GameweekID"`
-	Picks                []TeamPlayer `bson:"Picks"`
-	ActiveChip           string       `bson:"ActiveChip"`
-	HitPoints            int          `bson:"HitPoints"`
-	TotalPoints          int          `bson:"TotalPoints"`
-	TotalPointsAfterSubs int          `bson:"TotalPointsAfterSubs"`
+	ID              int          `bson:"_id"`
+	GameweekID      int          `bson:"GameweekID"`
+	Picks           []TeamPlayer `bson:"Picks"`
+	ActiveChip      string       `bson:"ActiveChip"`
+	HitPoints       int          `bson:"HitPoints"`
+	Points          int          `bson:"TotalPoints"`
+	PointsAfterSubs int          `bson:"TotalPointsAfterSubs"`
 	// OverallRank int
 }
 

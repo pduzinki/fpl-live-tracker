@@ -22,7 +22,7 @@ type Wrapper interface {
 	GetPlayersStats(gameweekID int) ([]PlayerStats, error)
 	GetManagersCount() (int, error)
 	GetManager(id int) (Manager, error)
-	GetManagersHistory(id int) (History, error)
+	GetHistory(id int) (History, error)
 	GetTeam(managerID, gameweekID int) (Team, error)
 }
 
@@ -145,9 +145,9 @@ func (w *wrapper) GetManager(id int) (Manager, error) {
 	return m, nil
 }
 
-// GetManagersHistory queries https://fantasy.premierleague.com/api/entry/{id}/history/
+// GetHistory queries https://fantasy.premierleague.com/api/entry/{id}/history/
 // and returns wrapper.History, containing basic manager's gameweeks data
-func (w *wrapper) GetManagersHistory(id int) (History, error) {
+func (w *wrapper) GetHistory(id int) (History, error) {
 	url := fmt.Sprintf(w.baseURL+"/entry/%d/history/", id)
 	var h History
 

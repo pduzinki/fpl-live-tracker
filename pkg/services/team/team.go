@@ -289,8 +289,8 @@ func (ts *teamService) updateTeamPoints(teamID int) error {
 	totalPoints := calculateTotalPoints(&team)
 	subPoints := calculateSubPoints(&team)
 
-	team.TotalPoints = totalPoints - team.HitPoints
-	team.TotalPointsAfterSubs = totalPoints + subPoints - team.HitPoints
+	team.Points = totalPoints - team.HitPoints
+	team.PointsAfterSubs = totalPoints + subPoints - team.HitPoints
 
 	err = ts.tr.Update(team)
 	if err != nil {

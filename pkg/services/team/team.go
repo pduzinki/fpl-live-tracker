@@ -145,6 +145,8 @@ func (ts *teamService) UpdateTeams() error {
 				log.Println("team service: failed to convert team data")
 			}
 
+			dt.PrevOverallPoints = dt.OverallPoints - dt.GwPoints + dt.GwHitPoints
+
 			err = ts.tr.Update(dt)
 			if err == storage.ErrTeamNotFound {
 				err = ts.tr.Add(dt)
@@ -248,11 +250,16 @@ func (ts *teamService) GetByID(id int) (domain.Team, error) {
 // convertToDomainTeam returns domain.Team, consistent with given wrapper.Team
 func (ts *teamService) convertToDomainTeam(wt wrapper.Team) (domain.Team, error) {
 	team := domain.Team{
-		ID:         wt.ID,
-		GameweekID: wt.EntryHistory.GameweekID,
-		Picks:      make([]domain.TeamPlayer, 0, 15),
-		ActiveChip: wt.ActiveChip,
-		HitPoints:  wt.EntryHistory.EventTransfersCost,
+		ID:               wt.ID,
+		GameweekID:       wt.EntryHistory.GameweekID,
+		ActiveChip:       wt.ActiveChip,
+		GwPoints:         wt.EntryHistory.Points,
+		GwPointsWithSubs: 0,
+		GwHitPoints:      wt.EntryHistory.EventTransfersCost,
+		OverallPoints:    wt.EntryHistory.TotalPoints,
+		GwRank:           0,
+		OverallRank:      0, //wt.EntryHistory.OverallRank,
+		Picks:            make([]domain.TeamPlayer, 0, 15),
 	}
 
 	for _, pick := range wt.Picks {
@@ -289,8 +296,8 @@ func (ts *teamService) updateTeamPoints(teamID int) error {
 	totalPoints := calculateTotalPoints(&team)
 	subPoints := calculateSubPoints(&team)
 
-	team.Points = totalPoints - team.HitPoints
-	team.PointsAfterSubs = totalPoints + subPoints - team.HitPoints
+	team.GwPoints = totalPoints                     //- team.GwHitPoints
+	team.GwPointsWithSubs = totalPoints + subPoints //- team.GwHitPoints
 
 	err = ts.tr.Update(team)
 	if err != nil {

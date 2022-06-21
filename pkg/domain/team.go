@@ -2,14 +2,17 @@ package domain
 
 //
 type Team struct {
-	ID              int          `bson:"_id"`
-	GameweekID      int          `bson:"GameweekID"`
-	Picks           []TeamPlayer `bson:"Picks"`
-	ActiveChip      string       `bson:"ActiveChip"`
-	HitPoints       int          `bson:"HitPoints"`
-	Points          int          `bson:"TotalPoints"`
-	PointsAfterSubs int          `bson:"TotalPointsAfterSubs"`
-	// OverallRank int
+	ID                int          `bson:"_id"`
+	GameweekID        int          `bson:"GameweekID"`
+	ActiveChip        string       `bson:"ActiveChip"`
+	GwPoints          int          `bson:"GwPoints"`          // points gained in current gw
+	GwPointsWithSubs  int          `bson:"GwPointsWithSubs"`  // points gained in current gw with possible subs included
+	GwHitPoints       int          `bson:"GwHitPoints"`       // hit points taken in current gw
+	PrevOverallPoints int          `bson:"PrevOverallPoints"` // overall points before start of current gw
+	OverallPoints     int          `bson:"OverallPoints"`     // overall points with current gw points included
+	GwRank            int          `bson:"GwRank"`
+	OverallRank       int          `bson:"OverallRank"`
+	Picks             []TeamPlayer `bson:"Picks"`
 }
 
 //

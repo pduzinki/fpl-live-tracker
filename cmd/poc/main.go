@@ -224,11 +224,11 @@ func main() {
 
 func convert(wt wrapper.Team) domain.Team {
 	team := domain.Team{
-		ID:         wt.ID,
-		GameweekID: wt.EntryHistory.GameweekID,
-		Picks:      nil,
-		ActiveChip: wt.ActiveChip,
-		HitPoints:  wt.EntryHistory.EventTransfersCost,
+		ID:          wt.ID,
+		GameweekID:  wt.EntryHistory.GameweekID,
+		Picks:       nil,
+		ActiveChip:  wt.ActiveChip,
+		GwHitPoints: wt.EntryHistory.EventTransfersCost,
 	}
 
 	return team

@@ -293,11 +293,14 @@ func (ts *teamService) updateTeamPoints(teamID int) error {
 		return err
 	}
 
-	totalPoints := calculateTotalPoints(&team)
-	subPoints := calculateSubPoints(&team)
+	gwPoints := calculateGwPoints(&team)
+	subsPoints := calculateSubsPoints(&team)
 
-	team.GwPoints = totalPoints                     //- team.GwHitPoints
-	team.GwPointsWithSubs = totalPoints + subPoints //- team.GwHitPoints
+	team.GwPoints = gwPoints
+	team.GwPointsWithSubs = team.GwPoints + subsPoints
+	team.GwPointsWithHits = gwPoints - team.GwHitPoints
+	team.GwPointsWithHitsAndSubs = team.GwPointsWithHits + subsPoints
+	team.OverallPoints = team.PrevOverallPoints + team.GwPointsWithHitsAndSubs
 
 	err = ts.tr.Update(team)
 	if err != nil {

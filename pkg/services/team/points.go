@@ -6,7 +6,7 @@ import (
 )
 
 //
-func calculateTotalPoints(team *domain.Team) int {
+func calculateGwPoints(team *domain.Team) int {
 	if len(team.Picks) == 0 {
 		log.Println("calculateTotalPoints: team has no players!")
 		return 0
@@ -34,15 +34,15 @@ func calculateTotalPoints(team *domain.Team) int {
 }
 
 //
-func calculateSubPoints(team *domain.Team) int {
-	subPoints := 0
+func calculateSubsPoints(team *domain.Team) int {
+	subsPoints := 0
 
 	if len(team.Picks) == 0 {
 		log.Println("calculateSubPoints: team has no players!")
-		return subPoints
+		return subsPoints
 	}
 	if team.ActiveChip == "bboost" {
-		return subPoints
+		return subsPoints
 	}
 
 	// clear sub flags
@@ -108,19 +108,19 @@ func calculateSubPoints(team *domain.Team) int {
 		for i := 0; i < 11; i++ {
 			if team.Picks[i].IsViceCaptain {
 				if team.ActiveChip == tripleCaptainActive {
-					subPoints += team.Picks[i].Stats.TotalPoints * 2
+					subsPoints += team.Picks[i].Stats.TotalPoints * 2
 				} else {
-					subPoints += team.Picks[i].Stats.TotalPoints
+					subsPoints += team.Picks[i].Stats.TotalPoints
 				}
 			}
 		}
 	}
 
 	for _, s := range subsIn {
-		subPoints += s.Stats.TotalPoints
+		subsPoints += s.Stats.TotalPoints
 	}
 
-	return subPoints
+	return subsPoints
 }
 
 //

@@ -34,7 +34,7 @@ func TestCalculateTotalPoints(t *testing.T) {
 	}
 
 	for _, test := range testcases {
-		got := calculateTotalPoints(&test.team)
+		got := calculateGwPoints(&test.team)
 		if got != test.want {
 			t.Errorf("error: for test '%s': want %v, got %v", test.name, test.want, got)
 		}
@@ -105,7 +105,7 @@ func TestCalculateSubPoints(t *testing.T) {
 	}
 
 	for _, test := range testcases {
-		got := calculateSubPoints(&test.team)
+		got := calculateSubsPoints(&test.team)
 		if got != test.want {
 			t.Errorf("error: for test '%s': want %v, got %v", test.name, test.want, got)
 		}
